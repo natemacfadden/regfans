@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "regfans"
+version = "0.0.1"
+description = "Regular fans of vector configurations"
+authors = [{ name = "Nate MacFadden" }]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+    "python-flint",
+    "ortools",
+    "networkx",
+    "numpy",
+    "scipy",
+    "triangulumancer",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+test = [
+  "pplpy",
+  "pytest"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

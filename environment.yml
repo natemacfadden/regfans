@@ -1,0 +1,14 @@
+name: regfans
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - python-flint
+  - pplpy
+  - pytest
+  - scipy
+  - pip
+  - pip:
+    - networkx
+    - triangulumancer
+    - -e .
