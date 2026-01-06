@@ -29,6 +29,9 @@ test = [
   "pytest"
 ]
 
+[project.urls]
+Repository = "https://github.com/natemacfadden/regfans"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
