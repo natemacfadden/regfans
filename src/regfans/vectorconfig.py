@@ -767,6 +767,10 @@ class VectorConfiguration:
 
         # adjust heights for PC such that the triangulation is star...
         # just ensure that 0 is in all simplices
+        #
+        # this should always be true by construction. Maybe perturbations of
+        # the heights in the various backend for odd heights like those which
+        # give subdivisions cause the origin to be skipped...
         height_norm = np.linalg.norm(heights)
         height_orig = -height_norm
         while True:
