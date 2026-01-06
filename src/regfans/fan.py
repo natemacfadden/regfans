@@ -548,7 +548,8 @@ class Fan:
             raise NotImplementedError
 
         # just check if central subdivision is a refinement
-        return all((self.secondary_cone() @ np.ones(self.vc.size)) >= 0)
+        H = self.secondary_cone_hyperplanes()
+        return all((H @ np.ones(self.vc.size)) >= 0)
 
     def is_triangulation(self) -> bool:
         """
@@ -590,7 +591,8 @@ class Fan:
         True if the fan is regular. False otherwise.
         """
         if self._is_regular is None:
-            self._is_regular = util.is_solid(H=self.secondary_cone())
+            H = self.secondary_cone_hyperplanes()
+            self._is_regular = util.is_solid(H=H)
 
         return self._is_regular
 
@@ -611,7 +613,7 @@ class Fan:
 
         if self.is_regular():
             # get a non-negative point since those heights are easier
-            H = self.secondary_cone()
+            H = self.secondary_cone_hyperplanes()
             self._heights = util.find_interior_point(H=H, nonneg=True)
             return self._heights
         else:
@@ -1202,8 +1204,8 @@ class Fan:
         # ------------
         # get the initial triangulation + heights
         T_curr   = self
-        sc_curr  = T_curr.secondary_cone(via_circuits=True,
-                                         verbosity=verbosity-1)
+        sc_curr  = T_curr.secondary_cone_hyperplanes(via_circuits=True,
+                                                     verbosity=verbosity-1)
         sc_curr  = np.array(sc_curr)
         
         if h_init is None:
@@ -1333,7 +1335,7 @@ class Fan:
                 hook_flip(T_curr, T_new, circ)
             
             T_curr    = T_new
-            sc_curr   = T_curr.secondary_cone()
+            sc_curr   = T_curr.secondary_cone_hyperplanes()
             sc_curr   = np.array(sc_curr)
 
             # save to history
@@ -1487,7 +1489,7 @@ class Fan:
 
     neighbor_triangulations = neighbors
 
-    def secondary_cone(self,
+    def secondary_cone_hyperplanes(self,
         via_circuits: bool = False,
         verbosity: int = 0) -> "ArrayLike":
         """
