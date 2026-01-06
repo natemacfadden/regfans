@@ -350,23 +350,23 @@ class Fan:
             return vecs
 
     def cones(self,
-        as_inds: bool = False,
         as_rays: bool = False,
         as_hyps: bool = False,
+        as_inds: bool = False,
         ind_offset: int=0) -> Union[ tuple[tuple[int]], list["ArrayLike"] ]:
         """
         **Description:**
         Returns the cones in the fan in a variety of formats. They are:
             - (default) as a tuple of labels
-            - (as_inds=True) as a tuple of indices
             - (as_rays=True) as an array whose rows are the generators
             - (as_hyps=True) as an array whose rows are hyperplane normals
+            - (as_inds=True) as a tuple of indices
         Optionally, allow an offset to the indices.
 
         **Arguments:**
-        - `as_inds`:    Whether to return the cones as indices (not labels).
         - `as_rays`:    Whether to return the cones as their generators.
         - `as_hyps`:    Whether to return the cones as their hyperplanes.
+        - `as_inds`:    Whether to return the cones as indices (not labels).
         - `ind_offset`: An additive offset for the indices
 
         **Returns:**
@@ -1489,7 +1489,6 @@ class Fan:
 
     def secondary_cone(self,
         via_circuits: bool = False,
-        project_lineality: bool = False,
         verbosity: int = 0) -> "ArrayLike":
         """
         **Description:**
@@ -1513,10 +1512,6 @@ class Fan:
                                cone. Should always be correct if the fan is
                                regular but dangerous/not correct for checking
                                irregularity... Alternative is local folding.
-        - `project_lineality`: Secondary cones have linear subspaces ('lineality
-                               spaces'). These can be projected out without
-                               loss of information, giving a cone in the
-                               chamber complex.
         - `verbosity`:         The verbosity level. Higher is more verbose.
 
         **Returns:**
