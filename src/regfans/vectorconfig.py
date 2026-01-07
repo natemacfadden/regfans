@@ -791,9 +791,6 @@ class VectorConfiguration:
 
         return self.subdivide(cells=simp_labels)
 
-    # aliases
-    triangulate = subdivide
-
     def all_triangulations(
         self,
         only_fine: bool = False,
