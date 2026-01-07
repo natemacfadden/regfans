@@ -1205,7 +1205,7 @@ class Fan:
         # get the initial triangulation + heights
         T_curr   = self
         sc_curr  = T_curr.secondary_cone_hyperplanes(via_circuits=True,
-                                                     verbosity=verbosity-1)
+                                                     verbosity=-1)
         sc_curr  = np.array(sc_curr)
         
         if h_init is None:
@@ -1280,9 +1280,9 @@ class Fan:
             first_hit_ind, first_hit_dist = util.first_hit(h_curr, h_target, sc_curr)
             if first_hit_ind is None:
                 msg = "first_hit_ind=None... should've been caught earlier... "
-                msg += f"min(H@h_curr)={np.min(H@h_curr)}; "
-                msg += f"min(H@h_target)={np.min(H@h_target)}...; "
-                msg += f"H={H.tolist()}, h_curr={h_curr.tolist()}, "
+                msg += f"min(H@h_curr)={np.min(sc_curr@h_curr)}; "
+                msg += f"min(H@h_target)={np.min(sc_curr@h_target)}...; "
+                msg += f"H={sc_curr.tolist()}, h_curr={h_curr.tolist()}, "
                 msg += f"h_target={h_target.tolist()}"
                 raise ValueError(msg)
         
@@ -1292,8 +1292,8 @@ class Fan:
                                       verbosity=verbosity-1)
             except:
                 print(sc_curr.shape, first_hit_ind)
-                print('curr dists', H@h_curr)
-                print('target dists', H@h_target)
+                print('curr dists', sc_curr@h_curr)
+                print('target dists', sc_curr@h_target)
                 print('h_target',h_target)
                 raise ValueError()
 
@@ -1305,9 +1305,9 @@ class Fan:
                 h_curr = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
 
                 # check that we can compute a next step
-                dists = H@h_tmp
+                dists = sc_curr@h_tmp
                 n_i   = np.argmin(dists)
-                n     = H[n_i]
+                n     = sc_curr[n_i]
                 if np.dot(n, h_tmp)>0:
                     h_curr = h_tmp
                 break
@@ -1318,9 +1318,9 @@ class Fan:
                 h_tmp = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
                 
                 # check that we can compute a next step
-                dists = H@h_tmp
+                dists = sc_curr@h_tmp
                 n_i   = np.argmin(dists)
-                n     = H[n_i]
+                n     = sc_curr[n_i]
                 if np.dot(n, h_tmp)>0:
                     h_curr = h_tmp
                 break
@@ -1361,14 +1361,14 @@ class Fan:
                 print("Inputs  to first_hit: " + \
                             f"{h_curr.tolist(), h_target.tolist(), sc_curr}")
 
-                dists = H@util.lerp(h_curr, h_target, first_hit_dist)
+                dists = sc_curr@util.lerp(h_curr, h_target, first_hit_dist)
                 i = np.argmin(dists)
                 print(f"dists[argmin] = {dists[i]}")
-                print(f"H[argmin]     = {H[i].tolist()}")
+                print(f"H[argmin]     = {sc_curr[i].tolist()}")
                 print(f"circ          = {circ}")
 
                 sc_hyps = {tuple(n) for n in sc_curr}
-                n       = tuple(-H[i]) 
+                n       = tuple(-sc_curr[i]) 
                 print(f"n in sc_curr? = {n in sc_hyps}")
                 
                 raise ValueError()
