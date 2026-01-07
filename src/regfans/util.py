@@ -253,15 +253,14 @@ def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
     assert (R is None) ^ (H is None)
 
     if R is None:
-        R = np.array(dual_cone(H))
+        # try to find a point in the strict interior
+        H = np.array(H)
+        return find_interior_point(H=H) is not None
     else:
+        # know rays -> sum of rays sould be in strict interior
         R = np.array(R)
-
-    # return
-    if len(R) == 0:
-        return False
-    else:
-        return bool(np.linalg.matrix_rank(R.T) == R.shape[1])
+        H = np.array(dual_cone(R))
+        return np.all(H@R.sum(axis=0) > 0.5)
 
 def contains(*,
     p: "ArrayLike",
