@@ -1232,8 +1232,8 @@ class Fan:
         else:
             assert h_target is None
             if verbosity >= 0:
-                print("DIRECTIONS ARE HANDLED IN A VERY BAD WAY... ")
-                print("h_target = h_init+1000*direction...")
+                print("(Warning: directions are handled in a sub-optimal way...)")
+                print("(         one sets h_target = h_init+1000*direction...  )")
             direction = 1000*np.array(direction)
             h_target = h_init+direction
         direction_norm2 = np.dot(direction,direction)
