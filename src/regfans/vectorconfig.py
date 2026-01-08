@@ -729,7 +729,7 @@ class VectorConfiguration:
             heights_new, res = sp.optimize.nnls(B.T, Bh)
             if res>tol:
                 print(f"Residuals {res} > tol {tol}...")
-                raise ValueError
+                raise ValueError("Invalid heights")
 
             # do the check
             if False: # too slow... instead just check if we found coeffs...
