@@ -635,24 +635,24 @@ The corresponding vector(s), in order specified by which.
 #### cones
 
 ```python
-def cones(as_inds: bool = False,
-          as_rays: bool = False,
+def cones(as_rays: bool = False,
           as_hyps: bool = False,
+          as_inds: bool = False,
           ind_offset: int = 0) -> Union[tuple[tuple[int]], list["ArrayLike"]]
 ```
 
 **Description:**
 Returns the cones in the fan in a variety of formats. They are:
 - (default) as a tuple of labels
-- (as_inds=True) as a tuple of indices
 - (as_rays=True) as an array whose rows are the generators
 - (as_hyps=True) as an array whose rows are hyperplane normals
+- (as_inds=True) as a tuple of indices
 Optionally, allow an offset to the indices.
 
 **Arguments:**
-- `as_inds`:    Whether to return the cones as indices (not labels).
 - `as_rays`:    Whether to return the cones as their generators.
 - `as_hyps`:    Whether to return the cones as their hyperplanes.
+- `as_inds`:    Whether to return the cones as indices (not labels).
 - `ind_offset`: An additive offset for the indices
 
 **Returns:**
@@ -1086,17 +1086,16 @@ False, just return cones).
 cones (each cone a collection of labels)
 - The circuits flipped to get the corresponding neighbors.
 
-<a id="fan.Fan.secondary_cone"></a>
+<a id="fan.Fan.secondary_cone_hyperplanes"></a>
 
 ---
 
 
-#### secondary\_cone
+#### secondary\_cone\_hyperplanes
 
 ```python
-def secondary_cone(via_circuits: bool = False,
-                   project_lineality: bool = False,
-                   verbosity: int = 0) -> "ArrayLike"
+def secondary_cone_hyperplanes(via_circuits: bool = False,
+                               verbosity: int = 0) -> "ArrayLike"
 ```
 
 **Description:**
@@ -1120,10 +1119,6 @@ CIRCUITS, ONE CAN GET A FULL-DIMENSIONAL CONE!!!
 cone. Should always be correct if the fan is
 regular but dangerous/not correct for checking
 irregularity... Alternative is local folding.
-- `project_lineality`: Secondary cones have linear subspaces ('lineality
-spaces'). These can be projected out without
-loss of information, giving a cone in the
-chamber complex.
 - `verbosity`:         The verbosity level. Higher is more verbose.
 
 **Returns:**
@@ -1520,7 +1515,6 @@ allowed.
 - `gale_basis`: An optional basis for the gale transform. If provided, then
 the gale transform will be put a basis such that the
 submatrix given by these labels equals the identity.
-- `verbosity`:  The verbosity level.
 
 **Returns:**
 Nothing.
@@ -1535,9 +1529,8 @@ Nothing.
 ```python
 def __init__(vectors: "ArrayLike",
              labels: Iterable[int] = None,
-             gale_basis: Iterable[int] = None,
              eps: float = 1e-4,
-             verbosity: int = 0) -> None
+             gale_basis: Iterable[int] = None) -> None
 ```
 
 **Description:**
@@ -1551,7 +1544,6 @@ labels are allowed.
 - `gale_basis`: An optional basis for the gale transform. If provided,
 then the gale transform will be put a basis such that
 the submatrix given by these labels equals the identity.
-- `verbosity`:  The verbosity level. Higher is more verbose
 
 **Returns:**
 Nothing.
