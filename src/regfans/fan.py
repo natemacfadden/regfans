@@ -534,7 +534,7 @@ class Fan:
         """
         **Description:**
         Return whether or not the fan also defines a (star) subdivision of the
-        underlying point configuration.
+        original underlying point configuration.
 
         **Arguments:**
         None.
