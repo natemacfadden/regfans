@@ -17,8 +17,8 @@ print()
 
 # construct all fans from a simple totally-cyclic vector configuration
 # ====================================================================
-pts  = [[x,y] for x in range(-1,1+1) for y in range(-1,1+1)]
-vc   = VectorConfiguration(pts) # the point (0,0) will automatically be removed
+pts  = [[-1,1],[0,1],[1,1],[1,0],[0,-1]]
+vc   = VectorConfiguration(pts) 
 G, fans, labels = vc.flip_graph(compute_node_labels=True) # this time, compute the fans via the flip_graph method... this also gives a formal graph object
 
 print(f"The vector configuration {vc} has the following fans:")
