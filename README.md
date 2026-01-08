@@ -17,7 +17,7 @@ This package, `regfans`, was originally developed for constructing toric varieti
 conda env create -f environment.yml
 conda activate regfans
 ```
-To install `regfans` using pip, either run (to install the most recent release)
+To install `regfans` using pip, either run (to install the most recent release; also see [PyPI listing](https://pypi.org/project/regfans/))
 ```
 pip install regfans
 ```
