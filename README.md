@@ -1,4 +1,4 @@
-# vectorconfigurations
+# regfans
 Software for studying vector configurations and their triangulations. Originally developed for arXiv:2512.14817
 
 ## Installation
