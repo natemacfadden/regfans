@@ -7,8 +7,8 @@ Computation of dual cones requires pplpy. Install via conda:
 conda env create -f environment.yml
 conda activate regfans
 ```
-## API Documentation
+## Documentation
 
 See [API_DOC.md](API_DOC.md) for full API reference.
 
-(Developer note: update documentation simply by running `pydoc-markdown; py clean_API_DOC.py` in current directory)
+To update documentation, just run `pydoc-markdown; py clean_API_DOC.py`
