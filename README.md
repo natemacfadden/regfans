@@ -7,6 +7,8 @@ Software for studying vector configurations defined over the lattice vectors. Th
 
 See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive resource on such topics.
 
+![Fan flip graph](images/fan_flip_graph.png)
+
 This package, `regfans`, was originally developed for constructing toric varieties in the work [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817). Said work was supported in part by NSF grant PHY-2309456. All toric-geometric computations are isolated to [CYTools](https://github.com/LiamMcAllisterGroup/cytools), which has an extension `vector_config` building off of `regfans`.
 
 ## Installation
