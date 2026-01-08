@@ -1678,9 +1678,9 @@ def flip_subgraph(
         tri_init = seed
         labels = [
             {
-                "reg": tri_init.is_regular(),
+                "regular": tri_init.is_regular(),
                 "fine": tri_init.is_fine(),
-                "triang": tri_init.respects_ptconfig(),
+                "respects_ptconfig": tri_init.respects_ptconfig(),
             }
         ]
     else:
@@ -1697,9 +1697,9 @@ def flip_subgraph(
 
         labels = [
             {
-                "reg": True,
+                "regular": True,
                 "fine": tri_init.is_fine(),
-                "triang": True,
+                "respects_ptconfig": True,
             }
         ]
 
@@ -1751,17 +1751,17 @@ def flip_subgraph(
                     continue
 
                 # check various user-imposed restrictions
-                new_label = {"reg": None, "fine": None, "triang": None}
+                new_label = {"regular": None, "fine": None, "respects_ptconfig": None}
                 if compute_node_labels:
                     # compute regularity (/maybe check it)
                     # ------------------
                     if verbosity >= 2:
                         print("checking regularity...", end=" ")
-                    new_label["reg"] = neighb.is_regular()
+                    new_label["regular"] = neighb.is_regular()
                     if verbosity >= 2:
-                        print(new_label["reg"])
+                        print(new_label["regular"])
 
-                    if only_regular and not new_label["reg"]:
+                    if only_regular and not new_label["regular"]:
                         continue
 
                     # compute fineness (/maybe check it)
@@ -1779,25 +1779,25 @@ def flip_subgraph(
                     # -----------------
                     if verbosity >= 2:
                         print("checking PC triangulation...", end=" ")
-                    new_label["triang"] = neighb.respects_ptconfig()
+                    new_label["respects_ptconfig"] = neighb.respects_ptconfig()
                     if verbosity >= 2:
-                        print(new_label["triang"])
+                        print(new_label["respects_ptconfig"])
 
-                    if only_pc_triang and (not new_label["triang"]):
+                    if only_pc_triang and (not new_label["respects_ptconfig"]):
                         continue
                 else:
                     # lazily compute the labels
                     if only_regular:
-                        new_label["reg"] = neighb.is_regular()
-                        if not new_label["reg"]:
+                        new_label["regular"] = neighb.is_regular()
+                        if not new_label["regular"]:
                             continue
                     if only_fine:
                         new_label["fine"] = neighb.is_fine()
                         if not new_label["fine"]:
                             continue
                     if only_pc_triang:
-                        new_label["triang"] = neighb.respects_ptconfig()
-                        if not new_label["triang"]:
+                        new_label["respects_ptconfig"] = neighb.respects_ptconfig()
+                        if not new_label["respects_ptconfig"]:
                             continue
 
                 # this is a new triangulation!
