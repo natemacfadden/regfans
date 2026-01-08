@@ -27,8 +27,12 @@ pip install .
 ```
 N.B.: many methods in `regfans` require computation of dual cones (i.e., the generators of a cone defined via hyperplanes or vice-versa). Currently, this requires [pplpy](https://pypi.org/project/pplpy/) which cannot be automatically installed via pip.
 
-## Documentation
+## API
 
 See [api.md](documentation/api.md) for full API reference.
 
 (To update documentation, just run `pydoc-markdown; py documentation/clean_api.py`)
+
+## Tutorials
+
+See the [tutorials directory](tutorials/) for some commented example scripts showing how to construct a vector configuration, check properties of it, construct fans from it, and check the properties of said fans.
