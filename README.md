@@ -29,6 +29,6 @@ N.B.: many methods in `regfans` require computation of dual cones (i.e., the gen
 
 ## Documentation
 
-See [API_DOC.md](API_DOC.md) for full API reference.
+See [api.md](documentation/api.md) for full API reference.
 
-(To update documentation, just run `pydoc-markdown; py clean_API_DOC.py`)
+(To update documentation, just run `pydoc-markdown; py documentation/clean_api.py`)

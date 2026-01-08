@@ -3,4 +3,4 @@ loaders:
   search_path: ["src/regfans"]
 renderer:
   type: markdown
-  filename: "API_DOC.md"
+  filename: "api.md"
