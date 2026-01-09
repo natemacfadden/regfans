@@ -1314,4 +1314,6 @@ class VectorConfiguration:
         **Returns:**
         The central fan.
         """
-        return self.subdivide(heights=[1 for _ in self.labels])
+        return self.subdivide(
+            heights=[1 for _ in self.labels],
+            check_heights=False)
