@@ -29,6 +29,7 @@ import networkx as nx
 import numpy as np
 import scipy as sp
 import triangulumancer
+import warnings
 
 # local imports
 from . import util, circuits, fan
@@ -677,12 +678,12 @@ class VectorConfiguration:
 
     # generating triangulations
     # =========================
-    def subdivide(
+    def triangulate(
         self,
         heights: "ArrayLike" = None,
         cells: "ArrayLike" = None,
         tol: float = 1e-14,
-        seed: int = 0,
+        backend: str = "cgal",
         verbosity: int = 0,
     ) -> "Fan":
         """
@@ -693,8 +694,9 @@ class VectorConfiguration:
         **Arguments:**
         - `heights`:   The heights to lift the vectors by.
         - `cells`:     The cells to use in the triangulation.
-        - `backend`:   The lifting backend. Use 'qhull'.
         - `tol`:       Numerical tolerance used.
+        - `backend`:   The lifting backend. Currently allowed to be "cgal" or
+                       "ppl".
         - `verbosity`: The verbosity level. Higher is more verbose
 
         **Returns:**
@@ -709,6 +711,11 @@ class VectorConfiguration:
 
         # triangulate via heights
         # =======================
+        # check the backend
+        backend = backend.lower()
+        if backend not in ["cgal", "ppl"]:
+            raise ValueError(f"Unrecognized backend '{backend}'...")
+
         # (if no heights are provided, compute Delaunay triangulation)
         # (need to add noise to ensure it is a *triangulation* and not a
         #  subdivision)
@@ -716,6 +723,8 @@ class VectorConfiguration:
         #  secondary fan... exceedingly unlikely though)
         if heights is None:
             heights = np.sum(self.vectors()*self.vectors(), axis=1)
+        else:
+            heights = np.array(heights)
 
         # ensure the heights are non-negative
         already_nonneg = all([h_i >= 0 for h_i in heights])
@@ -762,34 +771,72 @@ class VectorConfiguration:
             return self.subdivide(cells=[self.labels])
 
         # nonzero heights -> lift via a point configuration
-        pts = np.vstack( [np.zeros((1,self.dim), dtype=int), self.vectors()] )
-        pc  = triangulumancer.PointConfiguration(pts)
+        if backend == "cgal":
+            pts = np.vstack([np.zeros((1,self.dim),dtype=int), self.vectors()])
+            pc  = triangulumancer.PointConfiguration(pts)
 
-        # adjust heights for PC such that the triangulation is star...
-        # just ensure that 0 is in all simplices
-        #
-        # this should always be true by construction. Maybe perturbations of
-        # the heights in the various backend for odd heights like those which
-        # give subdivisions cause the origin to be skipped...
-        height_norm = np.linalg.norm(heights)
-        height_orig = -height_norm
-        while True:
-            heights_pc  = np.concatenate(([height_orig], heights))
-            simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
+            if False:
+                # adjust heights for PC such that the triangulation is star...
+                # just ensure that 0 is in all simplices
+                #
+                # this should always be true by construction...
+                # but CGAL definitely perturbs heights a bit (e.g., lifting by
+                # heights = 0 doesn't lead to trivial subdivision)
+                #
+                # maybe this causes errors leading to non-star triangulations...
+                height_norm = np.linalg.norm(heights)
+                height_orig = -height_norm
+                while True:
+                    heights_pc  = np.concatenate(([height_orig], heights))
+                    simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
 
-            # lower the height of the origin if not star
-            if not all([0 in simp for simp in simp_pcinds]):
-                height_orig -= height_norm
-                continue
+                    # lower the height of the origin if not star
+                    if not all([0 in simp for simp in simp_pcinds]):
+                        height_orig -= height_norm
+                        continue
 
-            # star :)
-            break
+                    # star :)
+                    break
+            else:
+                heights_pc  = np.concatenate(([0], heights))
+                simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
+
+            # read the simplices as indices in the VC
+            simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
+
+        elif backend == "ppl":
+            # construct the rays of the lifted cone
+            lifted = np.hstack([heights.reshape(-1,1),self.vectors()])
+            print(lifted)
+            lifted = np.array([util.primitive(v) for v in lifted]) # as integers
+            print(lifted)
+
+            H      = np.array(util.dual_cone(lifted))
+            satd   = H@lifted.T
+
+            # read the simplices as indices in the VC
+            simp_vcinds = [np.where(facet==0)[0].tolist() for facet in satd]
 
         # read the simplices as labels
-        simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
         simp_labels = [[self.labels[vci] for vci in s] for s in simp_vcinds]
+        simp_labels = [sorted(simp) for simp in simp_labels]
 
-        return self.subdivide(cells=simp_labels)
+        # construct the fan, check that it's a triangulation
+        f = self.triangulate(cells=simp_labels)
+        if not f.is_triangulation():
+            msg = "Upon lifting, a non-triangulation subdivision was output... "
+            msg += f"(cells = {f.simplices()}) "
+            msg += "double check with another backend (PPL is preferable) "
+            msg += "OR perturb heights..."
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("always")
+                warnings.warn(msg)
+
+        return f
+
+    # aliases
+    subdivide = triangulate
 
     def all_triangulations(
         self,
@@ -950,7 +997,7 @@ class VectorConfiguration:
                     h = np.multiply(h, self._vector_norms)
 
                 try:
-                    t = self.subdivide(heights=h, backend=backend)
+                    t = self.triangulate(heights=h, backend=backend)
                 except sp.spatial.qhull.QhullError:
                     # QHull error :(
                     if verbosity >= 0:

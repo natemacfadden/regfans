@@ -45,7 +45,7 @@ class Fan:
     function.
 
     This class is *not* intended to be called directly. Instead, it is meant to
-    be called through VectorConfiguration.subdivide.
+    be called through VectorConfiguration.triangulate.
 
     **Arguments:**
     - `vc`:      The ambient vector configuration that this fan is over.
@@ -1040,7 +1040,7 @@ class Fan:
         # return
         if formal:
             # update neighb from being a tuple of cones to a formal Fan object
-            neighb = self.vc.subdivide(cells=neighb)
+            neighb = self.vc.triangulate(cells=neighb)
 
             # pass along circuit info to the neighbor
             neighb._circuits = self._circuits.copy()
@@ -1684,7 +1684,7 @@ def flip_subgraph(
             }
         ]
     else:
-        tri_init = seed.subdivide()
+        tri_init = seed.triangulate()
         if not tri_init.is_triangulation():
             print("ERROR: seed isn't triangulation! Quitting!")
             return
