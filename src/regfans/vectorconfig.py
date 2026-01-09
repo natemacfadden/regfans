@@ -863,15 +863,16 @@ class VectorConfiguration:
         f = self.triangulate(cells=simp_labels)
 
         # some sanity checks
-        if (verbosity >= 1) and (not f.is_triangulation()):
-            msg = "Upon lifting, a non-triangulation subdivision was output... "
-            msg += f"(cells = {f.simplices()}) "
-            msg += "double check with another backend (PPL is preferable) "
-            msg += "OR perturb heights..."
+        if not f.is_triangulation():
+            if verbosity >= 1:
+                msg = "Upon lifting, a non-triangulation subdivision was "
+                msg += f"output...  (cells = {f.simplices()}) "
+                msg += "double check with another backend (PPL is preferable) "
+                msg += "OR perturb heights..."
 
-            with warnings.catch_warnings():
-                warnings.simplefilter("always")
-                warnings.warn(msg)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("always")
+                    warnings.warn(msg)
         else:
             # yes a triangulation...
             # verify that the secondary cone contains the heights
