@@ -139,8 +139,8 @@ class Fan:
             f"A "
             + fine_str
             + regular_str
-            + f" {subdivision_str} of "
-            + repr(self._vc)
+            + f" {subdivision_str} of a"
+            + repr(self._vc)[1:]
         )
 
     def __str__(self) -> str:
@@ -171,8 +171,8 @@ class Fan:
             f"A "
             + fine_str
             + regular_str
-            + f" {subdivision_str} of "
-            + str(self._vc)
+            + f" {subdivision_str} of a"
+            + str(self._vc)[1:]
         )
 
     def __hash__(self) -> int:
@@ -417,7 +417,7 @@ class Fan:
         """
         if not self.is_triangulation():
             # the following assumes simplicial cones
-            raise NotImplementedError
+            raise NotImplementedError("Not implemented for non-triangulations")
 
         # compute the facets as a map from facet labels to containing cones
         facets = dict()
@@ -545,7 +545,7 @@ class Fan:
         """
         if not self.is_regular():
             # could be checked by MaxMP but I have't implemented that...
-            raise NotImplementedError
+            raise NotImplementedError("Not implemented for irregular fans")
 
         # just check if central subdivision is a refinement
         H = self.secondary_cone_hyperplanes()
