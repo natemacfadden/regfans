@@ -333,7 +333,7 @@ configuration. This is handled by the hidden [`__init__`](#__init__)
 function.
 
 This class is *not* intended to be called directly. Instead, it is meant to
-be called through VectorConfiguration.subdivide.
+be called through VectorConfiguration.triangulate.
 
 **Arguments:**
 - `vc`:      The ambient vector configuration that this fan is over.
@@ -714,7 +714,7 @@ def respects_ptconfig() -> bool
 
 **Description:**
 Return whether or not the fan also defines a (star) subdivision of the
-underlying point configuration.
+original underlying point configuration.
 
 **Arguments:**
 None.
@@ -1181,6 +1181,60 @@ the property to a bool)
 
 # util
 
+<a id="util.gcd"></a>
+
+---
+
+
+#### gcd
+
+```python
+def gcd(vals: list[float], max_denom: float = 10**6) -> float
+```
+
+**Description:**
+Computes the 'GCD' of a collection of floating point numbers.
+This is the smallest number, g, such that g*values is integral.
+
+This is computed by
+1) converting `values` to be rational [n0/d0, n1/d1, ...],
+2) computing the LCM, l, of [d0, d1, ...],
+3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
+4) returning g=g'/l.
+
+**Arguments:**
+- `vals`:      The numbers to compute the GCD of.
+- `max_denom`: Assert |di| <= max_denom
+
+**Returns:**
+The minimum number g' such that g'*vals is integral.
+
+<a id="util.primitive"></a>
+
+---
+
+
+#### primitive
+
+```python
+def primitive(vec: list[float], max_denom=10**10)
+```
+
+**Description:**
+Computes the primitive vector associated to the input ray {c*vec: c>=0}.
+Very similar to the gcd function.
+
+This is equivalent to
+vec/gcd(vec)
+but just uses a rational representation.
+
+**Arguments:**
+- `vec`:       A vector defining the ray {c*vec: c>=0}
+- `max_denom`: Assert |di| <= max_denom
+
+**Returns:**
+The primitive vector along the ray.
+
 <a id="util.lerp"></a>
 
 ---
@@ -1419,60 +1473,6 @@ Modified from CYTools' `Cone.find_interior_point`.
 
 **Returns:**
 A point p in the strict interior.
-
-<a id="util.gcd"></a>
-
----
-
-
-#### gcd
-
-```python
-def gcd(vals: list[float], max_denom: float = 10**6) -> float
-```
-
-**Description:**
-Computes the 'GCD' of a collection of floating point numbers.
-This is the smallest number, g, such that g*values is integral.
-
-This is computed by
-1) converting `values` to be rational [n0/d0, n1/d1, ...],
-2) computing the LCM, l, of [d0, d1, ...],
-3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
-4) returning g=g'/l.
-
-**Arguments:**
-- `vals`:      The numbers to compute the GCD of.
-- `max_denom`: Assert |di| <= max_denom
-
-**Returns:**
-The minimum number g' such that g'*vals is integral.
-
-<a id="util.primitive"></a>
-
----
-
-
-#### primitive
-
-```python
-def primitive(vec: list[float], max_denom=10**10)
-```
-
-**Description:**
-Computes the primitive vector associated to the input ray {c*vec: c>=0}.
-Very similar to the gcd function.
-
-This is equivalent to
-vec/gcd(vec)
-but just uses a rational representation.
-
-**Arguments:**
-- `vec`:       A vector defining the ray {c*vec: c>=0}
-- `max_denom`: Assert |di| <= max_denom
-
-**Returns:**
-The primitive vector along the ray.
 
 <a id="__init__"></a>
 
@@ -2031,19 +2031,20 @@ I.e., map from chamber-space to height-space
 **Returns:**
 The chamber-space vector.
 
-<a id="vectorconfig.VectorConfiguration.subdivide"></a>
+<a id="vectorconfig.VectorConfiguration.triangulate"></a>
 
 ---
 
 
-#### subdivide
+#### triangulate
 
 ```python
-def subdivide(heights: "ArrayLike" = None,
-              cells: "ArrayLike" = None,
-              tol: float = 1e-14,
-              seed: int = 0,
-              verbosity: int = 0) -> "Fan"
+def triangulate(heights: "ArrayLike" = None,
+                cells: "ArrayLike" = None,
+                tol: float = 1e-14,
+                backend: str = None,
+                check_heights: bool = True,
+                verbosity: int = 0) -> "Fan"
 ```
 
 **Description:**
@@ -2051,11 +2052,14 @@ Subdivide the vector configuration either by specified cells/simplices
 or by heights.
 
 **Arguments:**
-- `heights`:   The heights to lift the vectors by.
-- `cells`:     The cells to use in the triangulation.
-- `backend`:   The lifting backend. Use 'qhull'.
-- `tol`:       Numerical tolerance used.
-- `verbosity`: The verbosity level. Higher is more verbose
+- `heights`:       The heights to lift the vectors by.
+- `cells`:         The cells to use in the triangulation.
+- `tol`:           Numerical tolerance used for curing negative heights
+- `backend`:       The lifting backend. Currently allowed to be "cgal"
+or "ppl".
+- `check_heights`: Whether to check that the heights land in the
+secondary cone of the output triangulation.
+- `verbosity`:     The verbosity level. Higher is more verbose
 
 **Returns:**
 The resultant subdivision.
@@ -2119,7 +2123,8 @@ def random_triangulations_fast(
         N: int = None,
         as_list: bool = False,
         attempts_per_triang: int = 1000,
-        backend: str = "qhull",
+        backend: str = None,
+        seed: int = 0,
         verbosity: int = 0) -> Generator["Fan"] | list["Fan"]
 ```
 
@@ -2144,7 +2149,9 @@ O/w, then the first N height vectors are used
 or as a generator.
 - `attempts_per_triang`:Quit if we can't generate a new triangulation
 after this many tries.
-- `backend`:            The lifting backend.
+- `backend`:            The lifting backend. See
+`VectorConfiguration.triangulate`.
+- `seed`:               A random number seed.
 - `verbosity`:          The verbosity level. Higher is more verbose.
 
 **Returns:**
@@ -2250,7 +2257,6 @@ labels equal to the corresponding circuit.
 
 ```python
 def secondary_fan(only_fine: bool = False,
-                  project_lineality: bool = False,
                   formal_fan: bool = False,
                   verbosity: int = 0)
 ```
@@ -2259,11 +2265,9 @@ def secondary_fan(only_fine: bool = False,
 Compute the secondary fan of the vector configuration.
 
 **Arguments:**
-- `only_fine`:         Restrict to fine triangulations.
-- `project_lineality`: Project out lineality space with the gale
-transform, mapping to the chamber complex.
-- `formal_fan`:        Save as a formal Fan object.
-- `verbosity`:         The verbosity level. Higher is more verbose
+- `only_fine`:  Restrict to fine triangulations.
+- `formal_fan`: Save as a formal Fan object.
+- `verbosity`:  The verbosity level. Higher is more verbose
 
 **Returns:**
 The secondary fan triangulations.
