@@ -491,7 +491,7 @@ class VectorConfiguration:
             # could definitely be generalized to non-solid
             # likely just check if
             # len(dual_cone(self.vectors())) == 2*(ambient-dim)
-            raise NotImplementedError
+            raise NotImplementedError("Not implemented for non-solid VCs")
 
         return len(util.dual_cone(self.vectors())) == 0
 
@@ -683,7 +683,8 @@ class VectorConfiguration:
         heights: "ArrayLike" = None,
         cells: "ArrayLike" = None,
         tol: float = 1e-14,
-        backend: str = "cgal",
+        backend: str = None,
+        check_heights: bool = True,
         verbosity: int = 0,
     ) -> "Fan":
         """
@@ -692,12 +693,14 @@ class VectorConfiguration:
         or by heights.
 
         **Arguments:**
-        - `heights`:   The heights to lift the vectors by.
-        - `cells`:     The cells to use in the triangulation.
-        - `tol`:       Numerical tolerance used.
-        - `backend`:   The lifting backend. Currently allowed to be "cgal" or
-                       "ppl".
-        - `verbosity`: The verbosity level. Higher is more verbose
+        - `heights`:       The heights to lift the vectors by.
+        - `cells`:         The cells to use in the triangulation.
+        - `tol`:           Numerical tolerance used for curing negative heights
+        - `backend`:       The lifting backend. Currently allowed to be "cgal"
+                           or "ppl".
+        - `check_heights`: Whether to check that the heights land in the
+                           secondary cone of the output triangulation.
+        - `verbosity`:     The verbosity level. Higher is more verbose
 
         **Returns:**
         The resultant subdivision.
@@ -711,17 +714,40 @@ class VectorConfiguration:
 
         # triangulate via heights
         # =======================
+        # flag as to whether the user didn't input heights
+        default_heights = (heights is None)
+
         # check the backend
-        backend = backend.lower()
-        if backend not in ["cgal", "ppl"]:
-            raise ValueError(f"Unrecognized backend '{backend}'...")
+        if backend is None:
+            if default_heights:
+                backend = "cgal"
+            else:
+                backend = "ppl"
+        else:
+            backend = backend.lower()
+            if backend not in ["cgal", "ppl"]:
+                raise ValueError(f"Unrecognized backend '{backend}'...")
+
+        # warning in case the user request PPL backend but gave no heights
+        if default_heights and (backend != "cgal"):
+            msg = "Non-cgal backends are not trustworthy for Deulaunay... "
+            msg += f"changing from '{backend}' to cgal..."
+            with warnings.catch_warnings():
+                warnings.simplefilter("always")
+                warnings.warn(msg)
+            backend = "cgal"
+
+        # allow small perturbations to the height of the origin to enforce that
+        # cgal gives a star triangulation
+        if backend == "cgal":
+            make_cgal_star = default_heights
 
         # (if no heights are provided, compute Delaunay triangulation)
         # (need to add noise to ensure it is a *triangulation* and not a
         #  subdivision)
         # (allow retrying in case the noise brings the heights outside the
         #  secondary fan... exceedingly unlikely though)
-        if heights is None:
+        if default_heights:
             heights = np.sum(self.vectors()*self.vectors(), axis=1)
         else:
             heights = np.array(heights)
@@ -772,10 +798,11 @@ class VectorConfiguration:
 
         # nonzero heights -> lift via a point configuration
         if backend == "cgal":
-            pts = np.vstack([np.zeros((1,self.dim),dtype=int), self.vectors()])
-            pc  = triangulumancer.PointConfiguration(pts)
+            orig = np.zeros((1,self.ambient_dim),dtype=int)
+            pts  = np.vstack([orig, self.vectors()])
+            pc   = triangulumancer.PointConfiguration(pts)
 
-            if False:
+            if make_cgal_star:
                 # adjust heights for PC such that the triangulation is star...
                 # just ensure that 0 is in all simplices
                 #
@@ -784,24 +811,37 @@ class VectorConfiguration:
                 # heights = 0 doesn't lead to trivial subdivision)
                 #
                 # maybe this causes errors leading to non-star triangulations...
-                height_norm = np.linalg.norm(heights)
-                height_orig = -height_norm
+                height_min = np.min(heights)
+                height_orig = -1e-6*height_min
                 while True:
                     heights_pc  = np.concatenate(([height_orig], heights))
                     simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
 
                     # lower the height of the origin if not star
                     if not all([0 in simp for simp in simp_pcinds]):
-                        height_orig -= height_norm
+                        height_orig -= height_min
                         continue
 
                     # star :)
                     break
+
+                # check that we didn't lower the height of origin a crazy amount
+                if (verbosity >= 1) and (height_orig < -np.min(heights)):
+                    msg = "Significantly lowered the height of the origin... "
+                    msg += "maybe something went wrong..."
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("always")
+                        warnings.warn(msg)
             else:
                 heights_pc  = np.concatenate(([0], heights))
                 simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
 
             # read the simplices as indices in the VC
+            if not all([0 in s for s in simp_pcinds]):
+                msg = "cgal didn't produce a star triangulation... "
+                msg += f"cells = {simp_pcinds} (0 corresponds to origin). "
+                msg += "maybe try PPL..."
+                raise ValueError(msg)
             simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
 
         elif backend == "ppl":
@@ -819,9 +859,11 @@ class VectorConfiguration:
         simp_labels = [[self.labels[vci] for vci in s] for s in simp_vcinds]
         simp_labels = [sorted(simp) for simp in simp_labels]
 
-        # construct the fan, check that it's a triangulation
+        # construct the fan
         f = self.triangulate(cells=simp_labels)
-        if not f.is_triangulation():
+
+        # some sanity checks
+        if (verbosity >= 1) and (not f.is_triangulation()):
             msg = "Upon lifting, a non-triangulation subdivision was output... "
             msg += f"(cells = {f.simplices()}) "
             msg += "double check with another backend (PPL is preferable) "
@@ -830,6 +872,17 @@ class VectorConfiguration:
             with warnings.catch_warnings():
                 warnings.simplefilter("always")
                 warnings.warn(msg)
+        else:
+            # yes a triangulation...
+            # verify that the secondary cone contains the heights
+            if (not default_heights) and check_heights:
+                H = np.array(f.secondary_cone_hyperplanes())
+                dists = H@heights
+
+                if np.any((dists)<=0):
+                    msg = "Heights not contained in secondary cone... "
+                    msg += f"distances = {dists}..."
+                    raise Exception(msg)
 
         return f
 
@@ -888,7 +941,8 @@ class VectorConfiguration:
         N: int = None,
         as_list: bool = False,
         attempts_per_triang: int = 1000,
-        backend: str = "qhull",
+        backend: str = None,
+        seed: int = 0,
         verbosity: int = 0,
     ) -> Generator["Fan"] | list["Fan"]:
         """
@@ -913,7 +967,9 @@ class VectorConfiguration:
                                 or as a generator.
         - `attempts_per_triang`:Quit if we can't generate a new triangulation
                                 after this many tries.
-        - `backend`:            The lifting backend.
+        - `backend`:            The lifting backend. See
+                                `VectorConfiguration.triangulate`.
+        - `seed`:               A random number seed.
         - `verbosity`:          The verbosity level. Higher is more verbose.
 
         **Returns:**
@@ -975,6 +1031,7 @@ class VectorConfiguration:
                 iterator = range(N)
 
             # generate the triangulations
+            np.random.seed(seed)
             for _ in iterator:
                 if method == "delaunay":
                     # generate triangulations near Delaunay
@@ -1205,7 +1262,6 @@ class VectorConfiguration:
 
     def secondary_fan(self,
                       only_fine: bool=False,
-                      project_lineality: bool=False,
                       formal_fan: bool=False,
                       verbosity: int=0):
         """
@@ -1213,11 +1269,9 @@ class VectorConfiguration:
         Compute the secondary fan of the vector configuration.
 
         **Arguments:**
-        - `only_fine`:         Restrict to fine triangulations.
-        - `project_lineality`: Project out lineality space with the gale
-                               transform, mapping to the chamber complex.
-        - `formal_fan`:        Save as a formal Fan object.
-        - `verbosity`:         The verbosity level. Higher is more verbose
+        - `only_fine`:  Restrict to fine triangulations.
+        - `formal_fan`: Save as a formal Fan object.
+        - `verbosity`:  The verbosity level. Higher is more verbose
 
         **Returns:**
         The secondary fan triangulations.
@@ -1227,19 +1281,21 @@ class VectorConfiguration:
                                           only_fine=only_fine,
                                           verbosity=verbosity)
 
-        # compute all of the secondary cones
-        fan   = [fan.secondary_cone(project_lineality=project_lineality) for \
-                                                                fan in triangs]
+        # compute the (hyperplanes of the) secondary cones
+        fan = [fan.secondary_cone_hyperplanes() for fan in triangs]
 
         # map to a formal fan
         if formal_fan:
-            rays = np.array(list(
-                {tuple(r) for cone in fan for r in cone.rays()}
-            ))
-            vc = VectorConfiguration(rays)
+            fan_R    = [util.dual_cone(H) for H in fan]
+            all_rays = np.array(list({
+                 {tuple(r) for cone_R in fan for r in cone_R}
+            }))
 
-            cones_as_labels = sorted([sorted(vc.vectors_to_labels(cone.rays()))\
-                                                            for cone in fan])
+            # construct the VC
+            vc = VectorConfiguration(all_rays)
+
+            cones_as_labels = sorted([sorted(vc.vectors_to_labels(cone_R))\
+                                                        for cone_R in fan_R])
             fan = vc.subdivide(cells=cones_as_labels)
 
         return fan, triangs
