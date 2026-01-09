@@ -32,7 +32,7 @@ def test_eq():
     assert vc1 != vc2
     assert vc1 == vc1.copy()
 
-def test_basic_and_subdivide():
+def test_basic_and_triangulate():
     all_pts = [
          [[-5, -2, -3, -2], [0, 1, 0, 0], [0, 1, 2, 0], [1, 0, 0, 0], [1, 0, 1, 2], [-2, -1, -1, 0], [0, 1, 1, 0]] ,
          [[-2, -1, -2, -3], [0, 0, 1, 0], [0, 0, 1, 3], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 1], [0, 0, 1, 2]] ,
@@ -146,7 +146,7 @@ def test_basic_and_subdivide():
 
         assert vc.labels == tuple(list(range(1,vc.size+1)))
 
-        fan = vc.subdivide()
+        fan = vc.triangulate()
         assert fan.is_fine()
         assert fan.is_regular()
 
