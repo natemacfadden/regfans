@@ -807,9 +807,7 @@ class VectorConfiguration:
         elif backend == "ppl":
             # construct the rays of the lifted cone
             lifted = np.hstack([heights.reshape(-1,1),self.vectors()])
-            print(lifted)
             lifted = np.array([util.primitive(v) for v in lifted]) # as integers
-            print(lifted)
 
             H      = np.array(util.dual_cone(lifted))
             satd   = H@lifted.T
