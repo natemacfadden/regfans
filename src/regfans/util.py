@@ -28,6 +28,74 @@ import numpy as np
 from ortools.linear_solver import pywraplp
 from typing import Union
 
+# basic math
+# ----------
+def gcd(vals: list[float], max_denom: float=10**6) -> float:
+    """
+    **Description:**
+    Computes the 'GCD' of a collection of floating point numbers.
+    This is the smallest number, g, such that g*values is integral.
+
+    This is computed by
+        1) converting `values` to be rational [n0/d0, n1/d1, ...],
+        2) computing the LCM, l, of [d0, d1, ...],
+        3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
+        4) returning g=g'/l.
+
+    **Arguments:**
+    - `vals`:      The numbers to compute the GCD of.
+    - `max_denom`: Assert |di| <= max_denom
+
+    **Returns:**
+    The minimum number g' such that g'*vals is integral.
+    """
+    # compute the rational representation
+    rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vals]
+    numer = [r.numerator   for r in rat]
+    denom = [r.denominator for r in rat]
+
+    # get the relevant LCM, GCD
+    l     = functools.reduce(math.lcm, denom)
+    gprime= functools.reduce(math.gcd, [n*(l//d) for n,d in zip(numer,denom)])
+
+    # return the GCD
+    if gprime%l == 0:
+        # integral
+        return gprime//l
+    else:
+        return gprime/l
+
+def primitive(vec: list[float], max_denom=10**10):
+    """
+    **Description:**
+    Computes the primitive vector associated to the input ray {c*vec: c>=0}.
+    Very similar to the gcd function.
+
+    This is equivalent to
+        vec/gcd(vec)
+    but just uses a rational representation.
+
+    **Arguments:**
+    - `vec`:       A vector defining the ray {c*vec: c>=0}
+    - `max_denom`: Assert |di| <= max_denom
+
+    **Returns:**
+    The primitive vector along the ray.
+    """
+    # compute the rational representation
+    rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vec]
+    numer = [r.numerator   for r in rat]
+    denom = [r.denominator for r in rat]
+
+    # get the LCM of the denominators
+    l     = functools.reduce(math.lcm, denom)
+
+    # get the integral vector and scale it to be primitive
+    prim  = [n*(l//d) for n,d in zip(numer,denom)]
+    gprime= functools.reduce(math.gcd, prim)
+
+    return [x//gprime for x in prim]
+
 # basic geometry
 # --------------
 def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike":
@@ -365,72 +433,3 @@ def find_interior_point(*,
     else:
         warnings.warn(f"Unexpected error")
         return None
-
-
-# basic math - UNUSED
-# ----------
-def gcd(vals: list[float], max_denom: float=10**6) -> float:
-    """
-    **Description:**
-    Computes the 'GCD' of a collection of floating point numbers.
-    This is the smallest number, g, such that g*values is integral.
-
-    This is computed by
-        1) converting `values` to be rational [n0/d0, n1/d1, ...],
-        2) computing the LCM, l, of [d0, d1, ...],
-        3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
-        4) returning g=g'/l.
-
-    **Arguments:**
-    - `vals`:      The numbers to compute the GCD of.
-    - `max_denom`: Assert |di| <= max_denom
-
-    **Returns:**
-    The minimum number g' such that g'*vals is integral.
-    """
-    # compute the rational representation
-    rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vals]
-    numer = [r.numerator   for r in rat]
-    denom = [r.denominator for r in rat]
-
-    # get the relevant LCM, GCD
-    l     = functools.reduce(math.lcm, denom)
-    gprime= functools.reduce(math.gcd, [n*(l//d) for n,d in zip(numer,denom)])
-
-    # return the GCD
-    if gprime%l == 0:
-        # integral
-        return gprime//l
-    else:
-        return gprime/l
-
-def primitive(vec: list[float], max_denom=10**10):
-    """
-    **Description:**
-    Computes the primitive vector associated to the input ray {c*vec: c>=0}.
-    Very similar to the gcd function.
-
-    This is equivalent to
-        vec/gcd(vec)
-    but just uses a rational representation.
-
-    **Arguments:**
-    - `vec`:       A vector defining the ray {c*vec: c>=0}
-    - `max_denom`: Assert |di| <= max_denom
-
-    **Returns:**
-    The primitive vector along the ray.
-    """
-    # compute the rational representation
-    rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vec]
-    numer = [r.numerator   for r in rat]
-    denom = [r.denominator for r in rat]
-
-    # get the LCM of the denominators
-    l     = functools.reduce(math.lcm, denom)
-
-    # get the integral vector and scale it to be primitive
-    prim  = [n*(l//d) for n,d in zip(numer,denom)]
-    gprime= functools.reduce(math.gcd, prim)
-
-    return [x//gprime for x in prim]
