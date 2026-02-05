@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "regfans"
-version = "0.0.4"
+version = "0.0.5"
 description = "Regular fans of vector configurations"
 authors = [{ name = "Nate MacFadden" }]
 readme = "README.md"
@@ -21,7 +21,7 @@ dependencies = [
     "scipy",
     "triangulumancer",
 ]
-requires-python = ">=3.9, <3.14"
+requires-python = ">=3.9"
 
 [project.optional-dependencies]
 test = [
