@@ -2,13 +2,15 @@ name: regfans
 channels:
   - conda-forge
 dependencies:
+  - python = 3.14
   - numpy
   - python-flint
-  - pplpy
+  - ppl
   - pytest
   - scipy
   - pip
   - pip:
     - networkx
+    - pplpy
     - triangulumancer
     - -e .
