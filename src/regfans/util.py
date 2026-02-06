@@ -204,7 +204,7 @@ def first_hit(
             print(f"i={i} has dist={dist}...")
 
         if dist is None:
-            raise ValueError(f"Distance = None? p0={p0.tolist()}, p1={p1.tolist()}, n={n.tolist()}")
+            continue
 
         # if the distance is permissible (positive and <= max_dist)
         # and if the distance is shorter than previously found, save it
