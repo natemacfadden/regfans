@@ -1249,6 +1249,11 @@ class Fan:
         # main loop
         status = 1
         while True:
+            if not all(sc_curr @ h_curr) > 0:
+                msg = f"Min dist of h_curr to hyperplanes = {min(sc_curr @ h_curr)}\n"
+                msg += "=> h_curr not in interior of sc_curr..."
+                raise Exception(msg)
+
             # stop at a fan respecting the point configuration
             if stop_at_pct:
                 is_pct = all(sc_curr @ np.ones(T_curr.size) >= 0)
@@ -1279,6 +1284,15 @@ class Fan:
             # find the first wall that we hit
             first_hit_ind, first_hit_dist = util.first_hit(h_curr, h_target, sc_curr)
             if first_hit_ind is None:
+                ftmp = self.vc.triangulate(heights=h_target)
+                print(ftmp, T_curr)
+                print(ftmp == T_curr)
+                print(np.min(sc_curr@h_curr))
+                print(np.min(sc_curr@h_target))
+                print(np.min(ftmp.secondary_cone_hyperplanes()@h_curr))
+                print(np.min(ftmp.secondary_cone_hyperplanes()@h_target))
+                print("????")
+
                 msg = "first_hit_ind=None... should've been caught earlier... "
                 msg += f"min(H@h_curr)={np.min(sc_curr@h_curr)}; "
                 msg += f"min(H@h_target)={np.min(sc_curr@h_target)}...; "
