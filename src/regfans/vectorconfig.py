@@ -796,6 +796,9 @@ class VectorConfiguration:
         if np.max(heights)==0:
             return self.subdivide(cells=[self.labels])
 
+        if verbosity >= 1:
+            print(f"Constructing the triangulation via lifting...",flush=True)
+
         # nonzero heights -> lift via a point configuration
         if backend == "cgal":
             orig = np.zeros((1,self.ambient_dim),dtype=int)
@@ -811,18 +814,25 @@ class VectorConfiguration:
                 # heights = 0 doesn't lead to trivial subdivision)
                 #
                 # maybe this causes errors leading to non-star triangulations...
-                height_min = np.min(heights)
-                height_orig = -1e-6*height_min
+                height_scale = max(1, np.min(heights))
+                height_orig  = -1e-6*height_scale
+
+                Niter = 0
                 while True:
+                    if verbosity >= 2:
+                        print(f"Iteration {Niter}, trying the origin with height {height_orig}...",end='\r')
+                        Niter += 1
                     heights_pc  = np.concatenate(([height_orig], heights))
                     simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
 
                     # lower the height of the origin if not star
                     if not all([0 in simp for simp in simp_pcinds]):
-                        height_orig -= height_min
+                        height_orig -= 10*height_scale
                         continue
 
                     # star :)
+                    if verbosity >= 2:
+                        print("")
                     break
 
                 # check that we didn't lower the height of origin a crazy amount
@@ -839,7 +849,7 @@ class VectorConfiguration:
             # read the simplices as indices in the VC
             if not all([0 in s for s in simp_pcinds]):
                 msg = "cgal didn't produce a star triangulation... "
-                msg += f"cells = {simp_pcinds} (0 corresponds to origin). "
+                msg += f"cells = {sorted([sorted(s) for s in simp_pcinds.tolist()])} (0 corresponds to origin). "
                 msg += "maybe try PPL..."
                 raise ValueError(msg)
             simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
@@ -863,6 +873,9 @@ class VectorConfiguration:
         f = self.triangulate(cells=simp_labels)
 
         # some sanity checks
+        if verbosity >= 1:
+            print(f"Doing sanity checks on the triangulation...",flush=True)
+
         if not f.is_triangulation():
             if verbosity >= 1:
                 msg = "Upon lifting, a non-triangulation subdivision was "
