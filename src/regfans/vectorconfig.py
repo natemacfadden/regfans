@@ -685,6 +685,7 @@ class VectorConfiguration:
         tol: float = 1e-14,
         backend: str = None,
         check_heights: bool = True,
+        cure_heights: bool=True,
         verbosity: int = 0,
     ) -> "Fan":
         """
@@ -700,6 +701,8 @@ class VectorConfiguration:
                            or "ppl".
         - `check_heights`: Whether to check that the heights land in the
                            secondary cone of the output triangulation.
+        - `cure_heights`:  If the heights do not land in the secondary cone, try
+                           to cure them by linear flipping towards the heights.
         - `verbosity`:     The verbosity level. Higher is more verbose
 
         **Returns:**
@@ -896,9 +899,12 @@ class VectorConfiguration:
                 dists = H@heights
 
                 if np.any((dists)<=0):
-                    msg = "Heights not contained in secondary cone... "
-                    msg += f"distances = {dists}..."
-                    raise Exception(msg)
+                    if cure_heights:
+                        _, __, f, *___ = f.flip_linear(h_target=heights)
+                    else:
+                        msg = "Heights not contained in secondary cone... "
+                        msg += f"distances = {dists}..."
+                        raise Exception(msg)
 
         return f
 
