@@ -847,11 +847,13 @@ class VectorConfiguration:
                 simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
 
             # read the simplices as indices in the VC
-            if not all([0 in s for s in simp_pcinds]):
+            if make_cgal_star and (not all([0 in s for s in simp_pcinds])):
                 msg = "cgal didn't produce a star triangulation... "
                 msg += f"cells = {sorted([sorted(s) for s in simp_pcinds.tolist()])} (0 corresponds to origin). "
                 msg += "maybe try PPL..."
                 raise ValueError(msg)
+            else:
+                simp_pcinds = [s for s in simp_pcinds if 0 in s]
             simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
 
         elif backend == "ppl":
