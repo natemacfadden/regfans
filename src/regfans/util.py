@@ -65,7 +65,7 @@ def gcd(vals: list[float], max_denom: float=10**6) -> float:
     else:
         return gprime/l
 
-def primitive(vec: list[float], max_denom=10**10):
+def primitive(vec: list[float], max_denom=10**6):
     """
     **Description:**
     Computes the primitive vector associated to the input ray {c*vec: c>=0}.
