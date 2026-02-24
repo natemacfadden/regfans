@@ -152,7 +152,7 @@ class VectorConfiguration:
         self._flip_graphs = dict()
 
         # allow setting of a particular basis of the Gale transform
-        self._gale_basis    = None
+        self._gale_basis    = gale_basis
 
         # allow caching of the Gale transform
         self._gale_in_basis = None
