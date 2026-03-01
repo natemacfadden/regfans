@@ -635,7 +635,11 @@ class VectorConfiguration:
             B = (B.T @ C).T
         
             # map back to integral
-            B = np.rint(B).astype(int)
+            Bint = np.rint(B).astype(int)
+            if np.allclose(Bint, B):
+                B = Bint
+            else:
+                raise ValueError
 
         # save/return
         if set_basis:
