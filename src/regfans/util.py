@@ -123,40 +123,6 @@ def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike":
     # output
     return p0 + t*(p1-p0)
 
-def hyperplane_inter(p0: "ArrayLike", p1: "ArrayLike", n: "ArrayLike") -> float:
-    """
-    **Description:**
-    Computes the distance, t, along the line p0 + t*(p1-p0) that intersects the
-    hyperplane {x: n.x=0}.
-
-    This is simply computed as
-        0 = n.[p0 + t*(p1-p0)]
-        0 = n.p0 + t*n.(p1-p0)
-        t = -n.p0 / n.(p1-p0)
-
-    **Arguments:**
-    - `p0`: One point.
-    - `p1`: The other point.
-    - `n`:  The hyperplane normal.
-
-    **Returns:**
-    The distance t such that p0 + t*(p1-p0) lands upon the hyperplane.
-    """
-    # input sanitization
-    p0 = np.array(p0)
-    p1 = np.array(p1)
-    n  = np.array(n)
-
-    # comute distance
-    denom = np.dot(n,p1-p0)
-
-    if denom==0:
-        # line doesn't intersect hyperplane
-        return None
-    else:
-        numer = np.dot(n,p0)
-        return -numer/denom
-
 def first_hit(
     p0: "ArrayLike",
     p1: "ArrayLike",
@@ -192,32 +158,40 @@ def first_hit(
     first_hit_ind = -1
     first_hit_dist = 2*max_dist
 
-    # iterate over hyperplanes
-    for i,n in enumerate(H):
-        if np.dot(n,p0)<=0:
-            # skip intersections in the wrong direction
+    inds   = np.arange(H.shape[0])
+    Hp0    = H@p0
+    Hp1    = H@p1
+    denoms = H@(p1-p0)
+
+    mask = (Hp0>0) & (denoms!=0) & (Hp0>Hp1)
+
+    # find mn
+    first_hit_ind = None
+    for k in range(1, H.shape[0]):
+        if not mask[k]:
             continue
-
-        # compute the distance along the ray
-        dist = hyperplane_inter(p0, p1, n)
-        if verbosity >= 1:
-            print(f"i={i} has dist={dist}...")
-
-        if dist is None:
+        if first_hit_ind is None:
+            first_hit_ind = k
             continue
+        # if t[i] = -Hp0[i]/(Hp1[i]-Hp0[i]) is the distance to the ith hyperplane,
+        # then
+        #   t[i] < t[j]  <=>  -Hp0[i]/(Hp1[i]-Hp0[i]) < -Hp0[j]/(Hp1[j]-Hp0[j])
+        #                     (Hp0[j]-Hp1[j])Hp0[i]   < (Hp0[i]-Hp1[i])Hp0[j]
+        #                     -Hp1[j]*Hp0[i]          < -Hp1[i]*Hp0[j]
+        # which should maybe be more stable to compute
+        if -Hp1[first_hit_ind]*Hp0[k] < -Hp1[k]*Hp0[first_hit_ind]:
+            first_hit_ind = k
 
-        # if the distance is permissible (positive and <= max_dist)
-        # and if the distance is shorter than previously found, save it
-        if 0<dist<=max_dist and dist<=first_hit_dist:
-            first_hit_ind = i
-            first_hit_dist = dist
-    
-    # return
-    if first_hit_ind == -1:
-        # no valid intersections found
+    # chcek if we don't hit any hyperplanes
+    if first_hit_ind is None:
         return None, None
-    else:
-        return first_hit_ind, first_hit_dist
+
+    first_hit_dist = -np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
+    # the above line is extremely sensitive... likely pointing to unfortunate fragility/lack of stability
+    # in the associated methosd. E.g., using `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny bit of
+    # noise but leads to crashes in the operation...
+
+    return first_hit_ind, -np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
 
 # cone geometry
 # -------------
