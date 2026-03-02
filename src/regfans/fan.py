@@ -1289,8 +1289,8 @@ class Fan:
                 print(ftmp == T_curr)
                 print(np.min(sc_curr@h_curr))
                 print(np.min(sc_curr@h_target))
-                print(np.min(ftmp.secondary_cone_hyperplanes()@h_curr))
-                print(np.min(ftmp.secondary_cone_hyperplanes()@h_target))
+                print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_curr))
+                print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_target))
                 print("????")
 
                 msg = "first_hit_ind=None... should've been caught earlier... "
@@ -1348,7 +1348,7 @@ class Fan:
                 hook_flip(T_curr, T_new, circ)
             
             T_curr    = T_new
-            sc_curr   = T_curr.secondary_cone_hyperplanes()
+            sc_curr   = T_curr.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)
             sc_curr   = np.array(sc_curr)
 
             # save to history
