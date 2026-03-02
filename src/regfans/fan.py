@@ -1343,7 +1343,6 @@ class Fan:
 
             # flip, update heights
             num_flips += 1
-
             T_new = T_curr.flip(circ)
             if hook_flip is not None:
                 hook_flip(T_curr, T_new, circ)
@@ -1420,7 +1419,7 @@ class Fan:
                 else:
                     msg =   "Just flipped but new heights not in new secondary "
                     msg += f"cone... min(H@h)={min(dists)}"
-                    raise Exception()
+                    raise Exception(msg)
 
             # add to history
             if record_fans:
