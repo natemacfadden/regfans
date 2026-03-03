@@ -443,7 +443,7 @@ class VectorConfiguration:
         # get default labels
         # construct dict mapping label to index
         if ambient_labels is None:
-            _labels_to_inds = self.labels_to_inds
+            _labels_to_inds = self.labels_to_inds_dict
         else:
             _labels_to_inds = {label:ind for ind,label in enumerate(ambient_labels)}
 
