@@ -1360,6 +1360,8 @@ class Fan:
             _, next_hit_dist = util.first_hit(h_curr, h_target, sc_curr,
                                          max_dist=float('inf'),
                                          verbosity=0)
+            if verbosity >= 2:
+                print(f'h_curr={h_curr.tolist()}, first_hit_dist={first_hit_dist}, next_hit_dist={next_hit_dist}...')
 
             try:
                 if (next_hit_dist is None) or (next_hit_dist >= 1):
@@ -1368,7 +1370,8 @@ class Fan:
                 else:
                     tmp_dist = 0.5*(first_hit_dist+next_hit_dist)
                     h_curr = util.lerp(h_curr, h_target, tmp_dist)
-            except:
+                    assert util.contains(p=h_curr, H=sc_curr)
+            except Exception as e:
                 print("FAIL")
                 print(f"Outputs of first_hit: {_, next_hit_dist}")
                 print("Inputs  to first_hit: " + \
@@ -1382,9 +1385,9 @@ class Fan:
 
                 sc_hyps = {tuple(n) for n in sc_curr}
                 n       = tuple(-sc_curr[i]) 
-                print(f"n in sc_curr? = {n in sc_hyps}")
+                print(f"n in sc_curr? = {n in sc_hyps}", flush=True)
                 
-                raise ValueError()
+                raise e
 
             # check that the heights make sense
             if util.contains(p=h_curr, H=sc_curr):
