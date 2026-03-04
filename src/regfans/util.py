@@ -127,7 +127,6 @@ def first_hit(
     p0: "ArrayLike",
     p1: "ArrayLike",
     H: "ArrayLike",
-    max_dist: float=1,
     verbosity: int=0) -> (int, float):
     """
     **Description:**
@@ -141,8 +140,6 @@ def first_hit(
     - `p0`:         One point.
     - `p1`:         The other point.
     - `H`:          An array of hyperplane normals (as rows).
-    - `max_dist`:   Only consider intersections along the line segment
-                    [p0, p0+max_dist*(p1-p0)]
     - `verbosity`:  The verbosity level. Higher is more verbose.
 
     **Returns:**
@@ -156,21 +153,19 @@ def first_hit(
 
     # defaults
     first_hit_ind = -1
-    first_hit_dist = 2*max_dist
+    first_hit_dist = np.inf
 
     inds   = np.arange(H.shape[0])
     Hp0    = H@p0
     Hp1    = H@p1
-    denoms = H@(p1-p0)
 
-    mask = (Hp0>0) & (denoms!=0) & (Hp0>Hp1)
+    mask = (Hp0>0) & (Hp0>Hp1)
 
-    # find mn
-    first_hit_ind = None
-    for k in range(1, H.shape[0]):
+    # find first hit hyperplane
+    for k in range(0, H.shape[0]):
         if not mask[k]:
             continue
-        if first_hit_ind is None:
+        if first_hit_ind == -1:
             first_hit_ind = k
             continue
         # if t[i] = -Hp0[i]/(Hp1[i]-Hp0[i]) is the distance to the ith hyperplane,
@@ -186,12 +181,12 @@ def first_hit(
     if first_hit_ind is None:
         return None, None
 
-    first_hit_dist = -np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
+    first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])#-np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
     # the above line is extremely sensitive... likely pointing to unfortunate fragility/lack of stability
     # in the associated methosd. E.g., using `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny bit of
     # noise but leads to crashes in the operation...
 
-    return first_hit_ind, -np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
+    return first_hit_ind, first_hit_dist
 
 # cone geometry
 # -------------

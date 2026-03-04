@@ -1302,7 +1302,8 @@ class Fan:
         
             # get the corresponding circuit
             try:
-                circ = T_curr.circuit(lmbda = sc_curr[first_hit_ind],
+                first_hit_normal = sc_curr[first_hit_ind]
+                circ = T_curr.circuit(lmbda = first_hit_normal,
                                       verbosity=verbosity-1)
             except:
                 print(sc_curr.shape, first_hit_ind)
@@ -1357,9 +1358,11 @@ class Fan:
             
             # compute the distance to next hyperplane
             # place self halfway across
-            _, next_hit_dist = util.first_hit(h_curr, h_target, sc_curr,
-                                         max_dist=float('inf'),
-                                         verbosity=0)
+            next_hit_ind, next_hit_dist = util.first_hit(
+                h_curr,
+                h_target,
+                sc_curr,
+                verbosity=0)
             if verbosity >= 2:
                 print(f'h_curr={h_curr.tolist()}, first_hit_dist={first_hit_dist}, next_hit_dist={next_hit_dist}...')
 
@@ -1368,25 +1371,34 @@ class Fan:
                     h_curr = h_target
                     assert util.contains(p=h_curr, H=sc_curr)
                 else:
-                    tmp_dist = 0.5*(first_hit_dist+next_hit_dist)
-                    h_curr = util.lerp(h_curr, h_target, tmp_dist)
-                    assert util.contains(p=h_curr, H=sc_curr)
+                    next_hit_normal = sc_curr[next_hit_ind]
+                    dn = next_hit_normal + first_hit_normal # first_hit_normal picks up a minus sign after the flip
+                    dh = h_target - h_curr
+                    t  = -np.dot(dn, h_curr)/np.dot(dn,dh)
+
+                    h_next = h_curr + t*dh
+
+                    assert util.contains(p=h_next, H=sc_curr)
+                    h_curr = h_next
             except Exception as e:
                 print("FAIL")
-                print(f"Outputs of first_hit: {_, next_hit_dist}")
-                print("Inputs  to first_hit: " + \
-                            f"{h_curr.tolist(), h_target.tolist(), sc_curr}")
 
-                dists = sc_curr@util.lerp(h_curr, h_target, first_hit_dist)
+                dists = sc_curr@h_next
                 i = np.argmin(dists)
-                print(f"dists[argmin] = {dists[i]}")
-                print(f"H[argmin]     = {sc_curr[i].tolist()}")
-                print(f"circ          = {circ}")
+                print(f"argmin           = {i}")
+                print(f"dists[argmin]    = {dists[i]}")
+                print(f"H[argmin]        = {sc_curr[i].tolist()}")
+                print(f"first_hit_normal = {first_hit_normal.tolist()}")
+                print(f"next_hit_normal  = {next_hit_normal.tolist()}")
+                print()
+                print("to reproduce the next_hit_normal call, run:")
+                print("util.first_hit(")
+                print(f"    {h_curr.tolist()},")
+                print(f"    {h_target.tolist()},")
+                print(f"    {sc_curr.tolist()}")
+                print(")")
 
-                sc_hyps = {tuple(n) for n in sc_curr}
-                n       = tuple(-sc_curr[i]) 
-                print(f"n in sc_curr? = {n in sc_hyps}", flush=True)
-                
+                print('',end='',flush=True)
                 raise e
 
             # check that the heights make sense
