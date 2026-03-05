@@ -151,17 +151,14 @@ def first_hit(
     p1 = np.array(p1)
     H  = np.array(H)
 
-    # defaults
-    first_hit_ind = -1
-    first_hit_dist = np.inf
-
-    inds   = np.arange(H.shape[0])
+    # helpers
     Hp0    = H@p0
     Hp1    = H@p1
 
     mask = (Hp0>0) & (Hp0>Hp1)
 
     # find first hit hyperplane
+    first_hit_ind = -1
     for k in range(0, H.shape[0]):
         if not mask[k]:
             continue
