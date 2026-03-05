@@ -1285,12 +1285,14 @@ class Fan:
             first_hit_ind, first_hit_dist = util.first_hit(h_curr, h_target, sc_curr)
             if first_hit_ind is None:
                 ftmp = self.vc.triangulate(heights=h_target)
-                print(ftmp, T_curr)
-                print(ftmp == T_curr)
+                print(f"vc = {vc.vectors().tolist()}")
+                print(f"T_curr = {T_curr.cones()}")
+                print(f"ftmp = {ftmp.cones()}")
+                print('ftmp == T_curr ',ftmp == T_curr)
                 print(np.min(sc_curr@h_curr))
                 print(np.min(sc_curr@h_target))
-                print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_curr))
-                print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_target))
+                #print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_curr))
+                #print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_target))
                 print("????")
 
                 msg = "first_hit_ind=None... should've been caught earlier... "
