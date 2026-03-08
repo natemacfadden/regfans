@@ -1319,7 +1319,7 @@ class Fan:
                 if verbosity >= 1:
                     print(f"; {circ.Z} is not flippable..." + 20*" ",flush=True)
                 status = Exception("Hit non-flippable wall...")
-                h_curr = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
+                h_tmp = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
 
                 # check that we can compute a next step
                 dists = sc_curr@h_tmp
