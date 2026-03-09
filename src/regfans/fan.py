@@ -530,7 +530,7 @@ class Fan:
 
         return True
 
-    def respects_ptconfig(self) -> bool:
+    def respects_ptconfig(self, via_circuits=False) -> bool:
         """
         **Description:**
         Return whether or not the fan also defines a (star) subdivision of the
@@ -548,7 +548,7 @@ class Fan:
             raise NotImplementedError("Not implemented for irregular fans")
 
         # just check if central subdivision is a refinement
-        H = self.secondary_cone_hyperplanes()
+        H = self.secondary_cone_hyperplanes(via_circuits=via_circuits)
         return all((H @ np.ones(self.vc.size)) >= 0)
 
     def is_triangulation(self) -> bool:
