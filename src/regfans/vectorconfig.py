@@ -225,6 +225,19 @@ class VectorConfiguration:
 
         return hash(l2v_immut)
 
+    def __eq__(self, o: "VectorConfiguration") -> bool:
+        """
+        **Description:**
+        Equality checking between two VectorConfiguration objects.
+
+        **Arguments:**
+        - `o`: The other VectorConfiguration to compare against.
+
+        **Returns:**
+        True if self==o. False if self!=o.
+        """
+        return not self.__ne__(o)
+
     def __ne__(self, o: "VectorConfiguration") -> bool:
         """
         **Description:**
@@ -250,19 +263,6 @@ class VectorConfiguration:
 
         # all checks passed
         return False
-
-    def __eq__(self, o: "VectorConfiguration") -> bool:
-        """
-        **Description:**
-        Equality checking between two VectorConfiguration objects.
-
-        **Arguments:**
-        - `o`: The other VectorConfiguration to compare against.
-
-        **Returns:**
-        True if self==o. False if self!=o.
-        """
-        return not self.__ne__(o)
 
     def copy(self) -> "VectorConfiguration":
         """
@@ -781,7 +781,7 @@ class VectorConfiguration:
             B = self.gale(set_basis=False)
             Bh = B.T@heights
             heights_new, res = sp.optimize.nnls(B.T, Bh)
-            if res>tol:
+            if res > tol:
                 print(f"Residuals {res} > tol {tol}...")
                 raise ValueError("Invalid heights")
 
@@ -803,7 +803,7 @@ class VectorConfiguration:
             if verbosity >= 3:
                 # check that heights differ by linear evaluation of vectors
                 c, res, *_ = np.linalg.lstsq(self.vectors(),heights-heights_new)
-                print('differ by linear eval of A?', max(res)<tol)
+                print('differ by linear eval of A?', max(res) < tol)
 
             if heights_new is None:
                 raise ValueError("Heights outside support of secondary fan!")
@@ -812,7 +812,7 @@ class VectorConfiguration:
         # lift & compute simplices
         # ------------------------
         # check for heights=0
-        if np.max(heights)==0:
+        if np.max(heights) == 0:
             return self.subdivide(cells=[self.labels])
 
         if verbosity >= 1:
@@ -875,7 +875,7 @@ class VectorConfiguration:
                 raise ValueError(msg)
             else:
                 simp_pcinds = [s for s in simp_pcinds if 0 in s]
-            simp_vcinds = [[pti-1 for pti in s if pti!=0] for s in simp_pcinds]
+            simp_vcinds = [[pti-1 for pti in s if pti != 0] for s in simp_pcinds]
 
         elif backend == "ppl":
             # construct the rays of the lifted cone
@@ -886,7 +886,7 @@ class VectorConfiguration:
             satd   = H@lifted.T
 
             # read the simplices as indices in the VC
-            simp_vcinds = [np.where(facet==0)[0].tolist() for facet in satd]
+            simp_vcinds = [np.where(facet == 0)[0].tolist() for facet in satd]
 
         # read the simplices as labels
         simp_labels = [[self.labels[vci] for vci in s] for s in simp_vcinds]
@@ -920,7 +920,7 @@ class VectorConfiguration:
                 H = np.array(f.secondary_cone_hyperplanes())
                 dists = H@heights
 
-                if np.any((dists)<=0):
+                if np.any((dists) <= 0):
                     if cure_heights:
                         _, __, f, *___ = f.flip_linear(h_target=heights)
                     else:
@@ -944,7 +944,6 @@ class VectorConfiguration:
         Generate all triangulations of this vector configuration via taking
         flips from some regular triangulation.
 
-
         NOTE: In theory, this might miss an irregular triangulation that is
         disconnected from the regular triangulations.
 
@@ -961,7 +960,6 @@ class VectorConfiguration:
         The incidence vector strategy is analogous to rejection sampling and
         will be much slower than the flip-based method, but it would see *all*
         triangulations.
-
 
         **Arguments:**
         - `only_fine`:    Whether to restrict to fine triangulations
@@ -1009,7 +1007,7 @@ class VectorConfiguration:
                                 (regardless of duplicates).
         - `as_list`:            Whether to return the triangulations as a list,
                                 or as a generator.
-        - `attempts_per_triang`:Quit if we can't generate a new triangulation
+        - `attempts_per_triang`: Quit if we can't generate a new triangulation
                                 after this many tries.
         - `backend`:            The lifting backend. See
                                 `VectorConfiguration.triangulate`.
@@ -1327,13 +1325,13 @@ class VectorConfiguration:
                                           verbosity=verbosity)
 
         # compute the (hyperplanes of the) secondary cones
-        fan = [fan.secondary_cone_hyperplanes() for fan in triangs]
+        secondary_cones = [t.secondary_cone_hyperplanes() for t in triangs]
 
         # map to a formal fan
         if formal_fan:
-            fan_R    = [util.dual_cone(H) for H in fan]
+            fan_R    = [util.dual_cone(H) for H in secondary_cones]
             all_rays = np.array(list({
-                 {tuple(r) for cone_R in fan for r in cone_R}
+                 {tuple(r) for cone_R in fan_R for r in cone_R}
             }))
 
             # construct the VC
@@ -1341,9 +1339,9 @@ class VectorConfiguration:
 
             cones_as_labels = sorted([sorted(vc.vectors_to_labels(cone_R))\
                                                         for cone_R in fan_R])
-            fan = vc.subdivide(cells=cones_as_labels)
+            secondary_cones = vc.subdivide(cells=cones_as_labels)
 
-        return fan, triangs
+        return secondary_cones, triangs
 
     # misc
     # ----

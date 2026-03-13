@@ -44,9 +44,9 @@ def gcd(vals: list[float], max_denom: float=10**6) -> float:
 
     This is computed by
         1) converting `values` to be rational [n0/d0, n1/d1, ...],
-        2) computing the LCM, l, of [d0, d1, ...],
-        3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
-        4) returning g=g'/l.
+        2) computing the LCM, lcm, of [d0, d1, ...],
+        3) computing the GCD, g', of [lcm*n0/d0, lcm*n1/d1, ...], and then
+        4) returning g=g'/lcm.
 
     **Arguments:**
     - `vals`:      The numbers to compute the GCD of.
@@ -62,7 +62,7 @@ def gcd(vals: list[float], max_denom: float=10**6) -> float:
 
     # get the relevant LCM, GCD
     lcm   = functools.reduce(math.lcm, denom)
-    gprime= functools.reduce(math.gcd, [n*(lcm//d) for n,d in zip(numer,denom)])
+    gprime = functools.reduce(math.gcd, [n*(lcm//d) for n,d in zip(numer,denom)])
 
     # return the GCD
     if gprime%lcm == 0:
@@ -98,7 +98,7 @@ def primitive(vec: list[float], max_denom=10**6):
 
     # get the integral vector and scale it to be primitive
     prim  = [n*(lcm//d) for n,d in zip(numer,denom)]
-    gprime= functools.reduce(math.gcd, prim)
+    gprime = functools.reduce(math.gcd, prim)
 
     return [x//gprime for x in prim]
 
@@ -137,7 +137,7 @@ def first_hit(
     """
     **Description:**
     Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
-    along the direction (p1-p0). I.e, the first intersection of the ray
+    along the direction (p1-p0). I.e., the first intersection of the ray
     {p0+t*(p1-p0): t>=0} with the cones bounding hyperplanes.
 
     Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
@@ -161,7 +161,7 @@ def first_hit(
     Hp0    = H@p0
     Hp1    = H@p1
 
-    mask = (Hp0>0) & (Hp0>Hp1)
+    mask = (Hp0 > 0) & (Hp0 > Hp1)
 
     # find first hit hyperplane
     first_hit_ind = -1
@@ -252,7 +252,7 @@ def dual_cone(data: "ArrayLike") -> "ArrayLike":
     # return
     return rays
 
-def cone_dim(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
+def cone_dim(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> int:
     """
     **Description:**
     Return the dimension of the cone.
@@ -279,7 +279,7 @@ def cone_dim(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
     # return
     return np.linalg.matrix_rank(R.T)
 
-def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> bool:
+def is_solid(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> bool:
     """
     **Description:**
     Return whether the cone is full-dimensional.
@@ -310,7 +310,7 @@ def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> bool:
 
 def contains(*,
     p: "ArrayLike",
-    R:"ArrayLike" = None,
+    R: "ArrayLike" = None,
     H: "ArrayLike" = None) -> bool:
     """
     **Description:**
@@ -347,7 +347,7 @@ def find_interior_point(*,
     verbosity: int = 0) -> Union["ArrayLike", None]:
     """
     **Description:**
-    Returns a point p in the relative interior of a cone. The cone can be
+    Returns a point p in the strict interior of a cone. The cone can be
     specified either via its rays or its generators.
 
     If no point p exists, return `None`.
@@ -406,7 +406,7 @@ def find_interior_point(*,
         solution = np.array([pi.solution_value() for pi in p])
         return solution
     elif status == solver.INFEASIBLE:
-        if verbosity>=1:
+        if verbosity >= 1:
             warnings.warn("Cone is not full-dimensional")
         return None
     else:

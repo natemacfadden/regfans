@@ -65,7 +65,7 @@ class Fan:
     def __init__(self,
         vc: "VectorConfiguration",
         cones: list[list[int]],
-        heights: list[float]=None):
+        heights: list[float]=None) -> None:
         """
         **Description:**
         Initializes a `Fan` object.
@@ -99,7 +99,7 @@ class Fan:
             
             assert self.is_valid()
 
-        if (heights is None) or any([hi<0 for hi in heights]):
+        if (heights is None) or any([hi < 0 for hi in heights]):
             self._heights = None
         else:
             self._heights = np.array(heights, copy=True)
@@ -135,7 +135,7 @@ class Fan:
             regular_str = ", "
             regular_str += "regular" if self._is_regular else "irregular"
 
-        if self.is_triang():
+        if self.is_triangulation():
             subdivision_str = "triangulation"
         else:
             subdivision_str = "subdivision"
@@ -167,7 +167,7 @@ class Fan:
             regular_str = ", "
             regular_str += "regular" if self._is_regular else "irregular"
 
-        if self.is_triang():
+        if self.is_triangulation():
             subdivision_str = "triangulation"
         else:
             subdivision_str = "subdivision"
@@ -217,7 +217,7 @@ class Fan:
         **Returns:**
         True if self!=o. False if self==o.
         """
-        return not (self==o)
+        return not (self == o)
 
     # getters
     # =======
@@ -462,39 +462,39 @@ class Fan:
         _A_facets = sorted([
             tuple(sorted([
                 lbl for lbl,v in self.vc._labels_to_vectors.items()
-                if np.dot(n,v)==0
+                if np.dot(n,v) == 0
                 ]))\
             for n in self.vc.support()])
 
         # MaxMP
-        if verbosity>=1:
+        if verbosity >= 1:
             print("Checking MaxMP...")
         for f, containing in _cone_facets.items():
             in_A_facet = any([set(f).issubset(ff) for ff in _A_facets])
 
             if in_A_facet:
-                if len(containing)!=1:
-                    if verbosity>=2:
+                if len(containing) != 1:
+                    if verbosity >= 2:
                         print("exterior wall not contained in facet")
                     return False
             elif len(containing) != 2:
-                if verbosity>=2:
+                if verbosity >= 2:
                     msg = f"interior wall {f} contained in {len(containing)}!=2"
-                    msg+= f" simplices. {containing}"
+                    msg += f" simplices. {containing}"
                     print(msg)
                 return False
 
         # MaxAdjHP
-        if verbosity>=1:
+        if verbosity >= 1:
             print("Checking MaxAdjHP...")
         tmp = (len(_cones) * (len(_cones)-1))//2
         for i, (c1, c2) in enumerate(itertools.combinations(_cones, 2)):
-            if verbosity>=2:
+            if verbosity >= 2:
                 print(f"{i+1}/{tmp}", end='\r')
 
             # only required for adjacent cells
             label_inter = set(c1).intersection(c2)
-            if len(label_inter)==0:
+            if len(label_inter) == 0:
                 continue
 
             # the intersected cone as in an abstract simplicial complex
@@ -512,19 +512,19 @@ class Fan:
                 # cones are equal
                 pass
             else:
-                if verbosity>=2:
+                if verbosity >= 2:
                     print(f"{c1},{c2} failed")
                 return False
 
         # MaxAdjLP
-        if verbosity>=1:
+        if verbosity >= 1:
             print("Checking MaxAdjLP...")
         if not self.is_triangulation():
             msg = "MaxAdjLP not yet implemented for subdivisions..."
             raise NotImplementedError(msg)
 
         # IPP
-        if verbosity>=1:
+        if verbosity >= 1:
             print("Checking IPP...")
         x = None
         for simp in _cones:
@@ -654,7 +654,7 @@ class Fan:
 
         # check a single cone
         l2c = self.labels_to_cones
-        return len( l2c[c[0]].intersection(*[l2c[lbl] for lbl in c[1:]]) )>0
+        return len( l2c[c[0]].intersection(*[l2c[lbl] for lbl in c[1:]]) ) > 0
 
     # flip preliminaries
     # ------------------
@@ -696,15 +696,15 @@ class Fan:
             assert labels is None
             lmbda = np.array(lmbda).reshape(-1)
             try:
-                labels = [self.labels[i] for i in np.where(lmbda!=0)[0]]
+                labels = [self.labels[i] for i in np.where(lmbda != 0)[0]]
             except Exception:
                 print()
                 print('lmbda',lmbda.tolist())
-                print('nonzero',np.where(lmbda!=0)[0])
+                print('nonzero',np.where(lmbda != 0)[0])
                 print('labels',self.labels)
                 print('num labels',len(self.labels))
                 raise ValueError()
-            enforce_positive = self.labels[np.where(lmbda>0)[0][0]]
+            enforce_positive = self.labels[np.where(lmbda > 0)[0][0]]
 
         # check if it's a known circuits
         if labels in self._circuits:
@@ -1075,7 +1075,7 @@ class Fan:
                 for Z in neighb._circuits.cone_to_circuit[c]:
                     # delete this circuit from all other cones
                     for cc in self._circuits[Z].Tpos:
-                        if (cc!=c) and (len(neighb._circuits.cone_to_circuit.get(cc, []))!=0):
+                        if (cc != c) and (len(neighb._circuits.cone_to_circuit.get(cc, [])) != 0):
                             neighb._circuits.cone_to_circuit[cc].remove(Z)
 
                     # delete this circuit from the main list
@@ -1097,7 +1097,7 @@ class Fan:
             for f in facets:
                 f_set = set(f)
 
-                if len(facets[f])==1:
+                if len(facets[f]) == 1:
                     for c in neighb.cones():
                         if f_set.issubset(c) and c != facets[f][0]:
                             facets[f].append(c)
@@ -1317,7 +1317,7 @@ class Fan:
                 dists = sc_curr@h_tmp
                 n_i   = np.argmin(dists)
                 n     = sc_curr[n_i]
-                if np.dot(n, h_tmp)>0:
+                if np.dot(n, h_tmp) > 0:
                     h_curr = h_tmp
                 break
             if 1 in circ.signature and stop_at_deletion:
@@ -1330,7 +1330,7 @@ class Fan:
                 dists = sc_curr@h_tmp
                 n_i   = np.argmin(dists)
                 n     = sc_curr[n_i]
-                if np.dot(n, h_tmp)>0:
+                if np.dot(n, h_tmp) > 0:
                     h_curr = h_tmp
                 break
             if verbosity >= 1:
@@ -1409,11 +1409,11 @@ class Fan:
                 # maybe we landed just outside the SC since h_curr is basically
                 # on a wall of the SC try to fix by nudging h_curr back in
                 dists = sc_curr@h_curr
-                if sum(dists<0) == 1:
+                if sum(dists < 0) == 1:
                     # assume we have n.h_curr = -eps
                     # update h_curr->h_curr + 2*eps*n/(n.n)
                     # then n.(h_curr + 2*eps*n/(n.n)) = eps
-                    v_i = np.where(dists<0)[0][0]
+                    v_i = np.where(dists < 0)[0][0]
                     n   = sc_curr[v_i]
                     violation = -dists[v_i]
 
@@ -1422,7 +1422,7 @@ class Fan:
                         raise Exception(msg)
 
                     dh = 2*violation*n/np.dot(n,n)
-                    if np.all(sc_curr@(h_curr+dh)>0):
+                    if np.all(sc_curr@(h_curr+dh) > 0):
                         # nudging worked!
                         h_curr = h_curr + dh
                     else:
@@ -1550,7 +1550,7 @@ class Fan:
         """
         # compute the normals via circuits
         if via_circuits:
-            if verbosity>=0:
+            if verbosity >= 0:
                 msg =  "The construction with `via_circuits=True` should NOT "
                 msg += "be used for checking regularity... it can give rise "
                 msg += "to a SOLID cone output for an irregular fan "
@@ -1567,7 +1567,7 @@ class Fan:
             for circ in self.circuits(verbosity=verbosity-1):
                 n = [0]*self.vc.size
                 for lbl,coeff in zip(circ.Z, circ.lmbda):
-                    n[lbl-1]=coeff
+                    n[lbl-1] = coeff
                 H.append(n)
 
         # do so via local folding
@@ -1672,14 +1672,14 @@ def make_fine(fan: "Fan") -> "Fan":
     
     # flip_linear to add all missing labels
     for lbl in sorted(set(fan.labels) - set(fan.used_labels)):
-        direction = [0 if fl!=lbl else -1 for fl in fan.labels]
+        direction = [0 if fl != lbl else -1 for fl in fan.labels]
 
         status, h_curr, T_curr, sc_curr, num_flips = fan.flip_linear(
-            direction=direction,
+            direction = direction,
             h_init = h_init,
-            hook_halt= lambda T_curr: lbl in T_curr.used_labels,
-            stop_at_deletion=False,
-            verbosity=-1,
+            hook_halt = lambda T_curr: lbl in T_curr.used_labels,
+            stop_at_deletion = False,
+            verbosity = -1,
         )
 
         assert status == 1
@@ -1753,14 +1753,11 @@ def flip_subgraph(
     else:
         tri_init = seed.triangulate()
         if not tri_init.is_triangulation():
-            print("ERROR: seed isn't triangulation! Quitting!")
-            return
+            raise ValueError("seed isn't triangulation!")
         elif only_fine and (not tri_init.is_fine()):
-            print("ERROR: seed isn't fine! Quitting!")
-            return
+            raise ValueError("seed isn't fine!")
         elif only_pc_triang and (not tri_init.respects_ptconfig()):
-            print("ERROR: seed isn't PC triang! Quitting!")
-            return
+            raise ValueError("seed isn't PC triang!")
 
         labels = [
             {

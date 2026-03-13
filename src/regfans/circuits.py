@@ -25,7 +25,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Union
 
-class Circuit():
+class Circuit:
     """
     This class is a helper data structure to contain a single circuit of some
     vector configuration.
@@ -87,11 +87,11 @@ class Circuit():
     def data(self):
         # spoof dictionaries
         return {
-            'Z':self.Z,
-            'Z+':self.Zpos,
-            'Z-':self.Zneg,
-            'lambda':self.lmbda,
-            'type':self.signature,
+            'Z': self.Z,
+            'Z+': self.Zpos,
+            'Z-': self.Zneg,
+            'lambda': self.lmbda,
+            'type': self.signature,
             }
 
     def reorient(self):
@@ -106,7 +106,7 @@ class Circuit():
             )
         return reoriented
 
-class Circuits():
+class Circuits:
     """
     This class is a helper data structure to contain the circuits of some
     vector configuration.
@@ -241,7 +241,7 @@ class Circuits():
         """
         encoding = self.encode(label_inds)
 
-        new_non_dependencies= set()
+        new_non_dependencies = set()
         for non_dependency in self.non_dependencies:
             if self.is_subset(non_dependency, encoding):
                 # non_dependency is weaker than encoding...
