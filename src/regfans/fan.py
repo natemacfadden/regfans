@@ -22,21 +22,24 @@
 
 # external imports
 from __future__ import annotations
-from collections.abc import Callable, Iterable
-import flint
+
 import itertools
+import warnings
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
+
+import flint
 import networkx as nx
 import numpy as np
-from typing import TYPE_CHECKING, Union
-import warnings
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
-    from .vectorconfig import VectorConfiguration
+
     from .circuits import Circuit
+    from .vectorconfig import VectorConfiguration
 
 # local imports
-from . import util, circuits
+from . import circuits, util
 
 
 class Fan:
@@ -63,9 +66,9 @@ class Fan:
     Nothing.
     """
     def __init__(self,
-        vc: "VectorConfiguration",
+        vc: VectorConfiguration,
         cones: list[list[int]],
-        heights: list[float]=None) -> None:
+        heights: list[float] | None = None) -> None:
         """
         **Description:**
         Initializes a `Fan` object.
@@ -193,7 +196,7 @@ class Fan:
         """
         return hash((hash(self.vc), tuple(sorted(self._cones))))
 
-    def __eq__(self, o: "Fan") -> bool:
+    def __eq__(self, o: Fan) -> bool:
         """
         **Description:**
         Equality checking between two Fan objects.
@@ -206,7 +209,7 @@ class Fan:
         """
         return (self.vc == o.vc) and set(self._cones) == set(o._cones)
 
-    def __ne__(self, o: "Fan") -> bool:
+    def __ne__(self, o: Fan) -> bool:
         """
         **Description:**
         Inequality checking between two Fan objects.
@@ -222,7 +225,7 @@ class Fan:
     # getters
     # =======
     @property
-    def vector_config(self) -> "VectorConfiguration":
+    def vector_config(self) -> VectorConfiguration:
         """
         **Description:**
         Returns the associated vector configuration.
@@ -324,8 +327,8 @@ class Fan:
     # less-trivial getters
     # --------------------
     def vectors(self,
-        which: int | Iterable[int] = None,
-        lifted: bool = False) -> "ArrayLike":
+        which: int | Iterable[int] | None = None,
+        lifted: bool = False) -> ArrayLike:
         """
         **Description:**
         Returns the vectors, optionally only those with given labels. Also,
@@ -358,7 +361,7 @@ class Fan:
         as_rays: bool = False,
         as_hyps: bool = False,
         as_inds: bool = False,
-        ind_offset: int=0) -> Union[ tuple[tuple[int]], list["ArrayLike"] ]:
+        ind_offset: int=0) -> tuple[tuple[int]] | list[ArrayLike]:
         """
         **Description:**
         Returns the cones in the fan in a variety of formats. They are:
@@ -385,12 +388,8 @@ class Fan:
         # format case-by-case
         if as_inds:
             # as indices
-            cones = tuple([
-                tuple([
-                    self.vc.label_to_ind(i)+ind_offset for i in simp
-                ])
-                for simp in self._cones
-            ])
+            cones = tuple(tuple(self.vc.label_to_ind(i)+ind_offset for i in simp)
+                for simp in self._cones)
         elif as_rays:
             # as rays
             cones = [self.vectors(which=simp).tolist() for simp in self._cones]
@@ -425,7 +424,7 @@ class Fan:
             raise NotImplementedError("Not implemented for non-triangulations")
 
         # compute the facets as a map from facet labels to containing cones
-        facets = dict()
+        facets = {}
         for cone_labels in self.cones():
             # any subset of #(dim-1) rays defines a facet
             for cc in itertools.combinations(cone_labels, r=self.dim - 1):
@@ -660,13 +659,13 @@ class Fan:
     # ------------------
     def circuit(
         self,
-        labels: Iterable[int] = None,
-        enforce_positive: int = None,
-        lmbda: Iterable[float] = None,
+        labels: Iterable[int] | None = None,
+        enforce_positive: int | None = None,
+        lmbda: Iterable[float] | None = None,
         check_containment: bool = True,
         save_circuits_in_vc: bool = False,
         verbosity: int = 0,
-    ) -> "Circuit":
+    ) -> Circuit:
         """
         **Description:**
         Format/compute the circuit corresponding to the specified labels.
@@ -697,7 +696,7 @@ class Fan:
             lmbda = np.array(lmbda).reshape(-1)
             try:
                 labels = [self.labels[i] for i in np.where(lmbda != 0)[0]]
-            except Exception:
+            except IndexError:
                 print()
                 print('lmbda',lmbda.tolist())
                 print('nonzero',np.where(lmbda != 0)[0])
@@ -735,7 +734,7 @@ class Fan:
                 if coeff > 0:
                     pass
                 elif coeff < 0:
-                    n = tuple([-nn for nn in n])
+                    n = tuple(-nn for nn in n)
                 else:
                     return None
 
@@ -840,8 +839,8 @@ class Fan:
         return out
 
     def circuits(self,
-        facets: dict[Iterable[int], Iterable[Iterable[int]]] = None,
-        verbosity: int = 0) -> list["Circuit"]:
+        facets: dict[Iterable[int], Iterable[Iterable[int]]] | None = None,
+        verbosity: int = 0) -> list[Circuit]:
         """
         **Description:**
         Compute all circuits associated to this fan (i.e., those 'embedded' in
@@ -926,8 +925,8 @@ class Fan:
                 continue
             try:
                 c1, c2 = facets[f]
-            except Exception:
-                raise Exception(f"Facet {f} had !=2 cones {facets[f]}")
+            except ValueError:
+                raise RuntimeError(f"Facet {f} had !=2 cones {facets[f]}")
 
             only_c1 = [i for i in c1 if i not in f][0]
             only_c2 = [i for i in c2 if i not in f][0]
@@ -1009,9 +1008,9 @@ class Fan:
     # flips
     # -----
     def flip(self,
-        circ: "Circuit",
+        circ: Circuit,
         formal: bool = True,
-        verbosity: int = 0) -> Union["Fan", tuple[tuple[int]]]:
+        verbosity: int = 0) -> Fan | tuple[tuple[int]]:
         """
         **Description:**
         Make a flip across a circuit.
@@ -1089,7 +1088,7 @@ class Fan:
                 del neighb._circuits.cone_to_circuit[c]
 
             # compute new circuits
-            facets = dict()
+            facets = {}
             for c in Tneg:
                 for f in itertools.combinations(c, self.ambient_dim-1):
                     facets[f] = facets.get(f,[]) + [c]
@@ -1114,20 +1113,20 @@ class Fan:
         return neighb
 
     def flip_linear(self,
-        h_target: Iterable[float] = None,
-        direction: Iterable[float] = None,
-        h_init: Iterable[float] = None,
-        max_N_flips: int = None,
+        h_target: Iterable[float] | None = None,
+        direction: Iterable[float] | None = None,
+        h_init: Iterable[float] | None = None,
+        max_N_flips: int | None = None,
         stop_at_deletion: bool = True,
         stop_at_pct: bool = False,
         check_regularity: bool = True,
         record_fans: bool = False,
         record_circs: bool = False,
-        hook_init: Callable = None,
-        hook_halt: Callable = None,
-        hook_flip: Callable = None,
+        hook_init: Callable | None = None,
+        hook_halt: Callable | None = None,
+        hook_flip: Callable | None = None,
         eps: float = 1e-8,
-        verbosity: int = 0) -> list[int|Exception, "ArrayLike", "Fan", "ArrayLike", int]:
+        verbosity: int = 0) -> list[int|Exception, ArrayLike, Fan, ArrayLike, int]:
         """
         **Description:**
         Compute all flips along the linear height homotopy
@@ -1199,7 +1198,7 @@ class Fan:
         else:
             h_curr   = np.array(h_init)
             if not util.contains(p=h_init, H=sc_curr):
-                raise Exception
+                raise ValueError("h_init is not contained in the secondary cone")
 
         # initialization hooks
         if hook_init is not None:
@@ -1238,14 +1237,13 @@ class Fan:
                 mindist = min(sc_curr @ h_curr)
                 msg = f"Min dist of h_curr to hyperplanes = {mindist}\n"
                 msg += "=> h_curr not in interior of sc_curr..."
-                raise Exception(msg)
+                raise RuntimeError(msg)
 
             # check if we want to halt
-            if hook_halt is not None:
-                if hook_halt(T_curr):
-                    if verbosity >= 1:
-                        print("User-hook indicates to stop flipping")
-                    break
+            if hook_halt is not None and hook_halt(T_curr):
+                if verbosity >= 1:
+                    print("User-hook indicates to stop flipping")
+                break
 
             # stop at a fan respecting the point configuration
             if stop_at_pct:
@@ -1299,7 +1297,7 @@ class Fan:
                 first_hit_normal = sc_curr[first_hit_ind]
                 circ = T_curr.circuit(lmbda = first_hit_normal,
                                       verbosity=verbosity-1)
-            except Exception:
+            except (IndexError, ValueError):
                 print(sc_curr.shape, first_hit_ind)
                 print('curr dists', sc_curr@h_curr)
                 print('target dists', sc_curr@h_target)
@@ -1399,7 +1397,7 @@ class Fan:
                 print(f"    {sc_curr.tolist()}")
                 print(")")
 
-                print('',end='',flush=True)
+                print(end='', flush=True)
                 raise e
 
             # check that the heights make sense
@@ -1419,7 +1417,7 @@ class Fan:
 
                     if violation > eps:
                         msg = f"Violated hyperplanes by {violation}>{eps}..."
-                        raise Exception(msg)
+                        raise RuntimeError(msg)
 
                     dh = 2*violation*n/np.dot(n,n)
                     if np.all(sc_curr@(h_curr+dh) > 0):
@@ -1435,7 +1433,7 @@ class Fan:
                 else:
                     msg =   "Just flipped but new heights not in new secondary "
                     msg += f"cone... min(H@h)={min(dists)}"
-                    raise Exception(msg)
+                    raise RuntimeError(msg)
 
             # add to history
             if record_fans:
@@ -1454,7 +1452,7 @@ class Fan:
     def neighbors(self,
         only_fine: bool = False,
         formal: bool = True,
-        verbosity: int = 0) -> tuple[ list[Union["Fan", tuple[tuple[int]]]], list["Circuit"] ]:
+        verbosity: int = 0) -> tuple[ list[Fan | tuple[tuple[int]]], list[Circuit] ]:
         """
         **Description:**
         Compute the neighboring fans (those reachable by a single flip).
@@ -1520,7 +1518,7 @@ class Fan:
 
     def secondary_cone_hyperplanes(self,
         via_circuits: bool = False,
-        verbosity: int = 0) -> "ArrayLike":
+        verbosity: int = 0) -> ArrayLike:
         """
         **Description:**
         Compute the hyperplanes of the secondary cone associated to this fan.
@@ -1651,7 +1649,7 @@ class Fan:
 
 # misc utilities
 # --------------
-def make_fine(fan: "Fan") -> "Fan":
+def make_fine(fan: Fan) -> Fan:
     """
     **Description:**
     Convert a fan to a fine fan by linear flipping
@@ -1693,13 +1691,13 @@ def make_fine(fan: "Fan") -> "Fan":
 # ----------
 def flip_subgraph(
     seed,
-    max_flips: int = None,
+    max_flips: int | None = None,
     only_fine: bool = False,
     only_regular: bool = True,
     only_pc_triang: bool = False,
     compute_node_labels: bool = False,
     verbosity: int = 0,
-) -> tuple[ "nx.Graph", list["Fan"], list[dict] ]:
+) -> tuple[ nx.Graph, list[Fan], list[dict] ]:
     """
     **Description:**
     Compute the flip graph centered at some input 'seed' triangulation.

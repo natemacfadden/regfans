@@ -22,8 +22,9 @@
 
 # external imports
 from __future__ import annotations
+
 from collections.abc import Iterable
-from typing import Union
+
 
 class Circuit:
     """
@@ -101,7 +102,7 @@ class Circuit:
             self.Z,
             self.Zneg,
             self.Zpos,
-            tuple([-x for x in self.lmbda]),
+            tuple(-x for x in self.lmbda),
             (self.signature[1], self.signature[0])
             )
         return reoriented
@@ -140,10 +141,10 @@ class Circuits:
         # main data type - map from the (encoded) unsigned circuit to a Circuit
         # object
         # **Don't directly access... use getters/setters instead...***
-        self.circuits = dict()
+        self.circuits = {}
 
         # map from cone to the circuits it is involved in
-        self.cone_to_circuit = dict()
+        self.cone_to_circuit = {}
 
         # non-dependencies
         self.non_dependencies = set()
@@ -169,7 +170,7 @@ class Circuits:
         encoding = self.encode(label_inds)
         return encoding in self.circuits
 
-    def __getitem__(self, label_inds: Iterable[int]) -> Union["Circuit", int]:
+    def __getitem__(self, label_inds: Iterable[int]) -> Circuit | int:
         """
         **Description:**
         Get the circuit corresponding to the indicated indices.
@@ -202,7 +203,7 @@ class Circuits:
         return 0
 
     def set_circuit(self,
-                    circuit: "Circuit",
+                    circuit: Circuit,
                     verbosity: int = 0) -> None:
         """
         **Description:**
@@ -249,7 +250,6 @@ class Circuits:
                 if verbosity >= 1:
                     print(f"Outdated non-dependency = {non_dependency}...")
 
-                pass
             else:
                 # not a subset of encoding -> not trivial
                 new_non_dependencies.add(non_dependency)
@@ -259,7 +259,7 @@ class Circuits:
 
     # dictionary methods
     # ------------------
-    def values(self) -> Iterable["Circuit"]:
+    def values(self) -> Iterable[Circuit]:
         """
         **Description:**
         Get the values (the actual circuits)
@@ -272,7 +272,7 @@ class Circuits:
         """
         return self.circuits.values()
 
-    def copy(self) -> "Circuits":
+    def copy(self) -> Circuits:
         """
         **Description:**
         Copy the circuits object

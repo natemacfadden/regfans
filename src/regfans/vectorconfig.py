@@ -22,24 +22,27 @@
 
 # external imports
 from __future__ import annotations
-from collections.abc import Generator, Iterable
+
 import copy
-import flint
 import itertools
+import warnings
+from collections.abc import Generator, Iterable
+from typing import TYPE_CHECKING
+
+import flint
 import networkx as nx
 import numpy as np
 import scipy as sp
 import triangulumancer
-from typing import TYPE_CHECKING
-import warnings
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
-    from .fan import Fan
+
     from .circuits import Circuit
+    from .fan import Fan
 
 # local imports
-from . import util, circuits, fan
+from . import circuits, fan, util
 
 
 class VectorConfiguration:
@@ -67,10 +70,10 @@ class VectorConfiguration:
     """
     def __init__(
         self,
-        vectors: "ArrayLike",
-        labels: Iterable[int] = None,
+        vectors: ArrayLike,
+        labels: Iterable[int] | None = None,
         eps: float = 1e-4,
-        gale_basis: Iterable[int] = None,
+        gale_basis: Iterable[int] | None = None,
     ) -> None:
         """
         **Description:**
@@ -131,7 +134,7 @@ class VectorConfiguration:
             #  nice to reserve label 0 for the origin)
             labels = [i + 1 for i in range(len(self._vectors))]
         
-        self._labels = tuple([label for label in labels])
+        self._labels = tuple(label for label in labels)
         if not all([isinstance(lbl,int) for lbl in self._labels]):
             raise ValueError("Labels must be integral")
 
@@ -153,11 +156,11 @@ class VectorConfiguration:
 
         self._circuits = circuits.Circuits()
         self._computed_all_circuits = False
-        self._refinements = dict()
+        self._refinements = {}
 
-        self._poly = dict()
+        self._poly = {}
 
-        self._flip_graphs = dict()
+        self._flip_graphs = {}
 
         # allow setting of a particular basis of the Gale transform
         self._gale_basis    = gale_basis
@@ -225,7 +228,7 @@ class VectorConfiguration:
 
         return hash(l2v_immut)
 
-    def __eq__(self, o: "VectorConfiguration") -> bool:
+    def __eq__(self, o: VectorConfiguration) -> bool:
         """
         **Description:**
         Equality checking between two VectorConfiguration objects.
@@ -238,7 +241,7 @@ class VectorConfiguration:
         """
         return not self.__ne__(o)
 
-    def __ne__(self, o: "VectorConfiguration") -> bool:
+    def __ne__(self, o: VectorConfiguration) -> bool:
         """
         **Description:**
         Inequality checking between two VectorConfiguration objects.
@@ -264,7 +267,7 @@ class VectorConfiguration:
         # all checks passed
         return False
 
-    def copy(self) -> "VectorConfiguration":
+    def copy(self) -> VectorConfiguration:
         """
         **Description:**
         Copy method.
@@ -361,7 +364,7 @@ class VectorConfiguration:
 
     # vectors
     # -------
-    def vectors(self, which: int | Iterable[int] = None) -> "ArrayLike":
+    def vectors(self, which: int | Iterable[int] | None = None) -> ArrayLike:
         """
         **Description:**
         Returns the vectors, optionally only those with given labels.
@@ -392,7 +395,7 @@ class VectorConfiguration:
     # aliases
     vector = vectors
 
-    def vectors_to_labels(self, vectors: "ArrayLike") -> int | list[int]:
+    def vectors_to_labels(self, vectors: ArrayLike) -> int | list[int]:
         """
         **Description:**
         Maps the vectors to their corresponding labels
@@ -424,7 +427,7 @@ class VectorConfiguration:
 
     def labels_to_inds(self,
                       labels: Iterable[int],
-                      ambient_labels: Iterable[int] = None,
+                      ambient_labels: Iterable[int] | None = None,
                       offset: int = 0) -> int | Iterable[int]:
         """
         **Description:**
@@ -446,7 +449,7 @@ class VectorConfiguration:
             if not isinstance(labels, Iterable):
                 return labels - 1 + offset
             else:
-                return tuple([i - 1 + offset for i in labels])
+                return tuple(i - 1 + offset for i in labels)
 
         # get default labels
         # construct dict mapping label to index
@@ -460,7 +463,7 @@ class VectorConfiguration:
         if not isinstance(labels, Iterable):
             return _labels_to_inds[labels] + offset
         else:
-            return tuple([_labels_to_inds[i] + offset for i in labels])
+            return tuple(_labels_to_inds[i] + offset for i in labels)
 
     # aliases
     label_to_ind = labels_to_inds
@@ -522,7 +525,7 @@ class VectorConfiguration:
         """
         return util.is_solid(H=self.vectors())
 
-    def support(self) -> "ArrayLike":
+    def support(self) -> ArrayLike:
         """
         **Description:**
         Get the support of the vector configuration as a hyperplane
@@ -601,7 +604,7 @@ class VectorConfiguration:
 
     # regularity
     # ==========
-    def gale(self, set_basis: bool = False) -> "ArrayLike":
+    def gale(self, set_basis: bool = False) -> ArrayLike:
         """
         **Description:**
         Compute the gale transform of the config.
@@ -658,7 +661,7 @@ class VectorConfiguration:
             self._gale = B.T
             return self._gale
 
-    def project(self, vec: "ArrayLike") -> "ArrayLike":
+    def project(self, vec: ArrayLike) -> ArrayLike:
         """
         **Description:**
         Project down a vector from height-space to chamber-space.
@@ -674,7 +677,7 @@ class VectorConfiguration:
     # aliases
     proj = project
 
-    def jorp(self, vec: "ArrayLike") -> "ArrayLike":
+    def jorp(self, vec: ArrayLike) -> ArrayLike:
         """
         **Description:**
         Undo a projection from height-space to chamber-space.
@@ -693,15 +696,15 @@ class VectorConfiguration:
     # =========================
     def triangulate(
         self,
-        heights: "ArrayLike" = None,
-        cells: "ArrayLike" = None,
+        heights: ArrayLike | None = None,
+        cells: ArrayLike | None = None,
         tol: float = 1e-14,
-        backend: str = None,
+        backend: str | None = None,
         make_fine: bool = True,
         check_heights: bool = True,
         cure_heights: bool = True,
         verbosity: int = 0,
-    ) -> "Fan":
+    ) -> Fan:
         """
         **Description:**
         Subdivide the vector configuration either by specified cells/simplices
@@ -853,7 +856,7 @@ class VectorConfiguration:
 
                     # star :)
                     if verbosity >= 2:
-                        print("")
+                        print()
                     break
 
                 # check that we didn't lower the height of origin a crazy amount
@@ -926,7 +929,7 @@ class VectorConfiguration:
                     else:
                         msg = "Heights not contained in secondary cone... "
                         msg += f"distances = {dists}..."
-                        raise Exception(msg)
+                        raise RuntimeError(msg)
 
         return f
 
@@ -938,7 +941,7 @@ class VectorConfiguration:
         only_fine: bool = False,
         only_regular: bool = True,
         verbosity: int = 0
-    ) -> list["Fan"]:
+    ) -> list[Fan]:
         """
         **Description:**
         Generate all triangulations of this vector configuration via taking
@@ -978,15 +981,15 @@ class VectorConfiguration:
     def random_triangulations_fast(
         self,
         method: str="delaunay",
-        h0: "ArrayLike" = None,
+        h0: ArrayLike | None = None,
         sigma: float = 0.1,  # for delaunay
-        N: int = None,
+        N: int | None = None,
         as_list: bool = False,
         attempts_per_triang: int = 1000,
-        backend: str = None,
+        backend: str | None = None,
         seed: int = 0,
         verbosity: int = 0,
-    ) -> Generator["Fan"] | list["Fan"]:
+    ) -> Generator[Fan] | list[Fan]:
         """
         **Description:**
         Generate random regular triangulations by picking random heights.
@@ -1112,9 +1115,9 @@ class VectorConfiguration:
     # -----
     def circuit(self,
                 labels: Iterable[int],
-                lmbda: Iterable = None,
+                lmbda: Iterable | None = None,
                 set_non_dependencies: bool=True,
-                save_circuits: bool=True) -> "Circuit":
+                save_circuits: bool=True) -> Circuit:
         """
         **Description:**
         Format/compute the circuit corresponding to the specified labels.
@@ -1184,7 +1187,7 @@ class VectorConfiguration:
 
         # reorient if |Zpos| < |Zneg|
         if len(Zpos) < len(Zneg):
-            rel_dependence = tuple([-coeff for coeff in rel_dependence])
+            rel_dependence = tuple(-coeff for coeff in rel_dependence)
             Zpos, Zneg = Zneg, Zpos
 
         # get the type
@@ -1205,7 +1208,7 @@ class VectorConfiguration:
 
         return circ
 
-    def circuits(self, verbosity: int = 0) -> list["Circuit"]:
+    def circuits(self, verbosity: int = 0) -> list[Circuit]:
         """
         **Description:**
         Compute all possible circuits of this vector configuration.
@@ -1247,13 +1250,13 @@ class VectorConfiguration:
 
     def flip_graph(
         self,
-        max_flips: int = None,
+        max_flips: int | None = None,
         only_fine: bool = False,
         only_regular: bool = True,
         only_pc_triang: bool = False,
         compute_node_labels: bool = False,
         verbosity: int = 0,
-    ) -> (nx.Graph, list["Fan"], list[dict]):
+    ) -> (nx.Graph, list[Fan], list[dict]):
         """
         **Description:**
         Compute the flip graph. Wrapper for flip_subgraph.
@@ -1345,7 +1348,7 @@ class VectorConfiguration:
 
     # misc
     # ----
-    def central_fan(self) -> "Fan":
+    def central_fan(self) -> Fan:
         """
         **Description:**
         Generate the central fan of the vector configuration. Can be defined

@@ -26,10 +26,11 @@ from __future__ import annotations
 import fractions
 import functools
 import math
+import warnings
+from typing import TYPE_CHECKING
+
 import numpy as np
 from ortools.linear_solver import pywraplp
-from typing import TYPE_CHECKING, Union
-import warnings
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -104,7 +105,7 @@ def primitive(vec: list[float], max_denom=10**6):
 
 # basic geometry
 # --------------
-def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike":
+def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike:
     """
     **Description:**
     Computes the point specified by t along the line passing through p0 and p1.
@@ -130,9 +131,9 @@ def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike":
     return p0 + t*(p1-p0)
 
 def first_hit(
-    p0: "ArrayLike",
-    p1: "ArrayLike",
-    H: "ArrayLike",
+    p0: ArrayLike,
+    p1: ArrayLike,
+    H: ArrayLike,
     verbosity: int=0) -> (int, float):
     """
     **Description:**
@@ -196,7 +197,7 @@ def first_hit(
 
 # cone geometry
 # -------------
-def dual_cone(data: "ArrayLike") -> "ArrayLike":
+def dual_cone(data: ArrayLike) -> ArrayLike:
     """
     **Description:**
     Compute the data of the cone dual to the input 'primal' cone.
@@ -252,7 +253,7 @@ def dual_cone(data: "ArrayLike") -> "ArrayLike":
     # return
     return rays
 
-def cone_dim(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> int:
+def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
     """
     **Description:**
     Return the dimension of the cone.
@@ -279,7 +280,7 @@ def cone_dim(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> int:
     # return
     return np.linalg.matrix_rank(R.T)
 
-def is_solid(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> bool:
+def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool:
     """
     **Description:**
     Return whether the cone is full-dimensional.
@@ -309,9 +310,9 @@ def is_solid(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> bool:
         return np.all(H@R.sum(axis=0) > 0.5)
 
 def contains(*,
-    p: "ArrayLike",
-    R: "ArrayLike" = None,
-    H: "ArrayLike" = None) -> bool:
+    p: ArrayLike,
+    R: ArrayLike = None,
+    H: ArrayLike = None) -> bool:
     """
     **Description:**
     Return if the point p is contained in the cone.
@@ -340,11 +341,11 @@ def contains(*,
     return np.all(H@p >= 0)
 
 def find_interior_point(*,
-    R: "ArrayLike" = None,
-    H: "ArrayLike" = None,
+    R: ArrayLike = None,
+    H: ArrayLike = None,
     stretching: float = 1,
     nonneg: bool = False,
-    verbosity: int = 0) -> Union["ArrayLike", None]:
+    verbosity: int = 0) -> ArrayLike | None:
     """
     **Description:**
     Returns a point p in the strict interior of a cone. The cone can be
