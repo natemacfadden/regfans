@@ -180,7 +180,7 @@ def first_hit(
 
     first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])#-np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
     # the above line is extremely sensitive... likely pointing to unfortunate fragility/lack of stability
-    # in the associated methosd. E.g., using `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny bit of
+    # in the associated methods. E.g., using `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny bit of
     # noise but leads to crashes in the operation...
 
     return first_hit_ind, first_hit_dist

@@ -976,7 +976,8 @@ class Fan:
         - `cell`: The cell of interest.
 
         **Returns:**
-        A list of all solid cones (as tuples of ints) containing the cell.
+        A list of all solid cones (as tuples of ints) containing the cell, minus
+        the cell itself.
         """
         return [tuple(sorted(set(c) - set(cell))) for c in self.star(cell)]
 
@@ -985,7 +986,7 @@ class Fan:
         link: Iterable[Iterable[int]]) -> list[tuple[int]]:
         """
         **Description:**
-        Embed some cell into the Fan bu combining it with each cell in the link.
+        Embed some cell into the Fan by combining it with each cell in the link.
 
         **Arguments:**
         - `cell`: The cell of interest.
