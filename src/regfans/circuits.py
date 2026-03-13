@@ -21,6 +21,7 @@
 # -----------------------------------------------------------------------------
 
 # external imports
+from __future__ import annotations
 from collections.abc import Iterable
 from typing import Union
 
@@ -295,7 +296,7 @@ class Circuits():
         """
         Pop an element from the circuits dict
         """
-        out = self.circuits.pop(*args, **kwargs)
+        self.circuits.pop(*args, **kwargs)
 
     # basic bit helpers
     # -----------------

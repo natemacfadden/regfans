@@ -21,12 +21,18 @@
 # -----------------------------------------------------------------------------
 
 # external imports
+from __future__ import annotations
+
 import fractions
 import functools
 import math
 import numpy as np
 from ortools.linear_solver import pywraplp
-from typing import Union
+from typing import TYPE_CHECKING, Union
+import warnings
+
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
 
 # basic math
 # ----------
@@ -55,15 +61,15 @@ def gcd(vals: list[float], max_denom: float=10**6) -> float:
     denom = [r.denominator for r in rat]
 
     # get the relevant LCM, GCD
-    l     = functools.reduce(math.lcm, denom)
-    gprime= functools.reduce(math.gcd, [n*(l//d) for n,d in zip(numer,denom)])
+    lcm   = functools.reduce(math.lcm, denom)
+    gprime= functools.reduce(math.gcd, [n*(lcm//d) for n,d in zip(numer,denom)])
 
     # return the GCD
-    if gprime%l == 0:
+    if gprime%lcm == 0:
         # integral
-        return gprime//l
+        return gprime//lcm
     else:
-        return gprime/l
+        return gprime/lcm
 
 def primitive(vec: list[float], max_denom=10**6):
     """
@@ -88,10 +94,10 @@ def primitive(vec: list[float], max_denom=10**6):
     denom = [r.denominator for r in rat]
 
     # get the LCM of the denominators
-    l     = functools.reduce(math.lcm, denom)
+    lcm   = functools.reduce(math.lcm, denom)
 
     # get the integral vector and scale it to be primitive
-    prim  = [n*(l//d) for n,d in zip(numer,denom)]
+    prim  = [n*(lcm//d) for n,d in zip(numer,denom)]
     gprime= functools.reduce(math.gcd, prim)
 
     return [x//gprime for x in prim]
@@ -401,5 +407,5 @@ def find_interior_point(*,
             warnings.warn("Cone is not full-dimensional")
         return None
     else:
-        warnings.warn(f"Unexpected error")
+        warnings.warn("Unexpected error")
         return None

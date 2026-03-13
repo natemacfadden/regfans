@@ -21,6 +21,7 @@
 # -----------------------------------------------------------------------------
 
 # external imports
+from __future__ import annotations
 from collections.abc import Generator, Iterable
 import copy
 import flint
@@ -29,7 +30,13 @@ import networkx as nx
 import numpy as np
 import scipy as sp
 import triangulumancer
+from typing import TYPE_CHECKING
 import warnings
+
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
+    from .fan import Fan
+    from .circuits import Circuit
 
 # local imports
 from . import util, circuits, fan
@@ -124,7 +131,7 @@ class VectorConfiguration:
             labels = [i + 1 for i in range(len(self._vectors))]
         
         self._labels = tuple([label for label in labels])
-        if not all([isinstance(l,int) for l in self._labels]):
+        if not all([isinstance(lbl,int) for lbl in self._labels]):
             raise ValueError("Labels must be integral")
 
         self._standard_labels = (self._labels == tuple(range(1, self.size + 1)))
@@ -778,7 +785,7 @@ class VectorConfiguration:
 
             # do the check
             if False: # too slow... instead just check if we found coeffs...
-                H = sigma.hyperplanes()
+                H = sigma.hyperplanes()  # noqa: F821
 
                 if np.any(H@Bh < 0):
                     msg =   "Heights outside support of secondary fan! "
@@ -797,7 +804,7 @@ class VectorConfiguration:
                 print('differ by linear eval of A?', max(res)<tol)
 
             if heights_new is None:
-                raise ValueError(f"Heights outside support of secondary fan!")
+                raise ValueError("Heights outside support of secondary fan!")
             heights = heights_new
 
         # lift & compute simplices
@@ -807,7 +814,7 @@ class VectorConfiguration:
             return self.subdivide(cells=[self.labels])
 
         if verbosity >= 1:
-            print(f"Constructing the triangulation via lifting...",flush=True)
+            print("Constructing the triangulation via lifting...",flush=True)
 
         # nonzero heights -> lift via a point configuration
         if backend == "cgal":
@@ -890,7 +897,7 @@ class VectorConfiguration:
 
         # some sanity checks
         if verbosity >= 1:
-            print(f"Doing sanity checks on the triangulation...",flush=True)
+            print("Doing sanity checks on the triangulation...",flush=True)
 
         if not f.is_triangulation():
             if verbosity >= 1:
@@ -1229,7 +1236,7 @@ class VectorConfiguration:
                     continue
 
                 # compute, save the circuit
-                circ = self.circuit(subconfig, set_non_dependencies=True)
+                self.circuit(subconfig, set_non_dependencies=True)
 
         # return
         self._computed_all_circuits = True

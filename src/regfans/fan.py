@@ -21,14 +21,19 @@
 # -----------------------------------------------------------------------------
 
 # external imports
+from __future__ import annotations
 from collections.abc import Callable, Iterable
 import flint
 import itertools
 import networkx as nx
 import numpy as np
-import scipy as sp
-from typing import Union
+from typing import TYPE_CHECKING, Union
 import warnings
+
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
+    from .vectorconfig import VectorConfiguration
+    from .circuits import Circuit
 
 # local imports
 from . import util, circuits
@@ -80,7 +85,7 @@ class Fan:
         self._vc = vc
 
         N_input_cones = len(cones)
-        self._cones = {tuple(sorted([int(l) for l in c])) for c in cones}
+        self._cones = {tuple(sorted([int(lbl) for lbl in c])) for c in cones}
         self._cones = tuple(sorted(self._cones))
         if len(self._cones) < N_input_cones:
             msg = "Fan: Input `cones` had duplicates..."
@@ -136,7 +141,7 @@ class Fan:
             subdivision_str = "subdivision"
 
         return (
-            f"A "
+            "A "
             + fine_str
             + regular_str
             + f" {subdivision_str} of a"
@@ -168,7 +173,7 @@ class Fan:
             subdivision_str = "subdivision"
 
         return (
-            f"A "
+            "A "
             + fine_str
             + regular_str
             + f" {subdivision_str} of a"
@@ -260,7 +265,7 @@ class Fan:
         The labels of the vectors in the VC used by cones in the Fan.
         """
         if self._used_labels is None:
-            self._used_labels = [l for simp in self._cones for l in simp]
+            self._used_labels = [lbl for simp in self._cones for lbl in simp]
             self._used_labels = tuple(sorted(set(self._used_labels)))
         return self._used_labels
 
@@ -279,10 +284,10 @@ class Fan:
         """
         # lazily compute
         if self._labels_to_cones is None:
-            self._labels_to_cones = {l:set() for l in self.labels}
+            self._labels_to_cones = {lbl:set() for lbl in self.labels}
             for c in self._cones:
-                for l in c:
-                    self._labels_to_cones[l].add(c)
+                for lbl in c:
+                    self._labels_to_cones[lbl].add(c)
 
         # return
         return self._labels_to_cones
@@ -456,7 +461,7 @@ class Fan:
         # labels of vectors laying in each facet of A
         _A_facets = sorted([
             tuple(sorted([
-                l for l,v in self.vc._labels_to_vectors.items()
+                lbl for lbl,v in self.vc._labels_to_vectors.items()
                 if np.dot(n,v)==0
                 ]))\
             for n in self.vc.support()])
@@ -647,7 +652,7 @@ class Fan:
 
         # check a single cone
         l2c = self.labels_to_cones
-        return len( l2c[c[0]].intersection(*[l2c[l] for l in c[1:]]) )>0
+        return len( l2c[c[0]].intersection(*[l2c[lbl] for lbl in c[1:]]) )>0
 
     # flip preliminaries
     # ------------------
@@ -690,7 +695,7 @@ class Fan:
             lmbda = np.array(lmbda).reshape(-1)
             try:
                 labels = [self.labels[i] for i in np.where(lmbda!=0)[0]]
-            except:
+            except Exception:
                 print()
                 print('lmbda',lmbda.tolist())
                 print('nonzero',np.where(lmbda!=0)[0])
@@ -919,7 +924,7 @@ class Fan:
                 continue
             try:
                 c1, c2 = facets[f]
-            except:
+            except Exception:
                 raise Exception(f"Facet {f} had !=2 cones {facets[f]}")
 
             only_c1 = [i for i in c1 if i not in f][0]
@@ -964,7 +969,7 @@ class Fan:
             return [c for c in self.cones() if cell.issubset(c)]
         else:
             l2c = self.labels_to_cones
-            return list(l2c[cell[0]].intersection(*[l2c[l] for l in cell[1:]]))
+            return list(l2c[cell[0]].intersection(*[l2c[lbl] for lbl in cell[1:]]))
 
     def link(self, cell: Iterable[int]) -> list[tuple[int]]:
         """
@@ -1049,29 +1054,29 @@ class Fan:
             neighb._computed_all_circuits = False
 
             # copy cone information into neighbor
-            neighb._labels_to_cones = {l:cones.copy() for l,cones in \
+            neighb._labels_to_cones = {lbl:cones.copy() for lbl,cones in \
                                                 self.labels_to_cones.items()}
 
             for c in Tpos:
-                for l in c:
-                    neighb._labels_to_cones[l].remove(c)
+                for lbl in c:
+                    neighb._labels_to_cones[lbl].remove(c)
             for c in Tneg:
-                for l in c:
-                    neighb._labels_to_cones[l].add(c)
+                for lbl in c:
+                    neighb._labels_to_cones[lbl].add(c)
 
             if False:
                 # THIS PREMISE SEEMS TO BE WRONG...
                 # delete unclear non-circuits
                 # (i.e., any which share a point with the any cone in Tpos)
-                star_pts = {l for c in Tpos for l in c}
-                for l in star_pts:
-                    # iterate over non-dependencies that l touches
-                    for non_depend in self._circuits.label_to_non_dependency[l]:
+                star_pts = {lbl for c in Tpos for lbl in c}
+                for lbl in star_pts:
+                    # iterate over non-dependencies that lbl touches
+                    for non_depend in self._circuits.label_to_non_dependency[lbl]:
 
                         # iterate over all other points
                         for ll,l_nondepends in self._circuits.label_to_non_dependency.items():
-                            # skip self._circuits.label_to_non_dependency[l]
-                            if l==ll:
+                            # skip self._circuits.label_to_non_dependency[lbl]
+                            if lbl==ll:
                                 continue
 
                             # remove non_depend from
@@ -1079,12 +1084,12 @@ class Fan:
                             # exists
                             if non_depend in l_nondepends:
                                 msg =  f"removing non-dependency {non_depend} "
-                                msg += f"(since {l} in star)"
+                                msg += f"(since {lbl} in star)"
                                 print()
                                 l_nondepends.remove(non_depend)
 
-                        # empty the entry for l
-                        self._circuits.label_to_non_dependency[l] = set()
+                        # empty the entry for lbl
+                        self._circuits.label_to_non_dependency[lbl] = set()
 
             # delete now-irrelevant circuits
             # (i.e., any using a cone in Tpos)
@@ -1119,12 +1124,12 @@ class Fan:
                     for c in neighb.cones():
                         if f_set.issubset(c) and c != facets[f][0]:
                             facets[f].append(c)
-            new_circuits = neighb.circuits(facets = facets)
+            neighb.circuits(facets = facets)
             neighb._computed_all_circuits = True
             neighb.vc._circuits.clear_cache()
 
             if verbosity >= 1:
-                print(f"Neighbor, correspondingly, has circuits:")
+                print("Neighbor, correspondingly, has circuits:")
                 print(neighb._circuits)
                 print("and associated cone-to-circuit maps")
                 print(neighb._circuits.cone_to_circuit)
@@ -1200,7 +1205,7 @@ class Fan:
             raise ValueError("Assumes regular triangulation...")
 
         # warnings
-        if (self.verbosity >= 0) and (not stop_at_deletion):
+        if (verbosity >= 0) and (not stop_at_deletion):
             warnings.warn("flip_linear struggles when points are deleted...")
 
         # initial data
@@ -1317,7 +1322,7 @@ class Fan:
                 first_hit_normal = sc_curr[first_hit_ind]
                 circ = T_curr.circuit(lmbda = first_hit_normal,
                                       verbosity=verbosity-1)
-            except:
+            except Exception:
                 print(sc_curr.shape, first_hit_ind)
                 print('curr dists', sc_curr@h_curr)
                 print('target dists', sc_curr@h_target)
@@ -1577,8 +1582,8 @@ class Fan:
             H = []
             for circ in self.circuits(verbosity=verbosity-1):
                 n = [0]*self.vc.size
-                for l,coeff in zip(circ.Z, circ.lmbda):
-                    n[l-1]=coeff
+                for lbl,coeff in zip(circ.Z, circ.lmbda):
+                    n[lbl-1]=coeff
                 H.append(n)
 
         # do so via local folding
@@ -1682,13 +1687,13 @@ def make_fine(fan: "Fan") -> "Fan":
     assert np.all( fan.secondary_cone_hyperplanes()@h_init > 0)
     
     # flip_linear to add all missing labels
-    for l in sorted(set(fan.labels) - set(fan.used_labels)):
-        direction = [0 if fl!=l else -1 for fl in fan.labels]
-        
+    for lbl in sorted(set(fan.labels) - set(fan.used_labels)):
+        direction = [0 if fl!=lbl else -1 for fl in fan.labels]
+
         status, h_curr, T_curr, sc_curr, num_flips = fan.flip_linear(
             direction=direction,
             h_init = h_init,
-            hook_halt= lambda T_curr: l in T_curr.used_labels,
+            hook_halt= lambda T_curr: lbl in T_curr.used_labels,
             stop_at_deletion=False,
             verbosity=-1,
         )
@@ -1710,7 +1715,7 @@ def flip_subgraph(
     only_pc_triang: bool = False,
     compute_node_labels: bool = False,
     verbosity: int = 0,
-) -> tuple[ "networkx.Graph", list["Fan"], list[dict] ]:
+) -> tuple[ "nx.Graph", list["Fan"], list[dict] ]:
     """
     **Description:**
     Compute the flip graph centered at some input 'seed' triangulation.
