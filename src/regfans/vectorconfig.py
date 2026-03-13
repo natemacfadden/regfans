@@ -51,7 +51,7 @@ class VectorConfiguration:
                     allowed.
     - `eps`:        Threshold for checking for non-integral vectors.
     - `gale_basis`: An optional basis for the gale transform. If provided, then
-                    the gale transform will be put a basis such that the
+                    the gale transform will be put in a basis such that the
                     submatrix given by these labels equals the identity.
 
     **Returns:**
@@ -704,6 +704,8 @@ class VectorConfiguration:
         - `tol`:           Numerical tolerance used for curing negative heights
         - `backend`:       The lifting backend. Currently allowed to be "cgal"
                            or "ppl".
+        - `make_fine`:     Convert the triangulation to a fine triangulation, if
+                           not already fine.
         - `check_heights`: Whether to check that the heights land in the
                            secondary cone of the output triangulation.
         - `cure_heights`:  If the heights do not land in the secondary cone, try
@@ -1242,7 +1244,7 @@ class VectorConfiguration:
         only_pc_triang: bool = False,
         compute_node_labels: bool = False,
         verbosity: int = 0,
-    ) -> (nx.Graph, list["Fan"], list[str]):
+    ) -> (nx.Graph, list["Fan"], list[dict]):
         """
         **Description:**
         Compute the flip graph. Wrapper for flip_subgraph.
@@ -1264,9 +1266,10 @@ class VectorConfiguration:
         - `verbosity`:           The verbosity level. Higher is more verbose.
 
         **Returns:**
-        The Graph object, whose nodes correspond to (and have values equal to)
-        Fan objects.  The edge between nodes correspond to flips, and have
-        labels equal to the corresponding circuit.
+        - The flip graph as a networkx.Graph object.
+        - A list of the triangulations
+        - A list of the labels for each triangulation (labels are a dictionary from
+          the property to a bool)
         """
         # lazily compute the flip graph
         args = (
