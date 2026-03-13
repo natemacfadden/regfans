@@ -479,7 +479,9 @@ class Fan:
                     return False
             elif len(containing) != 2:
                 if verbosity>=2:
-                    print(f"interior wall {f} contained in {len(containing)}!=2 simplices. {containing}")
+                    msg = f"interior wall {f} contained in {len(containing)}!=2"
+                    msg+= f" simplices. {containing}"
+                    print(msg)
                 return False
 
         # MaxAdjHP
@@ -969,7 +971,9 @@ class Fan:
             return [c for c in self.cones() if cell.issubset(c)]
         else:
             l2c = self.labels_to_cones
-            return list(l2c[cell[0]].intersection(*[l2c[lbl] for lbl in cell[1:]]))
+            out = l2c[cell[0]].intersection(*[l2c[lbl] for lbl in cell[1:]])
+            out = list(out)
+            return out
 
     def link(self, cell: Iterable[int]) -> list[tuple[int]]:
         """
@@ -1063,33 +1067,6 @@ class Fan:
             for c in Tneg:
                 for lbl in c:
                     neighb._labels_to_cones[lbl].add(c)
-
-            if False:
-                # THIS PREMISE SEEMS TO BE WRONG...
-                # delete unclear non-circuits
-                # (i.e., any which share a point with the any cone in Tpos)
-                star_pts = {lbl for c in Tpos for lbl in c}
-                for lbl in star_pts:
-                    # iterate over non-dependencies that lbl touches
-                    for non_depend in self._circuits.label_to_non_dependency[lbl]:
-
-                        # iterate over all other points
-                        for ll,l_nondepends in self._circuits.label_to_non_dependency.items():
-                            # skip self._circuits.label_to_non_dependency[lbl]
-                            if lbl==ll:
-                                continue
-
-                            # remove non_depend from
-                            # self._circuits.label_to_non_dependency[ll], if it
-                            # exists
-                            if non_depend in l_nondepends:
-                                msg =  f"removing non-dependency {non_depend} "
-                                msg += f"(since {lbl} in star)"
-                                print()
-                                l_nondepends.remove(non_depend)
-
-                        # empty the entry for lbl
-                        self._circuits.label_to_non_dependency[lbl] = set()
 
             # delete now-irrelevant circuits
             # (i.e., any using a cone in Tpos)
@@ -1240,8 +1217,8 @@ class Fan:
         else:
             assert h_target is None
             if verbosity >= 0:
-                print("(Warning: directions are handled in a sub-optimal way...)")
-                print("(         one sets h_target = h_init+1000*direction...  )")
+                print("(Warning: directions are handled in a sub-optimal way)")
+                print("(         one sets h_target = h_init+1000*direction  )")
             direction = 1000*np.array(direction)
             h_target = h_init+direction
         direction_norm2 = np.dot(direction,direction)
@@ -1258,7 +1235,8 @@ class Fan:
         status = 1
         while True:
             if not all(sc_curr @ h_curr) > 0:
-                msg = f"Min dist of h_curr to hyperplanes = {min(sc_curr @ h_curr)}\n"
+                mindist = min(sc_curr @ h_curr)
+                msg = f"Min dist of h_curr to hyperplanes = {mindist}\n"
                 msg += "=> h_curr not in interior of sc_curr..."
                 raise Exception(msg)
 
@@ -1297,7 +1275,8 @@ class Fan:
                 raise ValueError(f"progress={progress}>1")
 
             # find the first wall that we hit
-            first_hit_ind, first_hit_dist = util.first_hit(h_curr, h_target, sc_curr)
+            first_hit_ind, first_hit_dist = util.first_hit(
+                                                        h_curr,h_target,sc_curr)
             if first_hit_ind is None:
                 ftmp = self.vc.triangulate(heights=h_target)
                 print(f"vc = {self.vc.vectors().tolist()}")
@@ -1306,8 +1285,6 @@ class Fan:
                 print('ftmp == T_curr ',ftmp == T_curr)
                 print(np.min(sc_curr@h_curr))
                 print(np.min(sc_curr@h_target))
-                #print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_curr))
-                #print(np.min(ftmp.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)@h_target))
                 print("????")
 
                 msg = "first_hit_ind=None... should've been caught earlier... "
@@ -1366,7 +1343,10 @@ class Fan:
                 hook_flip(T_curr, T_new, circ)
             
             T_curr    = T_new
-            sc_curr   = T_curr.secondary_cone_hyperplanes(via_circuits=True, verbosity=-1)
+            sc_curr   = T_curr.secondary_cone_hyperplanes(
+                via_circuits=True,
+                verbosity=-1
+            )
             sc_curr   = np.array(sc_curr)
 
             # save to history
@@ -1381,7 +1361,10 @@ class Fan:
                 sc_curr,
                 verbosity=0)
             if verbosity >= 2:
-                print(f'h_curr={h_curr.tolist()}, first_hit_dist={first_hit_dist}, next_hit_dist={next_hit_dist}...')
+                msg = f"h_curr={h_curr.tolist()}, "
+                msg += f"first_hit_dist={first_hit_dist}, "
+                msg += f"next_hit_dist={next_hit_dist}..."
+                print(msg)
 
             try:
                 if (next_hit_dist is None) or (next_hit_dist >= 1):
@@ -1389,7 +1372,8 @@ class Fan:
                     assert util.contains(p=h_curr, H=sc_curr)
                 else:
                     next_hit_normal = sc_curr[next_hit_ind]
-                    dn = next_hit_normal + first_hit_normal # first_hit_normal picks up a minus sign after the flip
+                    # "+" b/c first_hit_normal picks up a minus sign after flip
+                    dn = next_hit_normal + first_hit_normal
                     dh = h_target - h_curr
                     t  = -np.dot(dn, h_curr)/np.dot(dn,dh)
 
@@ -1447,7 +1431,7 @@ class Fan:
                         msg += "the SC... forcing point to be in SC..."
                         warnings.warn(msg)
                         h_curr  = util.find_interior_point(H=sc_curr)
-                        #raise Exception(f"h_curr looks like it landed on a wall of a secondary cone ({eps} off of wall {v_i}) but naive curing didn't fix it... nudged dists = {(sc_curr.hyperplanes()@(h_curr+dh)).tolist()}")
+                        
                 else:
                     msg =   "Just flipped but new heights not in new secondary "
                     msg += f"cone... min(H@h)={min(dists)}"
@@ -1601,7 +1585,7 @@ class Fan:
             for missing in set(self.labels).difference(self.used_labels):
                 # check inclusion of l in each cone
                 for c in self.cones():
-                    circ = self.circuit((missing,) + c, enforce_positive=missing)
+                    circ = self.circuit((missing,)+c, enforce_positive=missing)
                     
                     # check if actually a circuit
                     if circ is None:
@@ -1828,13 +1812,18 @@ def flip_subgraph(
                     print(f"Studying neighbor = {neighb}...")
                 # see if this is new
                 if neighb.cones() in fan_to_ind:
-                    G.add_edge(i, fan_to_ind[neighb.cones()], label=circ.data.copy())
+                    G.add_edge(i, fan_to_ind[neighb.cones()],
+                                label=circ.data.copy())
                     if verbosity >= 2:
                         print(f"Adding edge {i, fan_to_ind[neighb.cones()]}")
                     continue
 
                 # check various user-imposed restrictions
-                new_label = {"regular": None, "fine": None, "respects_ptconfig": None}
+                new_label = {
+                    "regular": None,
+                    "fine": None,
+                    "respects_ptconfig": None
+                }
                 if compute_node_labels:
                     # compute regularity (/maybe check it)
                     # ------------------

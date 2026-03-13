@@ -50,7 +50,8 @@ class VectorConfiguration:
 
     **Description:**
     Constructs a `VectorConfiguration` object describing a lattice vector
-    configuration. This is handled by the hidden [`__init__`](#__init__) function.
+    configuration. This is handled by the hidden
+    [`__init__`](#__init__) function.
 
     **Arguments:**
     - `vectors`:    The vectors defining the VC.
@@ -452,7 +453,8 @@ class VectorConfiguration:
         if ambient_labels is None:
             _labels_to_inds = self.labels_to_inds_dict
         else:
-            _labels_to_inds = {label:ind for ind,label in enumerate(ambient_labels)}
+            _labels_to_inds = {label:ind for ind,label in\
+                                                    enumerate(ambient_labels)}
 
         # either return a single index, or a tuple of indices
         if not isinstance(labels, Iterable):
@@ -837,10 +839,12 @@ class VectorConfiguration:
                 Niter = 0
                 while True:
                     if verbosity >= 2:
-                        print(f"Iteration {Niter}, trying the origin with height {height_orig}...",end='\r')
+                        msg  = f"Iteration {Niter}, trying the origin with "
+                        msg += f"height {height_orig}..."
+                        print(msg,end='\r')
                         Niter += 1
-                    heights_pc  = np.concatenate(([height_orig], heights))
-                    simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
+                    h_pc        = np.concatenate(([height_orig], heights))
+                    simp_pcinds = pc.triangulate_with_heights(h_pc).simplices()
 
                     # lower the height of the origin if not star
                     if not all([0 in simp for simp in simp_pcinds]):
@@ -860,14 +864,14 @@ class VectorConfiguration:
                         warnings.simplefilter("always")
                         warnings.warn(msg)
             else:
-                heights_pc  = np.concatenate(([0], heights))
-                simp_pcinds = pc.triangulate_with_heights(heights_pc).simplices()
+                h_pc        = np.concatenate(([0], heights))
+                simp_pcinds = pc.triangulate_with_heights(h_pc).simplices()
 
             # read the simplices as indices in the VC
             if make_cgal_star and (not all([0 in s for s in simp_pcinds])):
-                msg = "cgal didn't produce a star triangulation... "
-                msg += f"cells = {sorted([sorted(s) for s in simp_pcinds.tolist()])} (0 corresponds to origin). "
-                msg += "maybe try PPL..."
+                msg = "cgal didn't produce a star triangulation... cells = "
+                msg += f"{sorted([sorted(s) for s in simp_pcinds.tolist()])} "
+                msg += "(0 corresponds to origin). maybe try PPL..."
                 raise ValueError(msg)
             else:
                 simp_pcinds = [s for s in simp_pcinds if 0 in s]
@@ -1265,9 +1269,9 @@ class VectorConfiguration:
                                  Note, we never will see irregular
                                  triangulations that are not connected to
                                  regular ones.
-        - `only_pc_triang`:      Whether to only compute triangulations that also
-                                 correspond to star triangulations of the
-                                 underlying point config.
+        - `only_pc_triang`:      Whether to only compute triangulations
+                                 that also correspond to star triangulations of
+                                 the underlying point config.
         - `compute_node_labels`: Whether to check whether each node is fine,
                                  regular, and a PC triangulation.
         - `verbosity`:           The verbosity level. Higher is more verbose.
@@ -1275,8 +1279,8 @@ class VectorConfiguration:
         **Returns:**
         - The flip graph as a networkx.Graph object.
         - A list of the triangulations
-        - A list of the labels for each triangulation (labels are a dictionary from
-          the property to a bool)
+        - A list of the labels for each triangulation (labels are a
+          dictionary from the property to a bool)
         """
         # lazily compute the flip graph
         args = (

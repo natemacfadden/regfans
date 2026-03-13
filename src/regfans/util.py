@@ -171,7 +171,8 @@ def first_hit(
         if first_hit_ind == -1:
             first_hit_ind = k
             continue
-        # if t[i] = -Hp0[i]/(Hp1[i]-Hp0[i]) is the distance to the ith hyperplane,
+        # if t[i] = -Hp0[i]/(Hp1[i]-Hp0[i]) is the distance to the
+        # ith hyperplane,
         # then
         #   t[i] < t[j]  <=>  -Hp0[i]/(Hp1[i]-Hp0[i]) < -Hp0[j]/(Hp1[j]-Hp0[j])
         #                     (Hp0[j]-Hp1[j])Hp0[i]   < (Hp0[i]-Hp1[i])Hp0[j]
@@ -184,10 +185,12 @@ def first_hit(
     if first_hit_ind is None:
         return None, None
 
-    first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])#-np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
-    # the above line is extremely sensitive... likely pointing to unfortunate fragility/lack of stability
-    # in the associated methods. E.g., using `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny bit of
-    # noise but leads to crashes in the operation...
+    first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])
+    #-np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
+    # the above line is extremely sensitive... likely pointing to unfortunate
+    # fragility/lack of stability in the associated methods. E.g., using
+    # `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny
+    # bit of noise but leads to crashes in the operation...
 
     return first_hit_ind, first_hit_dist
 
