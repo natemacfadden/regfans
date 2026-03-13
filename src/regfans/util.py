@@ -111,7 +111,7 @@ def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike":
     **Arguments:**
     - `p0`: One point.
     - `p1`: The other point.
-    - `t`:  Parameter specifing where along the line Conv({p0, p1}) to return.
+    - `t`:  Parameter specifying where along the line Conv({p0, p1}) to return.
 
     **Returns:**
     The point p0 + t*(p1-p0).
@@ -203,7 +203,7 @@ def dual_cone(data: "ArrayLike") -> "ArrayLike":
     hyperplanes | rays          | hyperplanes
 
 
-    For simplicitly in the following discussion, take the convention that one
+    For simplicity in the following discussion, take the convention that one
     maps hyperplanes of the primal to rays of the primal.
 
     **Arguments:**

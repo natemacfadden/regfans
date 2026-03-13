@@ -289,7 +289,7 @@ class VectorConfiguration:
     def labels_to_inds_dict(self) -> dict[int, int]:
         """
         **Description:**
-        Returns the a dictionary mapping vector labels to their indices in the
+        Returns a dictionary mapping vector labels to their indices in the
         vector configuration.
 
         **Arguments:**
@@ -536,7 +536,7 @@ class VectorConfiguration:
                       strict: bool = False) -> bool:
         """
         **Description:**
-        Check if a cone, specified by cone_labels, contains a the ray specified
+        Check if a cone, specified by cone_labels, contains the ray specified
         by vec_label.
 
         I.e., if
@@ -738,7 +738,7 @@ class VectorConfiguration:
 
         # warning in case the user request PPL backend but gave no heights
         if default_heights and (backend != "cgal"):
-            msg = "Non-cgal backends are not trustworthy for Deulaunay... "
+            msg = "Non-cgal backends are not trustworthy for Delaunay... "
             msg += f"changing from '{backend}' to cgal..."
             with warnings.catch_warnings():
                 warnings.simplefilter("always")
@@ -983,7 +983,7 @@ class VectorConfiguration:
         **Arguments:**
         - `method`:             Either "delaunay" or "isotropic". The former
                                 picks heights around some input height (e.g.,
-                                the Deulaunay heights). The latter picks
+                                the Delaunay heights). The latter picks
                                 heights isotropically
         - `h0`:                 The reference heights, for Delaunay method.
         - `sigma`:              How big of a distribution to study around h0.

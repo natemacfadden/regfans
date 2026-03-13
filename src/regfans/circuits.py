@@ -208,7 +208,7 @@ class Circuits():
         Set the circuit properties corresponding to the indicated indices.
 
         **Arguments:**
-        - `circuit`:   Dict describing the circuit.
+        - `circuit`:   Dict-like object describing the circuit.
         - `verbosity`: The verbosity level.
 
         **Returns:**
@@ -363,7 +363,7 @@ class Circuits():
 
         **Arguments:**
         - `setA`: The candidate-subset encoding.
-        - `setB`: The candidate-supersetset encoding.
+        - `setB`: The candidate-superset encoding.
 
         **Returns:**
         Whether setA is a subset of setB.

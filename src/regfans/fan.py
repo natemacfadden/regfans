@@ -370,7 +370,7 @@ class Fan:
         - `ind_offset`: An additive offset for the indices
 
         **Returns:**
-        The corresponding vector(s), in order specified by which.
+        The cones, specified according to the input flags.
         """
         # check that at most one of the format flags is set
         if (as_inds + as_rays + as_hyps) > 1:
@@ -976,8 +976,7 @@ class Fan:
         - `cell`: The cell of interest.
 
         **Returns:**
-        A list of all solid cones (as tuples of ints) containing the cell, minus
-        the cell itself.
+        The link.
         """
         return [tuple(sorted(set(c) - set(cell))) for c in self.star(cell)]
 
