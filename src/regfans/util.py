@@ -294,7 +294,7 @@ def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> bool:
         H = np.array(H)
         return find_interior_point(H=H) is not None
     else:
-        # know rays -> sum of rays sould be in strict interior
+        # know rays -> sum of rays should be in strict interior
         R = np.array(R)
         H = np.array(dual_cone(R))
         return np.all(H@R.sum(axis=0) > 0.5)
@@ -313,6 +313,7 @@ def contains(*,
         {x: H @ x>=0}.
 
     **Arguments:**
+    - `p`: The query point.
     - `R`: The rays of the cone as rows.
     - `H`: The hyperplanes defining the cone.
 

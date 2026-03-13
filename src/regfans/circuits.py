@@ -208,7 +208,7 @@ class Circuits():
         Set the circuit properties corresponding to the indicated indices.
 
         **Arguments:**
-        - `circuit`:   Dict-like object describing the circuit.
+        - `circuit`:   A Circuit object.
         - `verbosity`: The verbosity level.
 
         **Returns:**
@@ -323,7 +323,7 @@ class Circuits():
     def decode(self, encoding) -> list[int]:
         """
         **Description:**
-        Convert a binary vector b to a list of of integers such that
+        Convert a binary vector b to a list of integers such that
             b_i = 1 <=> i in label_inds
 
         **Arguments:**

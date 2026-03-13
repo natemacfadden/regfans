@@ -74,7 +74,7 @@ class VectorConfiguration:
                         labels are allowed.
         - `eps`:        Threshold for checking for non-integral vectors.
         - `gale_basis`: An optional basis for the gale transform. If provided,
-                        then the gale transform will be put a basis such that
+                        then the gale transform will be put in a basis such that
                         the submatrix given by these labels equals the identity.
 
         **Returns:**

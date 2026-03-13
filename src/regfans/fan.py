@@ -274,7 +274,7 @@ class Fan:
         None.
 
         **Returns:**
-        A map from vector label to a set of cones (as tuples of indices) that
+        A map from vector label to a set of cones (as tuples of labels) that
         the vector appears in.
         """
         # lazily compute
@@ -340,7 +340,7 @@ class Fan:
         if which is None:
             which = self.used_labels
 
-        # get the optinally-lifted vectors
+        # get the optionally-lifted vectors
         vecs = self.vc.vectors(which=which)
         if lifted:
             inds = list(self.labels_to_inds(which))
