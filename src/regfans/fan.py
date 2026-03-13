@@ -1140,6 +1140,7 @@ class Fan:
         record_fans: bool = False,
         record_circs: bool = False,
         hook_init: Callable = None,
+        hook_halt: Callable = None,
         hook_flip: Callable = None,
         eps: float = 1e-8,
         verbosity: int = 0) -> list[int|Exception, "ArrayLike", "Fan", "ArrayLike", int]:
@@ -1197,7 +1198,7 @@ class Fan:
             raise ValueError("Assumes regular triangulation...")
 
         # warnings
-        if not stop_at_deletion:
+        if (self.verbosity >= 0) and (not stop_at_deletion):
             warnings.warn("flip_linear struggles when points are deleted...")
 
         # initial data
@@ -1253,6 +1254,13 @@ class Fan:
                 msg = f"Min dist of h_curr to hyperplanes = {min(sc_curr @ h_curr)}\n"
                 msg += "=> h_curr not in interior of sc_curr..."
                 raise Exception(msg)
+
+            # check if we want to halt
+            if hook_halt is not None:
+                if hook_halt(T_curr):
+                    if verbosity >= 1:
+                        print("User-hook indicates to stop flipping")
+                    break
 
             # stop at a fan respecting the point configuration
             if stop_at_pct:
@@ -1650,7 +1658,45 @@ class Fan:
         # return
         return H
 
+# misc utilities
+# --------------
+def make_fine(fan: "Fan") -> "Fan":
+    """
+    **Description:**
+    Convert a fan to a fine fan by linear flipping
 
+    **Arguments:**
+    - `fan`: The initial fan.
+
+    **Returns:**
+    A fine
+    """
+    # get good initial heights
+    h_init    = fan.heights()
+    h_init   += np.random.normal(
+        scale = 1e-5*np.linalg.norm(h_init),
+        size  = len(h_init)
+    )
+    assert np.all( fan.secondary_cone_hyperplanes()@h_init > 0)
+    
+    # flip_linear to add all missing labels
+    for l in sorted(set(fan.labels) - set(fan.used_labels)):
+        direction = [0 if fl!=l else -1 for fl in fan.labels]
+        
+        status, h_curr, T_curr, sc_curr, num_flips = fan.flip_linear(
+            direction=direction,
+            h_init = h_init,
+            hook_halt= lambda T_curr: l in T_curr.used_labels,
+            stop_at_deletion=False,
+            verbosity=-1,
+        )
+
+        assert status == 1
+
+        fan   = T_curr
+        h_init = h_curr
+
+    return fan
 
 # flip graph
 # ----------

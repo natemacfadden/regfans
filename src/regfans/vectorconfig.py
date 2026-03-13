@@ -688,8 +688,9 @@ class VectorConfiguration:
         cells: "ArrayLike" = None,
         tol: float = 1e-14,
         backend: str = None,
+        make_fine: bool = True,
         check_heights: bool = True,
-        cure_heights: bool=True,
+        cure_heights: bool = True,
         verbosity: int = 0,
     ) -> "Fan":
         """
@@ -880,6 +881,10 @@ class VectorConfiguration:
 
         # construct the fan
         f = self.triangulate(cells=simp_labels)
+
+        # optionally, make the fan fine
+        if make_fine:
+            f = fan.make_fine(f)
 
         # some sanity checks
         if verbosity >= 1:
