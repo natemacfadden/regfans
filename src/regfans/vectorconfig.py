@@ -676,7 +676,7 @@ class VectorConfiguration:
         - `vec`: The chamber-space vector.
 
         **Returns:**
-        The chamber-space vector.
+        The height-space vector.
         """
         return np.linalg.lstsq(self.gale().T, vec, rcond=None)[0]
 
@@ -883,7 +883,7 @@ class VectorConfiguration:
         f = self.triangulate(cells=simp_labels)
 
         # optionally, make the fan fine
-        if make_fine:
+        if make_fine and (not f.is_fine()):
             f = fan.make_fine(f)
 
         # some sanity checks
@@ -1118,7 +1118,7 @@ class VectorConfiguration:
         **Returns:**
         Circuit object containing
             - the support of the circuit as property 'Z',
-            - the signed circuit as property 'Zpos' and 'Zned',
+            - the signed circuit as property 'Zpos' and 'Zneg',
             - the dependency as property 'lmbda', and
             - the signature as property 'signature'.
         """

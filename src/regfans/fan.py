@@ -537,7 +537,9 @@ class Fan:
         original underlying point configuration.
 
         **Arguments:**
-        None.
+        - `via_circuits`: This method uses secondary cones. Allow construction
+            of the secondary cone via circuits. That's unsafe if the fan is
+            potentially irregular.
 
         **Returns:**
         True if the fan defines a subdivision of the point configuration. False
@@ -606,7 +608,7 @@ class Fan:
         None.
 
         **Returns:**
-        True if the fan is regular. False otherwise.
+        The heights defining the fan, if it is regular.
         """
         if self._heights is not None:
             return self._heights
@@ -675,7 +677,7 @@ class Fan:
         **Returns:**
         Circuit object containing
             - the support of the circuit as property 'Z',
-            - the signed circuit as property 'Zpos' and 'Zned',
+            - the signed circuit as property 'Zpos' and 'Zneg',
             - the dependency as property 'lmbda', and
             - the signature as property 'signature'.
         """
@@ -1293,7 +1295,7 @@ class Fan:
             first_hit_ind, first_hit_dist = util.first_hit(h_curr, h_target, sc_curr)
             if first_hit_ind is None:
                 ftmp = self.vc.triangulate(heights=h_target)
-                print(f"vc = {vc.vectors().tolist()}")
+                print(f"vc = {self.vc.vectors().tolist()}")
                 print(f"T_curr = {T_curr.cones()}")
                 print(f"ftmp = {ftmp.cones()}")
                 print('ftmp == T_curr ',ftmp == T_curr)
@@ -1669,7 +1671,7 @@ def make_fine(fan: "Fan") -> "Fan":
     - `fan`: The initial fan.
 
     **Returns:**
-    A fine
+    A fine fan, from linearly flipping the original fan.
     """
     # get good initial heights
     h_init    = fan.heights()

@@ -54,7 +54,7 @@ class Circuit():
         - `vc`:        The ambient vector configuration.
         - `Z`:         The support of the circuit.
         - `Zpos`:      The 'positive' side of the circuit.
-        - `Zpos`:      The 'negative' side of the circuit.
+        - `Zneg`:      The 'negative' side of the circuit.
         - `lmbda`:     A dependency vector demonstrating the circuit.
         - `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
 

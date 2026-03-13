@@ -144,7 +144,7 @@ def first_hit(
 
     **Returns:**
     The index, i, of the first-hit hyperplane.
-    The distance, t, such that H[i].lerp(p0,p1,t) = 0.
+    The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
     """
     # input sanitization
     p0 = np.array(p0)
@@ -174,7 +174,7 @@ def first_hit(
         if -Hp1[first_hit_ind]*Hp0[k] < -Hp1[k]*Hp0[first_hit_ind]:
             first_hit_ind = k
 
-    # chcek if we don't hit any hyperplanes
+    # check if we don't hit any hyperplanes
     if first_hit_ind is None:
         return None, None
 
@@ -270,7 +270,7 @@ def cone_dim(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
     # return
     return np.linalg.matrix_rank(R.T)
 
-def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
+def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> bool:
     """
     **Description:**
     Return whether the cone is full-dimensional.
@@ -285,7 +285,7 @@ def is_solid(*, R: "ArrayLike"=None, H:"ArrayLike"=None) -> int:
     - `H`: The hyperplanes defining the cone.
 
     **Returns:**
-    The dimension of the cone
+    Whether the cone is full-dimensional.
     """
     assert (R is None) ^ (H is None)
 
