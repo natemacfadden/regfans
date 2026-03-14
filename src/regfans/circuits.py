@@ -47,7 +47,7 @@ class Circuit:
     **Returns:**
     Nothing.
     """
-    def __init__(self, vc, Z, Zpos, Zneg, lmbda, signature):
+    def __init__(self, vc, Z, Zpos, Zneg, lmbda, signature) -> None:
         """
         **Description:**
         Initializes a `Circuit` object.
@@ -75,7 +75,7 @@ class Circuit:
         self.Tneg      = []
 
         self.normal = [0] * self.vc.size
-        for i,j in enumerate([self.vc.label_to_ind(z) for z in self.Z]):
+        for i, j in enumerate([self.vc.label_to_ind(z) for z in self.Z]):
             self.normal[j] = self.lmbda[i]
         self.normal = tuple(self.normal)
 
@@ -122,7 +122,7 @@ class Circuits:
     **Returns:**
     Nothing.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         **Description:**
         Initializes a `Circuits` object.
@@ -185,7 +185,7 @@ class Circuits:
             - if indices aren't known                -> 0
         """
         encoding = self.encode(label_inds)
-        
+
         # check if these labels are known to contain a circuit
         if encoding in self.circuits:
             return self.circuits[encoding]
@@ -193,7 +193,7 @@ class Circuits:
         # if we know all circuits, then indices cannot correspond to a circuit
         if self.know_all_circuits:
             return -1
-        
+
         # if we don't know all circuits, we check against known non-circuits
         for non_dependency in self.non_dependencies:
             if self.is_subset(encoding, non_dependency):
@@ -223,7 +223,7 @@ class Circuits:
 
         # keep a map from cones to the circuits they have
         for c in circuit.Tpos:
-            self.cone_to_circuit[c] = self.cone_to_circuit.get(c,set())
+            self.cone_to_circuit[c] = self.cone_to_circuit.get(c, set())
             self.cone_to_circuit[c].add(encoding)
 
     def set_non_dependency(self,
@@ -284,8 +284,8 @@ class Circuits:
         A copy of the circuits.
         """
         copied = Circuits()
-        copied.circuits = {Z:circ for Z,circ in self.circuits.items()}
-        copied.cone_to_circuit = {c:Zs.copy() for c,Zs in \
+        copied.circuits = {Z: circ for Z, circ in self.circuits.items()}
+        copied.cone_to_circuit = {c: Zs.copy() for c, Zs in \
                                                 self.cone_to_circuit.items()}
         copied.non_dependencies = self.non_dependencies.copy()
         copied.know_all_circuits = self.know_all_circuits
@@ -341,7 +341,7 @@ class Circuits:
                 label_inds.append(shift)
 
         return label_inds
-    
+
     def is_superset(self, setA, setB) -> bool:
         """
         **Description:**
@@ -356,7 +356,7 @@ class Circuits:
         """
         # as bitvector
         return (setA & setB) == setB
-    
+
     def is_subset(self, setA: int, setB: int) -> bool:
         """
         **Description:**

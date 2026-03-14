@@ -92,14 +92,14 @@ class Fan:
         self._cones = tuple(sorted(self._cones))
         if len(self._cones) < N_input_cones:
             msg = "Fan: Input `cones` had duplicates..."
-            
+
             if heights is not None:
                 msg += f" heights={np.array(heights).tolist()}..."
             else:
                 msg +=  " heights=None..."
             msg += " trimming..."
             warnings.warn(msg)
-            
+
             assert self.is_valid()
 
         if (heights is None) or any([hi < 0 for hi in heights]):
@@ -361,7 +361,7 @@ class Fan:
         as_rays: bool = False,
         as_hyps: bool = False,
         as_inds: bool = False,
-        ind_offset: int=0) -> tuple[tuple[int]] | list[ArrayLike]:
+        ind_offset: int = 0) -> tuple[tuple[int]] | list[ArrayLike]:
         """
         **Description:**
         Returns the cones in the fan in a variety of formats. They are:
@@ -452,7 +452,7 @@ class Fan:
         # helpers
         # -------
         # get the cones
-        _cones = {c:hyps for c,hyps in zip(self.cones(), self.cones(as_hyps=1))}
+        _cones = {c: hyps for c, hyps in zip(self.cones(), self.cones(as_hyps=1))}
 
         # map from facet labels to containing cone labels
         _cone_facets = self.facets()
@@ -460,7 +460,7 @@ class Fan:
         # labels of vectors laying in each facet of A
         _A_facets = sorted([
             tuple(sorted([
-                lbl for lbl,v in self.vc._labels_to_vectors.items()
+                lbl for lbl, v in self.vc._labels_to_vectors.items()
                 if np.dot(n,v) == 0
                 ]))\
             for n in self.vc.support()])
@@ -777,7 +777,7 @@ class Fan:
         # (if so, modify Tpos and Tneg to be the embedded version)
         pos_stars = [self.star(s) for s in Tpos]
         pos_links = [set(self.link(s)) for s in Tpos]
-        
+
         if verbosity >= 1:
             print(f"Tpos has stars = {pos_stars}")
             print(f"     and links = {pos_links}")
@@ -1057,7 +1057,7 @@ class Fan:
             neighb._computed_all_circuits = False
 
             # copy cone information into neighbor
-            neighb._labels_to_cones = {lbl:cones.copy() for lbl,cones in \
+            neighb._labels_to_cones = {lbl: cones.copy() for lbl, cones in \
                                                 self.labels_to_cones.items()}
 
             for c in Tpos:
@@ -1191,7 +1191,7 @@ class Fan:
         sc_curr  = T_curr.secondary_cone_hyperplanes(via_circuits=True,
                                                      verbosity=-1)
         sc_curr  = np.array(sc_curr)
-        
+
         if h_init is None:
             h_init = util.find_interior_point(H=sc_curr)
             h_curr = h_init
@@ -1221,7 +1221,7 @@ class Fan:
             direction = 1000*np.array(direction)
             h_target = h_init+direction
         direction_norm2 = np.dot(direction,direction)
-        
+
         # flip until we reach the target
         # ------------------------------
         num_flips = 0
@@ -1229,7 +1229,7 @@ class Fan:
             history_triangs = [self]
         if record_circs:
             history_circs   = []
-        
+
         # main loop
         status = 1
         while True:
@@ -1291,7 +1291,7 @@ class Fan:
                 msg += f"H={sc_curr.tolist()}, h_curr={h_curr.tolist()}, "
                 msg += f"h_target={h_target.tolist()}"
                 raise ValueError(msg)
-        
+
             # get the corresponding circuit
             try:
                 first_hit_normal = sc_curr[first_hit_ind]
@@ -1307,7 +1307,7 @@ class Fan:
             # check the circuit type
             if 0 in circ.signature:
                 if verbosity >= 1:
-                    print(f"; {circ.Z} is not flippable..." + 20*" ",flush=True)
+                    print(f"; {circ.Z} is not flippable..." + 20*" ", flush=True)
                 status = Exception("Hit non-flippable wall...")
                 h_tmp = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
 
@@ -1323,7 +1323,7 @@ class Fan:
                     print(f"; {circ.Z} is deletion..." + 20*" ", flush=True)
                 status = Exception("Hit deletion wall...")
                 h_tmp = util.lerp(h_curr, h_target, 0.99*first_hit_dist)
-                
+
                 # check that we can compute a next step
                 dists = sc_curr@h_tmp
                 n_i   = np.argmin(dists)
@@ -1339,7 +1339,7 @@ class Fan:
             T_new = T_curr.flip(circ)
             if hook_flip is not None:
                 hook_flip(T_curr, T_new, circ)
-            
+
             T_curr    = T_new
             sc_curr   = T_curr.secondary_cone_hyperplanes(
                 via_circuits=True,
@@ -1350,7 +1350,7 @@ class Fan:
             # save to history
             if record_circs:
                 history_circs.append(circ)
-            
+
             # compute the distance to next hyperplane
             # place self halfway across
             next_hit_ind, next_hit_dist = util.first_hit(
@@ -1429,7 +1429,7 @@ class Fan:
                         msg += "the SC... forcing point to be in SC..."
                         warnings.warn(msg)
                         h_curr  = util.find_interior_point(H=sc_curr)
-                        
+
                 else:
                     msg =   "Just flipped but new heights not in new secondary "
                     msg += f"cone... min(H@h)={min(dists)}"
@@ -1446,7 +1446,7 @@ class Fan:
             output.append(history_triangs)
         if record_circs:
             output.append(history_circs)
-        
+
         return output
 
     def neighbors(self,
@@ -1501,7 +1501,7 @@ class Fan:
                 continue
 
             # compute the flip
-            neighbs.append(self.flip(circ, formal=formal,verbosity=verbosity-1))
+            neighbs.append(self.flip(circ, formal=formal, verbosity=verbosity-1))
             neighb_circs.append(circ)
 
             # print info
@@ -1564,7 +1564,7 @@ class Fan:
             H = []
             for circ in self.circuits(verbosity=verbosity-1):
                 n = [0]*self.vc.size
-                for lbl,coeff in zip(circ.Z, circ.lmbda):
+                for lbl, coeff in zip(circ.Z, circ.lmbda):
                     n[lbl-1] = coeff
                 H.append(n)
 
@@ -1584,7 +1584,7 @@ class Fan:
                 # check inclusion of l in each cone
                 for c in self.cones():
                     circ = self.circuit((missing,)+c, enforce_positive=missing)
-                    
+
                     # check if actually a circuit
                     if circ is None:
                         continue
@@ -1667,7 +1667,7 @@ def make_fine(fan: Fan) -> Fan:
         size  = len(h_init)
     )
     assert np.all( fan.secondary_cone_hyperplanes()@h_init > 0)
-    
+
     # flip_linear to add all missing labels
     for lbl in sorted(set(fan.labels) - set(fan.used_labels)):
         direction = [0 if fl != lbl else -1 for fl in fan.labels]

@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 # basic math
 # ----------
-def gcd(vals: list[float], max_denom: float=10**6) -> float:
+def gcd(vals: list[float], max_denom: float = 10**6) -> float:
     """
     **Description:**
     Computes the 'GCD' of a collection of floating point numbers.
@@ -63,7 +63,7 @@ def gcd(vals: list[float], max_denom: float=10**6) -> float:
 
     # get the relevant LCM, GCD
     lcm   = functools.reduce(math.lcm, denom)
-    gprime = functools.reduce(math.gcd, [n*(lcm//d) for n,d in zip(numer,denom)])
+    gprime = functools.reduce(math.gcd, [n*(lcm//d) for n, d in zip(numer, denom)])
 
     # return the GCD
     if gprime%lcm == 0:
@@ -98,7 +98,7 @@ def primitive(vec: list[float], max_denom=10**6):
     lcm   = functools.reduce(math.lcm, denom)
 
     # get the integral vector and scale it to be primitive
-    prim  = [n*(lcm//d) for n,d in zip(numer,denom)]
+    prim  = [n*(lcm//d) for n, d in zip(numer, denom)]
     gprime = functools.reduce(math.gcd, prim)
 
     return [x//gprime for x in prim]
@@ -134,7 +134,7 @@ def first_hit(
     p0: ArrayLike,
     p1: ArrayLike,
     H: ArrayLike,
-    verbosity: int=0) -> (int, float):
+    verbosity: int = 0) -> (int, float):
     """
     **Description:**
     Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
@@ -376,7 +376,7 @@ def find_interior_point(*,
 
     # preliminary/sanitization
     H   = np.array(H)
-    m,n = H.shape
+    m, n = H.shape
 
     # create the solver
     solver = pywraplp.Solver.CreateSolver("GLOP")
@@ -399,7 +399,7 @@ def find_interior_point(*,
 
     # pick a semi-arbitrary grading vector and return p with minimal degree
     grading = H.sum(axis=0) # guaranteed to be in the interior of the dual cone
-    solver.Minimize(sum(gj*pj for gj,pj in zip(grading,p)))
+    solver.Minimize(sum(gj*pj for gj, pj in zip(grading, p)))
 
     # solve/parse
     status = solver.Solve()

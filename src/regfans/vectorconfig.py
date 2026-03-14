@@ -133,7 +133,7 @@ class VectorConfiguration:
             #  CYTools) and their associated triangulations from this VC, it's
             #  nice to reserve label 0 for the origin)
             labels = [i + 1 for i in range(len(self._vectors))]
-        
+
         self._labels = tuple(label for label in labels)
         if not all([isinstance(lbl,int) for lbl in self._labels]):
             raise ValueError("Labels must be integral")
@@ -311,7 +311,7 @@ class VectorConfiguration:
         """
         if self._labels_to_inds is None:
             self._labels_to_inds = {
-                label:ind for ind,label in enumerate(self.labels)
+                label: ind for ind, label in enumerate(self.labels)
             }
 
         return self._labels_to_inds
@@ -456,7 +456,7 @@ class VectorConfiguration:
         if ambient_labels is None:
             _labels_to_inds = self.labels_to_inds_dict
         else:
-            _labels_to_inds = {label:ind for ind,label in\
+            _labels_to_inds = {label: ind for ind, label in\
                                                     enumerate(ambient_labels)}
 
         # either return a single index, or a tuple of indices
@@ -625,7 +625,7 @@ class VectorConfiguration:
             return self._gale_in_basis
         elif (not set_basis) and (self._gale is not None):
             return self._gale
-        
+
         # compute null space
         A = self.vectors().T.tolist()
         B, nullity = flint.fmpz_mat(A).nullspace()
@@ -633,19 +633,19 @@ class VectorConfiguration:
         # map to a numpy array
         B = np.array(B.tolist()).astype(int)
         B = B.T[:nullity]
-        B = B//np.gcd.reduce(B,axis=1).reshape(-1,1)
+        B = B//np.gcd.reduce(B, axis=1).reshape(-1, 1)
 
         if set_basis:
             # change basis
             P = np.zeros(shape=B.shape, dtype=int)
 
             gale_basis_inds = self.labels_to_inds(self._gale_basis)
-            for i,j in enumerate(gale_basis_inds):
-                P[i,j] = 1
-        
+            for i, j in enumerate(gale_basis_inds):
+                P[i, j] = 1
+
             C = np.linalg.inv(P @ B.T)
             B = (B.T @ C).T
-        
+
             # map back to integral
             Bint = np.rint(B).astype(int)
             if np.allclose(Bint, B):
@@ -802,7 +802,7 @@ class VectorConfiguration:
                 msg =   "Check coeffs: B.T@heights_new == Bh?"
                 msg += f"{np.allclose(B.T@heights_new, Bh)}"
                 print(msg)
-                
+
             if verbosity >= 3:
                 # check that heights differ by linear evaluation of vectors
                 c, res, *_ = np.linalg.lstsq(self.vectors(),heights-heights_new)
@@ -819,11 +819,11 @@ class VectorConfiguration:
             return self.subdivide(cells=[self.labels])
 
         if verbosity >= 1:
-            print("Constructing the triangulation via lifting...",flush=True)
+            print("Constructing the triangulation via lifting...", flush=True)
 
         # nonzero heights -> lift via a point configuration
         if backend == "cgal":
-            orig = np.zeros((1,self.ambient_dim),dtype=int)
+            orig = np.zeros((1, self.ambient_dim), dtype=int)
             pts  = np.vstack([orig, self.vectors()])
             pc   = triangulumancer.PointConfiguration(pts)
 
@@ -844,7 +844,7 @@ class VectorConfiguration:
                     if verbosity >= 2:
                         msg  = f"Iteration {Niter}, trying the origin with "
                         msg += f"height {height_orig}..."
-                        print(msg,end='\r')
+                        print(msg, end='\r')
                         Niter += 1
                     h_pc        = np.concatenate(([height_orig], heights))
                     simp_pcinds = pc.triangulate_with_heights(h_pc).simplices()
@@ -904,7 +904,7 @@ class VectorConfiguration:
 
         # some sanity checks
         if verbosity >= 1:
-            print("Doing sanity checks on the triangulation...",flush=True)
+            print("Doing sanity checks on the triangulation...", flush=True)
 
         if not f.is_triangulation():
             if verbosity >= 1:
@@ -980,7 +980,7 @@ class VectorConfiguration:
 
     def random_triangulations_fast(
         self,
-        method: str="delaunay",
+        method: str = "delaunay",
         h0: ArrayLike | None = None,
         sigma: float = 0.1,  # for delaunay
         N: int | None = None,
@@ -1116,8 +1116,8 @@ class VectorConfiguration:
     def circuit(self,
                 labels: Iterable[int],
                 lmbda: Iterable | None = None,
-                set_non_dependencies: bool=True,
-                save_circuits: bool=True) -> Circuit:
+                set_non_dependencies: bool = True,
+                save_circuits: bool = True) -> Circuit:
         """
         **Description:**
         Format/compute the circuit corresponding to the specified labels.
@@ -1307,9 +1307,9 @@ class VectorConfiguration:
         return [copy.copy(x) for x in self._flip_graphs[args]]
 
     def secondary_fan(self,
-                      only_fine: bool=False,
-                      formal_fan: bool=False,
-                      verbosity: int=0):
+                      only_fine: bool = False,
+                      formal_fan: bool = False,
+                      verbosity: int = 0):
         """
         **Description:**
         Compute the secondary fan of the vector configuration.

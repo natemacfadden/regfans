@@ -189,3 +189,58 @@ def test_gale():
     vc.flip_graph()
     vc.secondary_fan()
     vc.central_fan()
+
+# custom labels
+# -------------
+_PTS = [[-5, -2, -3, -2], [0, 1, 0, 0], [0, 1, 2, 0], [1, 0, 0, 0], [1, 0, 1, 2], [-2, -1, -1, 0], [0, 1, 1, 0]]
+
+def test_custom_labels_stored():
+    labels = [10, 20, 30, 40, 50, 60, 70]
+    vc = VectorConfiguration(_PTS, labels=labels)
+    assert vc.labels == tuple(labels)
+
+def test_custom_labels_in_fan():
+    labels = [10, 20, 30, 40, 50, 60, 70]
+    vc  = VectorConfiguration(_PTS, labels=labels)
+    fan = vc.triangulate()
+    # every label appearing in the fan cones must be one of the custom labels
+    assert all(lbl in labels for c in fan.cones() for lbl in c)
+
+def test_custom_labels_eq():
+    labels = [10, 20, 30, 40, 50, 60, 70]
+    vc1 = VectorConfiguration(_PTS, labels=labels)
+    vc2 = VectorConfiguration(_PTS, labels=labels)
+    assert vc1 == vc2
+    assert not (vc1 != vc2)
+
+def test_custom_labels_ne_default():
+    vc_default = VectorConfiguration(_PTS)
+    vc_custom  = VectorConfiguration(_PTS, labels=[10, 20, 30, 40, 50, 60, 70])
+    assert vc_default != vc_custom
+
+# labels_to_inds
+# --------------
+def test_labels_to_inds_default_single():
+    vc = VectorConfiguration(_PTS)
+    for i, lbl in enumerate(vc.labels):
+        assert vc.labels_to_inds(lbl) == i
+
+def test_labels_to_inds_default_batch():
+    vc = VectorConfiguration(_PTS)
+    assert vc.labels_to_inds([1, 3, 5]) == (0, 2, 4)
+
+def test_labels_to_inds_custom_single():
+    labels = [10, 20, 30, 40, 50, 60, 70]
+    vc = VectorConfiguration(_PTS, labels=labels)
+    for i, lbl in enumerate(labels):
+        assert vc.labels_to_inds(lbl) == i
+
+def test_labels_to_inds_custom_batch():
+    labels = [10, 20, 30, 40, 50, 60, 70]
+    vc = VectorConfiguration(_PTS, labels=labels)
+    assert vc.labels_to_inds([10, 30, 50]) == (0, 2, 4)
+
+def test_labels_to_inds_with_offset():
+    vc = VectorConfiguration(_PTS)
+    assert vc.labels_to_inds(1, offset=1) == 1
+    assert vc.labels_to_inds([1, 2], offset=1) == (1, 2)
