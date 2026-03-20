@@ -700,7 +700,7 @@ class VectorConfiguration:
         cells: ArrayLike | None = None,
         tol: float = 1e-14,
         backend: str | None = None,
-        make_fine: bool = True,
+        make_fine: bool = None,
         check_heights: bool = True,
         cure_heights: bool = True,
         verbosity: int = 0,
@@ -738,6 +738,9 @@ class VectorConfiguration:
         # =======================
         # flag as to whether the user didn't input heights
         default_heights = (heights is None)
+
+        if make_fine is None:
+            make_fine = default_heights
 
         # check the backend
         if backend is None:
