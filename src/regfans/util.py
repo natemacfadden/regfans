@@ -398,7 +398,7 @@ def find_interior_point(*,
             cons.SetCoefficient(p[j], float(H[i,j]))
 
     # pick a semi-arbitrary grading vector and return p with minimal degree
-    grading = H.sum(axis=0) # guaranteed to be in the interior of the dual cone
+    grading = H.sum(axis=0) / m # guaranteed to be in the interior of the dual cone
     solver.Minimize(sum(gj*pj for gj, pj in zip(grading, p)))
 
     # solve/parse
