@@ -28,7 +28,7 @@ function.
 - `vc`:        The ambient vector configuration.
 - `Z`:         The support of the circuit.
 - `Zpos`:      The 'positive' side of the circuit.
-- `Zpos`:      The 'negative' side of the circuit.
+- `Zneg`:      The 'negative' side of the circuit.
 - `lmbda`:     A dependency vector demonstrating the circuit.
 - `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
 
@@ -43,7 +43,7 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__(vc, Z, Zpos, Zneg, lmbda, signature)
+def __init__(vc, Z, Zpos, Zneg, lmbda, signature) -> None
 ```
 
 **Description:**
@@ -53,7 +53,7 @@ Initializes a `Circuit` object.
 - `vc`:        The ambient vector configuration.
 - `Z`:         The support of the circuit.
 - `Zpos`:      The 'positive' side of the circuit.
-- `Zpos`:      The 'negative' side of the circuit.
+- `Zneg`:      The 'negative' side of the circuit.
 - `lmbda`:     A dependency vector demonstrating the circuit.
 - `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
 
@@ -92,7 +92,7 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__()
+def __init__() -> None
 ```
 
 **Description:**
@@ -112,7 +112,7 @@ Nothing.
 #### \_\_getitem\_\_
 
 ```python
-def __getitem__(label_inds: Iterable[int]) -> Union["Circuit", int]
+def __getitem__(label_inds: Iterable[int]) -> Circuit | int
 ```
 
 **Description:**
@@ -135,14 +135,14 @@ Cases
 #### set\_circuit
 
 ```python
-def set_circuit(circuit: "Circuit", verbosity: int = 0) -> None
+def set_circuit(circuit: Circuit, verbosity: int = 0) -> None
 ```
 
 **Description:**
 Set the circuit properties corresponding to the indicated indices.
 
 **Arguments:**
-- `circuit`:   Dict describing the circuit.
+- `circuit`:   A Circuit object.
 - `verbosity`: The verbosity level.
 
 **Returns:**
@@ -177,7 +177,7 @@ Nothing.
 #### values
 
 ```python
-def values() -> Iterable["Circuit"]
+def values() -> Iterable[Circuit]
 ```
 
 **Description:**
@@ -197,7 +197,7 @@ The circuits.
 #### copy
 
 ```python
-def copy() -> "Circuits"
+def copy() -> Circuits
 ```
 
 **Description:**
@@ -255,7 +255,7 @@ def decode(encoding) -> list[int]
 ```
 
 **Description:**
-Convert a binary vector b to a list of of integers such that
+Convert a binary vector b to a list of integers such that
 b_i = 1 <=> i in label_inds
 
 **Arguments:**
@@ -300,8 +300,8 @@ def is_subset(setA: int, setB: int) -> bool
 Check if the set encoded by setA is a subset of setB.
 
 **Arguments:**
-- `setA`: The candidate-superset encoding.
-- `setB`: The candidate-subset encoding.
+- `setA`: The candidate-subset encoding.
+- `setB`: The candidate-superset encoding.
 
 **Returns:**
 Whether setA is a subset of setB.
@@ -353,9 +353,9 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__(vc: "VectorConfiguration",
+def __init__(vc: VectorConfiguration,
              cones: list[list[int]],
-             heights: list[float] = None)
+             heights: list[float] | None = None) -> None
 ```
 
 **Description:**
@@ -441,7 +441,7 @@ The hash.
 #### \_\_eq\_\_
 
 ```python
-def __eq__(o: "Fan") -> bool
+def __eq__(o: Fan) -> bool
 ```
 
 **Description:**
@@ -461,7 +461,7 @@ True if self==o. False if self!=o.
 #### \_\_ne\_\_
 
 ```python
-def __ne__(o: "Fan") -> bool
+def __ne__(o: Fan) -> bool
 ```
 
 **Description:**
@@ -482,7 +482,7 @@ True if self!=o. False if self==o.
 
 ```python
 @property
-def vector_config() -> "VectorConfiguration"
+def vector_config() -> VectorConfiguration
 ```
 
 **Description:**
@@ -555,7 +555,7 @@ Returns a map from vector labels to the cones the vector appears in.
 None.
 
 **Returns:**
-A map from vector label to a set of cones (as tuples of indices) that
+A map from vector label to a set of cones (as tuples of labels) that
 the vector appears in.
 
 <a id="fan.Fan.ambient_dim"></a>
@@ -609,8 +609,8 @@ The dimension of the VC.
 #### vectors
 
 ```python
-def vectors(which: int | Iterable[int] = None,
-            lifted: bool = False) -> "ArrayLike"
+def vectors(which: int | Iterable[int] | None = None,
+            lifted: bool = False) -> ArrayLike
 ```
 
 **Description:**
@@ -638,7 +638,7 @@ The corresponding vector(s), in order specified by which.
 def cones(as_rays: bool = False,
           as_hyps: bool = False,
           as_inds: bool = False,
-          ind_offset: int = 0) -> Union[tuple[tuple[int]], list["ArrayLike"]]
+          ind_offset: int = 0) -> tuple[tuple[int]] | list[ArrayLike]
 ```
 
 **Description:**
@@ -656,7 +656,7 @@ Optionally, allow an offset to the indices.
 - `ind_offset`: An additive offset for the indices
 
 **Returns:**
-The corresponding vector(s), in order specified by which.
+The cones, specified according to the input flags.
 
 <a id="fan.Fan.facets"></a>
 
@@ -709,7 +709,7 @@ True if the cones define a valid fan. False otherwise.
 #### respects\_ptconfig
 
 ```python
-def respects_ptconfig() -> bool
+def respects_ptconfig(via_circuits=False) -> bool
 ```
 
 **Description:**
@@ -717,7 +717,9 @@ Return whether or not the fan also defines a (star) subdivision of the
 original underlying point configuration.
 
 **Arguments:**
-None.
+- `via_circuits`: This method uses secondary cones. Allow construction
+of the secondary cone via circuits. That's unsafe if the fan is
+potentially irregular.
 
 **Returns:**
 True if the fan defines a subdivision of the point configuration. False
@@ -802,7 +804,7 @@ None.
 None.
 
 **Returns:**
-True if the fan is regular. False otherwise.
+The heights defining the fan, if it is regular.
 
 <a id="fan.Fan.contains"></a>
 
@@ -836,12 +838,12 @@ Whether (all) cone(s) are contained in the fan.
 #### circuit
 
 ```python
-def circuit(labels: Iterable[int] = None,
-            enforce_positive: int = None,
-            lmbda: Iterable[float] = None,
+def circuit(labels: Iterable[int] | None = None,
+            enforce_positive: int | None = None,
+            lmbda: Iterable[float] | None = None,
             check_containment: bool = True,
             save_circuits_in_vc: bool = False,
-            verbosity: int = 0) -> "Circuit"
+            verbosity: int = 0) -> Circuit
 ```
 
 **Description:**
@@ -860,7 +862,7 @@ for most circumstances.
 **Returns:**
 Circuit object containing
 - the support of the circuit as property 'Z',
-- the signed circuit as property 'Zpos' and 'Zned',
+- the signed circuit as property 'Zpos' and 'Zneg',
 - the dependency as property 'lmbda', and
 - the signature as property 'signature'.
 
@@ -872,8 +874,9 @@ Circuit object containing
 #### circuits
 
 ```python
-def circuits(facets: dict[Iterable[int], Iterable[Iterable[int]]] = None,
-             verbosity: int = 0) -> list["Circuit"]
+def circuits(facets: dict[Iterable[int], Iterable[Iterable[int]]]
+             | None = None,
+             verbosity: int = 0) -> list[Circuit]
 ```
 
 **Description:**
@@ -931,7 +934,7 @@ the star that don't intersect the cell.
 - `cell`: The cell of interest.
 
 **Returns:**
-A list of all solid cones (as tuples of ints) containing the cell.
+The link.
 
 <a id="fan.Fan.embed"></a>
 
@@ -946,7 +949,7 @@ def embed(cell: Iterable[int],
 ```
 
 **Description:**
-Embed some cell into the Fan bu combining it with each cell in the link.
+Embed some cell into the Fan by combining it with each cell in the link.
 
 **Arguments:**
 - `cell`: The cell of interest.
@@ -964,9 +967,9 @@ Fan via the link.
 #### flip
 
 ```python
-def flip(circ: "Circuit",
+def flip(circ: Circuit,
          formal: bool = True,
-         verbosity: int = 0) -> Union["Fan", tuple[tuple[int]]]
+         verbosity: int = 0) -> Fan | tuple[tuple[int]]
 ```
 
 **Description:**
@@ -990,20 +993,21 @@ The flipped Fan.
 
 ```python
 def flip_linear(
-    h_target: Iterable[float] = None,
-    direction: Iterable[float] = None,
-    h_init: Iterable[float] = None,
-    max_N_flips: int = None,
+    h_target: Iterable[float] | None = None,
+    direction: Iterable[float] | None = None,
+    h_init: Iterable[float] | None = None,
+    max_N_flips: int | None = None,
     stop_at_deletion: bool = True,
     stop_at_pct: bool = False,
     check_regularity: bool = True,
     record_fans: bool = False,
     record_circs: bool = False,
-    hook_init: Callable = None,
-    hook_flip: Callable = None,
+    hook_init: Callable | None = None,
+    hook_halt: Callable | None = None,
+    hook_flip: Callable | None = None,
     eps: float = 1e-8,
     verbosity: int = 0
-) -> list[int | Exception, "ArrayLike", "Fan", "ArrayLike", int]
+) -> list[int | Exception, ArrayLike, Fan, ArrayLike, int]
 ```
 
 **Description:**
@@ -1064,10 +1068,10 @@ pulling heights back into the secondary fan.
 
 ```python
 def neighbors(
-    only_fine: bool = False,
-    formal: bool = True,
-    verbosity: int = 0
-) -> tuple[list[Union["Fan", tuple[tuple[int]]]], list["Circuit"]]
+        only_fine: bool = False,
+        formal: bool = True,
+        verbosity: int = 0
+) -> tuple[list[Fan | tuple[tuple[int]]], list[Circuit]]
 ```
 
 **Description:**
@@ -1095,7 +1099,7 @@ cones (each cone a collection of labels)
 
 ```python
 def secondary_cone_hyperplanes(via_circuits: bool = False,
-                               verbosity: int = 0) -> "ArrayLike"
+                               verbosity: int = 0) -> ArrayLike
 ```
 
 **Description:**
@@ -1124,6 +1128,26 @@ irregularity... Alternative is local folding.
 **Returns:**
 An array of hyperplanes, H, defining the cone as {x: Hx>=0}
 
+<a id="fan.make_fine"></a>
+
+---
+
+
+#### make\_fine
+
+```python
+def make_fine(fan: Fan) -> Fan
+```
+
+**Description:**
+Convert a fan to a fine fan by linear flipping
+
+**Arguments:**
+- `fan`: The initial fan.
+
+**Returns:**
+A fine fan, from linearly flipping the original fan.
+
 <a id="fan.flip_subgraph"></a>
 
 ---
@@ -1134,13 +1158,12 @@ An array of hyperplanes, H, defining the cone as {x: Hx>=0}
 ```python
 def flip_subgraph(
         seed,
-        max_flips: int = None,
+        max_flips: int | None = None,
         only_fine: bool = False,
         only_regular: bool = True,
         only_pc_triang: bool = False,
         compute_node_labels: bool = False,
-        verbosity: int = 0
-) -> tuple["networkx.Graph", list["Fan"], list[dict]]
+        verbosity: int = 0) -> tuple[nx.Graph, list[Fan], list[dict]]
 ```
 
 **Description:**
@@ -1198,9 +1221,9 @@ This is the smallest number, g, such that g*values is integral.
 
 This is computed by
 1) converting `values` to be rational [n0/d0, n1/d1, ...],
-2) computing the LCM, l, of [d0, d1, ...],
-3) computing the GCD, g', of [l*n0/d0, l*n1/d1, ...], and then
-4) returning g=g'/l.
+2) computing the LCM, lcm, of [d0, d1, ...],
+3) computing the GCD, g', of [lcm*n0/d0, lcm*n1/d1, ...], and then
+4) returning g=g'/lcm.
 
 **Arguments:**
 - `vals`:      The numbers to compute the GCD of.
@@ -1217,7 +1240,7 @@ The minimum number g' such that g'*vals is integral.
 #### primitive
 
 ```python
-def primitive(vec: list[float], max_denom=10**10)
+def primitive(vec: list[float], max_denom=10**6)
 ```
 
 **Description:**
@@ -1243,7 +1266,7 @@ The primitive vector along the ray.
 #### lerp
 
 ```python
-def lerp(p0: "ArrayLike", p1: "ArrayLike", t: float) -> "ArrayLike"
+def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike
 ```
 
 **Description:**
@@ -1257,39 +1280,10 @@ Particular values:
 **Arguments:**
 - `p0`: One point.
 - `p1`: The other point.
-- `t`:  Parameter specifing where along the line Conv({p0, p1}) to return.
+- `t`:  Parameter specifying where along the line Conv({p0, p1}) to return.
 
 **Returns:**
 The point p0 + t*(p1-p0).
-
-<a id="util.hyperplane_inter"></a>
-
----
-
-
-#### hyperplane\_inter
-
-```python
-def hyperplane_inter(p0: "ArrayLike", p1: "ArrayLike",
-                     n: "ArrayLike") -> float
-```
-
-**Description:**
-Computes the distance, t, along the line p0 + t*(p1-p0) that intersects the
-hyperplane {x: n.x=0}.
-
-This is simply computed as
-0 = n.[p0 + t*(p1-p0)]
-0 = n.p0 + t*n.(p1-p0)
-t = -n.p0 / n.(p1-p0)
-
-**Arguments:**
-- `p0`: One point.
-- `p1`: The other point.
-- `n`:  The hyperplane normal.
-
-**Returns:**
-The distance t such that p0 + t*(p1-p0) lands upon the hyperplane.
 
 <a id="util.first_hit"></a>
 
@@ -1299,16 +1293,15 @@ The distance t such that p0 + t*(p1-p0) lands upon the hyperplane.
 #### first\_hit
 
 ```python
-def first_hit(p0: "ArrayLike",
-              p1: "ArrayLike",
-              H: "ArrayLike",
-              max_dist: float = 1,
+def first_hit(p0: ArrayLike,
+              p1: ArrayLike,
+              H: ArrayLike,
               verbosity: int = 0) -> (int, float)
 ```
 
 **Description:**
 Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
-along the direction (p1-p0). I.e, the first intersection of the ray
+along the direction (p1-p0). I.e., the first intersection of the ray
 {p0+t*(p1-p0): t>=0} with the cones bounding hyperplanes.
 
 Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
@@ -1317,13 +1310,11 @@ Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
 - `p0`:         One point.
 - `p1`:         The other point.
 - `H`:          An array of hyperplane normals (as rows).
-- `max_dist`:   Only consider intersections along the line segment
-[p0, p0+max_dist*(p1-p0)]
 - `verbosity`:  The verbosity level. Higher is more verbose.
 
 **Returns:**
 The index, i, of the first-hit hyperplane.
-The distance, t, such that H[i].lerp(p0,p1,t) = 0.
+The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
 
 <a id="util.dual_cone"></a>
 
@@ -1333,7 +1324,7 @@ The distance, t, such that H[i].lerp(p0,p1,t) = 0.
 #### dual\_cone
 
 ```python
-def dual_cone(data: "ArrayLike") -> "ArrayLike"
+def dual_cone(data: ArrayLike) -> ArrayLike
 ```
 
 **Description:**
@@ -1350,7 +1341,7 @@ rays        | hyperplanes   | rays
 hyperplanes | rays          | hyperplanes
 
 
-For simplicitly in the following discussion, take the convention that one
+For simplicity in the following discussion, take the convention that one
 maps hyperplanes of the primal to rays of the primal.
 
 **Arguments:**
@@ -1367,7 +1358,7 @@ An array whose rows represent hyperplanes of the primal cone. (see table)
 #### cone\_dim
 
 ```python
-def cone_dim(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> int
+def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int
 ```
 
 **Description:**
@@ -1393,7 +1384,7 @@ The dimension of the cone
 #### is\_solid
 
 ```python
-def is_solid(*, R: "ArrayLike" = None, H: "ArrayLike" = None) -> int
+def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool
 ```
 
 **Description:**
@@ -1409,7 +1400,7 @@ or via hyperplanes,
 - `H`: The hyperplanes defining the cone.
 
 **Returns:**
-The dimension of the cone
+Whether the cone is full-dimensional.
 
 <a id="util.contains"></a>
 
@@ -1420,9 +1411,9 @@ The dimension of the cone
 
 ```python
 def contains(*,
-             p: "ArrayLike",
-             R: "ArrayLike" = None,
-             H: "ArrayLike" = None) -> bool
+             p: ArrayLike,
+             R: ArrayLike = None,
+             H: ArrayLike = None) -> bool
 ```
 
 **Description:**
@@ -1434,6 +1425,7 @@ or via hyperplanes,
 {x: H @ x>=0}.
 
 **Arguments:**
+- `p`: The query point.
 - `R`: The rays of the cone as rows.
 - `H`: The hyperplanes defining the cone.
 
@@ -1449,15 +1441,15 @@ Whether p is contained in the cone.
 
 ```python
 def find_interior_point(*,
-                        R: "ArrayLike" = None,
-                        H: "ArrayLike" = None,
+                        R: ArrayLike = None,
+                        H: ArrayLike = None,
                         stretching: float = 1,
                         nonneg: bool = False,
-                        verbosity: int = 0) -> Union["ArrayLike", None]
+                        verbosity: int = 0) -> ArrayLike | None
 ```
 
 **Description:**
-Returns a point p in the relative interior of a cone. The cone can be
+Returns a point p in the strict interior of a cone. The cone can be
 specified either via its rays or its generators.
 
 If no point p exists, return `None`.
@@ -1505,7 +1497,8 @@ making a simplicial fan.
 
 **Description:**
 Constructs a `VectorConfiguration` object describing a lattice vector
-configuration. This is handled by the hidden [`__init__`](#__init__) function.
+configuration. This is handled by the hidden
+[`__init__`](#__init__) function.
 
 **Arguments:**
 - `vectors`:    The vectors defining the VC.
@@ -1513,7 +1506,7 @@ configuration. This is handled by the hidden [`__init__`](#__init__) function.
 allowed.
 - `eps`:        Threshold for checking for non-integral vectors.
 - `gale_basis`: An optional basis for the gale transform. If provided, then
-the gale transform will be put a basis such that the
+the gale transform will be put in a basis such that the
 submatrix given by these labels equals the identity.
 
 **Returns:**
@@ -1527,10 +1520,10 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__(vectors: "ArrayLike",
-             labels: Iterable[int] = None,
+def __init__(vectors: ArrayLike,
+             labels: Iterable[int] | None = None,
              eps: float = 1e-4,
-             gale_basis: Iterable[int] = None) -> None
+             gale_basis: Iterable[int] | None = None) -> None
 ```
 
 **Description:**
@@ -1542,7 +1535,7 @@ Initializes a `VectorConfiguration` object.
 labels are allowed.
 - `eps`:        Threshold for checking for non-integral vectors.
 - `gale_basis`: An optional basis for the gale transform. If provided,
-then the gale transform will be put a basis such that
+then the gale transform will be put in a basis such that
 the submatrix given by these labels equals the identity.
 
 **Returns:**
@@ -1611,26 +1604,6 @@ None.
 **Returns:**
 The hash.
 
-<a id="vectorconfig.VectorConfiguration.__ne__"></a>
-
----
-
-
-#### \_\_ne\_\_
-
-```python
-def __ne__(o: "VectorConfiguration") -> bool
-```
-
-**Description:**
-Inequality checking between two VectorConfiguration objects.
-
-**Arguments:**
-- `o`: The other VectorConfiguration to compare against.
-
-**Returns:**
-True if self!=o. False if self==o.
-
 <a id="vectorconfig.VectorConfiguration.__eq__"></a>
 
 ---
@@ -1639,7 +1612,7 @@ True if self!=o. False if self==o.
 #### \_\_eq\_\_
 
 ```python
-def __eq__(o: "VectorConfiguration") -> bool
+def __eq__(o: VectorConfiguration) -> bool
 ```
 
 **Description:**
@@ -1651,6 +1624,26 @@ Equality checking between two VectorConfiguration objects.
 **Returns:**
 True if self==o. False if self!=o.
 
+<a id="vectorconfig.VectorConfiguration.__ne__"></a>
+
+---
+
+
+#### \_\_ne\_\_
+
+```python
+def __ne__(o: VectorConfiguration) -> bool
+```
+
+**Description:**
+Inequality checking between two VectorConfiguration objects.
+
+**Arguments:**
+- `o`: The other VectorConfiguration to compare against.
+
+**Returns:**
+True if self!=o. False if self==o.
+
 <a id="vectorconfig.VectorConfiguration.copy"></a>
 
 ---
@@ -1659,7 +1652,7 @@ True if self==o. False if self!=o.
 #### copy
 
 ```python
-def copy() -> "VectorConfiguration"
+def copy() -> VectorConfiguration
 ```
 
 **Description:**
@@ -1705,7 +1698,7 @@ def labels_to_inds_dict() -> dict[int, int]
 ```
 
 **Description:**
-Returns the a dictionary mapping vector labels to their indices in the
+Returns a dictionary mapping vector labels to their indices in the
 vector configuration.
 
 **Arguments:**
@@ -1786,7 +1779,7 @@ The dimension of the VC.
 #### vectors
 
 ```python
-def vectors(which: int | Iterable[int] = None) -> "ArrayLike"
+def vectors(which: int | Iterable[int] | None = None) -> ArrayLike
 ```
 
 **Description:**
@@ -1808,7 +1801,7 @@ The corresponding vector(s), in order specified by which.
 #### vectors\_to\_labels
 
 ```python
-def vectors_to_labels(vectors: "ArrayLike") -> int | list[int]
+def vectors_to_labels(vectors: ArrayLike) -> int | list[int]
 ```
 
 **Description:**
@@ -1830,7 +1823,7 @@ The corresponding label(s).
 
 ```python
 def labels_to_inds(labels: Iterable[int],
-                   ambient_labels: Iterable[int] = None,
+                   ambient_labels: Iterable[int] | None = None,
                    offset: int = 0) -> int | Iterable[int]
 ```
 
@@ -1923,7 +1916,7 @@ True if the VC is acyclic. False otherwise.
 #### support
 
 ```python
-def support() -> "ArrayLike"
+def support() -> ArrayLike
 ```
 
 **Description:**
@@ -1950,7 +1943,7 @@ def cone_contains(cone_labels: Iterable[int],
 ```
 
 **Description:**
-Check if a cone, specified by cone_labels, contains a the ray specified
+Check if a cone, specified by cone_labels, contains the ray specified
 by vec_label.
 
 I.e., if
@@ -1975,7 +1968,7 @@ Whether the associated cone contains the vector.
 #### gale
 
 ```python
-def gale(set_basis: bool = False) -> "ArrayLike"
+def gale(set_basis: bool = False) -> ArrayLike
 ```
 
 **Description:**
@@ -1997,7 +1990,7 @@ The gale transform.
 #### project
 
 ```python
-def project(vec: "ArrayLike") -> "ArrayLike"
+def project(vec: ArrayLike) -> ArrayLike
 ```
 
 **Description:**
@@ -2017,7 +2010,7 @@ The chamber-space vector.
 #### jorp
 
 ```python
-def jorp(vec: "ArrayLike") -> "ArrayLike"
+def jorp(vec: ArrayLike) -> ArrayLike
 ```
 
 **Description:**
@@ -2029,7 +2022,7 @@ I.e., map from chamber-space to height-space
 - `vec`: The chamber-space vector.
 
 **Returns:**
-The chamber-space vector.
+The height-space vector.
 
 <a id="vectorconfig.VectorConfiguration.triangulate"></a>
 
@@ -2039,12 +2032,14 @@ The chamber-space vector.
 #### triangulate
 
 ```python
-def triangulate(heights: "ArrayLike" = None,
-                cells: "ArrayLike" = None,
+def triangulate(heights: ArrayLike | None = None,
+                cells: ArrayLike | None = None,
                 tol: float = 1e-14,
-                backend: str = None,
+                backend: str | None = None,
+                make_fine: bool = None,
                 check_heights: bool = True,
-                verbosity: int = 0) -> "Fan"
+                cure_heights: bool = True,
+                verbosity: int = 0) -> Fan
 ```
 
 **Description:**
@@ -2057,8 +2052,12 @@ or by heights.
 - `tol`:           Numerical tolerance used for curing negative heights
 - `backend`:       The lifting backend. Currently allowed to be "cgal"
 or "ppl".
+- `make_fine`:     Convert the triangulation to a fine triangulation, if
+not already fine.
 - `check_heights`: Whether to check that the heights land in the
 secondary cone of the output triangulation.
+- `cure_heights`:  If the heights do not land in the secondary cone, try
+to cure them by linear flipping towards the heights.
 - `verbosity`:     The verbosity level. Higher is more verbose
 
 **Returns:**
@@ -2074,13 +2073,12 @@ The resultant subdivision.
 ```python
 def all_triangulations(only_fine: bool = False,
                        only_regular: bool = True,
-                       verbosity: int = 0) -> list["Fan"]
+                       verbosity: int = 0) -> list[Fan]
 ```
 
 **Description:**
 Generate all triangulations of this vector configuration via taking
 flips from some regular triangulation.
-
 
 NOTE: In theory, this might miss an irregular triangulation that is
 disconnected from the regular triangulations.
@@ -2098,7 +2096,6 @@ a valid triangulation. If so, save it
 The incidence vector strategy is analogous to rejection sampling and
 will be much slower than the flip-based method, but it would see *all*
 triangulations.
-
 
 **Arguments:**
 - `only_fine`:    Whether to restrict to fine triangulations
@@ -2118,14 +2115,14 @@ A list of Fan objects, one for each triangulation of the VC.
 ```python
 def random_triangulations_fast(
         method: str = "delaunay",
-        h0: "ArrayLike" = None,
+        h0: ArrayLike | None = None,
         sigma: float = 0.1,
-        N: int = None,
+        N: int | None = None,
         as_list: bool = False,
         attempts_per_triang: int = 1000,
-        backend: str = None,
+        backend: str | None = None,
         seed: int = 0,
-        verbosity: int = 0) -> Generator["Fan"] | list["Fan"]
+        verbosity: int = 0) -> Generator[Fan] | list[Fan]
 ```
 
 **Description:**
@@ -2134,7 +2131,7 @@ Generate random regular triangulations by picking random heights.
 **Arguments:**
 - `method`:             Either "delaunay" or "isotropic". The former
 picks heights around some input height (e.g.,
-the Deulaunay heights). The latter picks
+the Delaunay heights). The latter picks
 heights isotropically
 - `h0`:                 The reference heights, for Delaunay method.
 - `sigma`:              How big of a distribution to study around h0.
@@ -2147,7 +2144,7 @@ O/w, then the first N height vectors are used
 (regardless of duplicates).
 - `as_list`:            Whether to return the triangulations as a list,
 or as a generator.
-- `attempts_per_triang`:Quit if we can't generate a new triangulation
+- `attempts_per_triang`: Quit if we can't generate a new triangulation
 after this many tries.
 - `backend`:            The lifting backend. See
 `VectorConfiguration.triangulate`.
@@ -2166,9 +2163,9 @@ The random triangulations.
 
 ```python
 def circuit(labels: Iterable[int],
-            lmbda: Iterable = None,
+            lmbda: Iterable | None = None,
             set_non_dependencies: bool = True,
-            save_circuits: bool = True) -> "Circuit"
+            save_circuits: bool = True) -> Circuit
 ```
 
 **Description:**
@@ -2184,7 +2181,7 @@ for most circumstances.
 **Returns:**
 Circuit object containing
 - the support of the circuit as property 'Z',
-- the signed circuit as property 'Zpos' and 'Zned',
+- the signed circuit as property 'Zpos' and 'Zneg',
 - the dependency as property 'lmbda', and
 - the signature as property 'signature'.
 
@@ -2196,7 +2193,7 @@ Circuit object containing
 #### circuits
 
 ```python
-def circuits(verbosity: int = 0) -> list["Circuit"]
+def circuits(verbosity: int = 0) -> list[Circuit]
 ```
 
 **Description:**
@@ -2216,12 +2213,12 @@ A list of Circuit objects.
 #### flip\_graph
 
 ```python
-def flip_graph(max_flips: int = None,
+def flip_graph(max_flips: int | None = None,
                only_fine: bool = False,
                only_regular: bool = True,
                only_pc_triang: bool = False,
                compute_node_labels: bool = False,
-               verbosity: int = 0) -> (nx.Graph, list["Fan"], list[str])
+               verbosity: int = 0) -> (nx.Graph, list[Fan], list[dict])
 ```
 
 **Description:**
@@ -2236,17 +2233,18 @@ graph is calculated.
 Note, we never will see irregular
 triangulations that are not connected to
 regular ones.
-- `only_pc_triang`:      Whether to only compute triangulations that also
-correspond to star triangulations of the
-underlying point config.
+- `only_pc_triang`:      Whether to only compute triangulations
+that also correspond to star triangulations of
+the underlying point config.
 - `compute_node_labels`: Whether to check whether each node is fine,
 regular, and a PC triangulation.
 - `verbosity`:           The verbosity level. Higher is more verbose.
 
 **Returns:**
-The Graph object, whose nodes correspond to (and have values equal to)
-Fan objects.  The edge between nodes correspond to flips, and have
-labels equal to the corresponding circuit.
+- The flip graph as a networkx.Graph object.
+- A list of the triangulations
+- A list of the labels for each triangulation (labels are a
+dictionary from the property to a bool)
 
 <a id="vectorconfig.VectorConfiguration.secondary_fan"></a>
 
@@ -2280,7 +2278,7 @@ The secondary fan triangulations.
 #### central\_fan
 
 ```python
-def central_fan() -> "Fan"
+def central_fan() -> Fan
 ```
 
 **Description:**
