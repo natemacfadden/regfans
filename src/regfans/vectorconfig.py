@@ -57,7 +57,8 @@ class VectorConfiguration:
     [`__init__`](#__init__) function.
 
     **Arguments:**
-    - `vectors`:    The vectors defining the VC.
+    - `vectors`:    The vectors defining the VC in row format. I.e., vectors[i],
+                    the ith row, is treated as the ith vector in the config.
     - `labels`:     A list of labels for the vectors. Only integral labels are
                     allowed.
     - `eps`:        Threshold for checking for non-integral vectors.
@@ -80,7 +81,8 @@ class VectorConfiguration:
         Initializes a `VectorConfiguration` object.
 
         **Arguments:**
-        - `vectors`:    The vectors defining the VC.
+        - `vectors`:    The vectors defining the VC in row format. I.e., vectors[i],
+                        the ith row, is treated as the ith vector in the config.
         - `labels`:     A list of integer labels for the vectors. Only integral
                         labels are allowed.
         - `eps`:        Threshold for checking for non-integral vectors.
