@@ -27,7 +27,7 @@ or (to install a local version)
 ```
 pip install .
 ```
-N.B.: many methods in `regfans` require computation of dual cones (i.e., the generators of a cone defined via hyperplanes or vice-versa). Currently, this requires [pplpy](https://pypi.org/project/pplpy/) which cannot be automatically installed via pip.
+N.B.: most methods in `regfans` require computation of dual cones (i.e., the generators of a cone defined via hyperplanes or vice-versa). Currently, this requires [pplpy](https://pypi.org/project/pplpy/) which cannot be automatically installed via pip. Thus, while `pplpy` is not formally a requirement, it is strongly recommended. The provided conda environment installs `pplpy` automatically, so it is recommended.
 
 ## API
 
