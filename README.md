@@ -1,6 +1,6 @@
 ![Fan flip graph](images/fan_flip_graph.png)
 
-(This has a lot of overlap with TOPCOM which will be quicker than existing methods. This repo will progressive port more of the computations over to TOPCOM (via [triangulumancer](https://github.com/ariostas/triangulumancer))
+(This has a lot of overlap with TOPCOM - `regfans` will port over more computations to TOPCOM as beneficial for speed (via [triangulumancer](https://github.com/ariostas/triangulumancer))
 
 # regfans
 Software for studying vector configurations defined over the lattice vectors. This includes
