@@ -5,13 +5,23 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "regfans"
 version = "0.0.12"
-description = "Regular fans of vector configurations"
+description = "A Python library for computing regular triangulations of lattice vector configurations"
 authors = [{ name = "Nate MacFadden" }]
 readme = "README.md"
 license = "GPL-3.0-or-later"
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
 ]
 dependencies = [
     "python-flint",
@@ -31,6 +41,8 @@ test = [
 
 [project.urls]
 Repository = "https://github.com/natemacfadden/regfans"
+Documentation = "https://github.com/natemacfadden/regfans/blob/main/documentation/api.md"
+Issues = "https://github.com/natemacfadden/regfans/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

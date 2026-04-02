@@ -1,40 +1,60 @@
-![Fan flip graph](images/fan_flip_graph.png)
-
-(This has a lot of overlap with TOPCOM - `regfans` will port over more computations to TOPCOM as beneficial for speed (via [triangulumancer](https://github.com/ariostas/triangulumancer))
-
 # regfans
-Software for studying vector configurations defined over the lattice vectors. This includes
-- constructing regular triangulations (i.e., polyhedral fans) of such vector configurations via lifting,
-- constructing all (regular) triangulations via computation of flip graphs,
-- verification of various properties of the vector configuration/fan, and
-- efficient linear flipping.
 
-See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive resource on such topics.
+**regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group in Cornell.
 
-This package, `regfans`, was originally developed for constructing toric varieties in the work [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817). Said work was supported in part by NSF grant PHY-2309456. All toric-geometric computations are isolated to [CYTools](https://github.com/LiamMcAllisterGroup/cytools), which has an extension `vector_config` building off of `regfans`.
+## Core Functionality
+
+The library computes and modifies regular triangulations of vector configurations (regular polyhedral fans; "vex triangulations").
+
+Key capabilities:
+- Construct regular triangulations via lifting
+- Compute all (regular) triangulations via flip graph traversal
+- Verify properties of vector configurations (solid, totally-cyclic) and fans (fine, regular, point-configuration-compatible)
+- Efficient linear flipping
+
+See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive reference on such topics.
 
 ## Installation
-`regfans` can be installed using either conda or pip. To install `regfans` using conda, please see/use the provided `environment.yml` file:
+
+Install via conda (recommended — includes pplpy):
+
 ```
 conda env create -f environment.yml
 conda activate regfans
 ```
-To install `regfans` using pip, either run (to install the most recent release; also see [PyPI listing](https://pypi.org/project/regfans/))
+
+Or via pip (see also [PyPI listing](https://pypi.org/project/regfans/)):
+
 ```
 pip install regfans
 ```
-or (to install a local version)
+
+**Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/), which cannot be installed automatically via pip. The conda environment handles this automatically.
+
+## Primary Interface
+
+The main class is `VectorConfiguration`:
+
+```python
+from regfans import VectorConfiguration
+
+pts = [[1, -2, -1, -1], [1, 1, -1, 2], [-2, 0, 0, -1],
+       [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]
+vc = VectorConfiguration(pts)
+
+# construct a regular triangulation via lifting
+fan = vc.subdivide()
+print(fan.is_fine(), fan.is_regular())
+
+# compute all triangulations and the flip graph
+all_fans = vc.all_triangulations()
+G, fans, labels = vc.flip_graph(compute_node_labels=True)
 ```
-pip install .
-```
-N.B.: most methods in `regfans` require computation of dual cones (i.e., the generators of a cone defined via hyperplanes or vice-versa). Currently, this requires [pplpy](https://pypi.org/project/pplpy/) which cannot be automatically installed via pip. Thus, while `pplpy` is not formally a requirement, it is strongly recommended. The provided conda environment installs `pplpy` automatically, so it is recommended.
 
-## API
+![Fan flip graph](images/fan_flip_graph.png)
 
-See [api.md](documentation/api.md) for full API reference.
+See [documentation/api.md](documentation/api.md) for the full API reference and the [tutorials directory](tutorials/) for annotated examples.
 
-(To update documentation, just run `pydoc-markdown; py documentation/clean_api.py`)
+## Citation
 
-## Tutorials
-
-See the [tutorials directory](tutorials/) for some commented example scripts showing how to construct a vector configuration, check properties of it, construct fans from it, and check the properties of said fans.
+This package was developed for constructing toric varieties in [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817), supported in part by NSF grant PHY-2309456. Toric-geometric computations are provided by [CYTools](https://github.com/LiamMcAllisterGroup/cytools), which extends regfans via a `vector_config` module.
