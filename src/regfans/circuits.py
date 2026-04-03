@@ -31,37 +31,42 @@ class Circuit:
     This class is a helper data structure to contain a single circuit of some
     vector configuration.
 
-    **Description:**
     Constructs a `Circuit` object describing a circuit of a vector
-    configuration. This is handled by the hidden [`__init__`](#__init__)
-    function.
+    configuration.
 
-    **Arguments:**
-    - `vc`:        The ambient vector configuration.
-    - `Z`:         The support of the circuit.
-    - `Zpos`:      The 'positive' side of the circuit.
-    - `Zneg`:      The 'negative' side of the circuit.
-    - `lmbda`:     A dependency vector demonstrating the circuit.
-    - `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
-
-    **Returns:**
-    Nothing.
+    Parameters
+    ----------
+    vc
+        The ambient vector configuration.
+    Z
+        The support of the circuit.
+    Zpos
+        The 'positive' side of the circuit.
+    Zneg
+        The 'negative' side of the circuit.
+    lmbda
+        A dependency vector demonstrating the circuit.
+    signature
+        The signature (|Zpos|, |Zneg|) of the circuit.
     """
     def __init__(self, vc, Z, Zpos, Zneg, lmbda, signature) -> None:
         """
-        **Description:**
         Initializes a `Circuit` object.
 
-        **Arguments:**
-        - `vc`:        The ambient vector configuration.
-        - `Z`:         The support of the circuit.
-        - `Zpos`:      The 'positive' side of the circuit.
-        - `Zneg`:      The 'negative' side of the circuit.
-        - `lmbda`:     A dependency vector demonstrating the circuit.
-        - `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
-
-        **Returns:**
-        Nothing.
+        Parameters
+        ----------
+        vc
+            The ambient vector configuration.
+        Z
+            The support of the circuit.
+        Zpos
+            The 'positive' side of the circuit.
+        Zneg
+            The 'negative' side of the circuit.
+        lmbda
+            A dependency vector demonstrating the circuit.
+        signature
+            The signature (|Zpos|, |Zneg|) of the circuit.
         """
         self.vc        = vc
         self.Z         = Z
@@ -112,26 +117,11 @@ class Circuits:
     This class is a helper data structure to contain the circuits of some
     vector configuration.
 
-    **Description:**
-    Constructs a `Circuits` object describing all circuits of some VC. This
-    is handled by the hidden [`__init__`](#__init__) function.
-
-    **Arguments:**
-    None.
-
-    **Returns:**
-    Nothing.
+    Constructs a `Circuits` object describing all circuits of some VC.
     """
     def __init__(self) -> None:
         """
-        **Description:**
         Initializes a `Circuits` object.
-
-        **Arguments:**
-        None.
-
-        **Returns:**
-        Nothing.
         """
         self.clear_cache() # set attributes here
 
@@ -172,17 +162,20 @@ class Circuits:
 
     def __getitem__(self, label_inds: Iterable[int]) -> Circuit | int:
         """
-        **Description:**
         Get the circuit corresponding to the indicated indices.
 
-        **Arguments:**
-        - `label_inds`: The iterable of vector/label indices.
+        Parameters
+        ----------
+        label_inds : Iterable[int]
+            The iterable of vector/label indices.
 
-        **Returns:**
-        Cases
-            - if indices correspond to known circuit -> the `Circuit`
-            - if indices correspond to non-circuit   -> -1
-            - if indices aren't known                -> 0
+        Returns
+        -------
+        Circuit | int
+            Cases
+                - if indices correspond to known circuit -> the `Circuit`
+                - if indices correspond to non-circuit   -> -1
+                - if indices aren't known                -> 0
         """
         encoding = self.encode(label_inds)
 
@@ -206,15 +199,14 @@ class Circuits:
                     circuit: Circuit,
                     verbosity: int = 0) -> None:
         """
-        **Description:**
         Set the circuit properties corresponding to the indicated indices.
 
-        **Arguments:**
-        - `circuit`:   A Circuit object.
-        - `verbosity`: The verbosity level.
-
-        **Returns:**
-        Nothing.
+        Parameters
+        ----------
+        circuit : Circuit
+            A Circuit object.
+        verbosity : int
+            The verbosity level.
         """
         encoding = self.encode(circuit.Z)
 
@@ -230,15 +222,14 @@ class Circuits:
                            label_inds: Iterable[int],
                            verbosity: int = 0) -> None:
         """
-        **Description:**
         Record a set of points that is not dependent
 
-        **Arguments:**
-        - `label_inds`: The iterable of vector/label indices.
-        - `verbosity`:  The verbosity level.
-
-        **Returns:**
-        Nothing.
+        Parameters
+        ----------
+        label_inds : Iterable[int]
+            The iterable of vector/label indices.
+        verbosity : int
+            The verbosity level.
         """
         encoding = self.encode(label_inds)
 
@@ -261,27 +252,23 @@ class Circuits:
     # ------------------
     def values(self) -> Iterable[Circuit]:
         """
-        **Description:**
         Get the values (the actual circuits)
 
-        **Arguments:**
-        None
-
-        **Returns:**
-        The circuits.
+        Returns
+        -------
+        Iterable[Circuit]
+            The circuits.
         """
         return self.circuits.values()
 
     def copy(self) -> Circuits:
         """
-        **Description:**
         Copy the circuits object
 
-        **Arguments:**
-        None
-
-        **Returns:**
-        A copy of the circuits.
+        Returns
+        -------
+        Circuits
+            A copy of the circuits.
         """
         copied = Circuits()
         copied.circuits = {Z: circ for Z, circ in self.circuits.items()}
@@ -302,15 +289,18 @@ class Circuits:
     # -----------------
     def encode(self, label_inds: Iterable[int]) -> int:
         """
-        **Description:**
         Convert an iterable of integers to a binary vector, b, such that
             b_i = 1 <=> i in label_inds
 
-        **Arguments:**
-        - `label_inds`: The iterable of integers.
+        Parameters
+        ----------
+        label_inds : Iterable[int]
+            The iterable of integers.
 
-        **Returns:**
-        The encoding
+        Returns
+        -------
+        int
+            The encoding
         """
         # as bitvector
         if isinstance(label_inds, int):
@@ -323,15 +313,18 @@ class Circuits:
 
     def decode(self, encoding) -> list[int]:
         """
-        **Description:**
         Convert a binary vector b to a list of integers such that
             b_i = 1 <=> i in label_inds
 
-        **Arguments:**
-        - `encoding`: The encoding to map to label indices
+        Parameters
+        ----------
+        encoding
+            The encoding to map to label indices
 
-        **Returns:**
-        The label indices
+        Returns
+        -------
+        list[int]
+            The label indices
         """
         # as bitvector
         label_inds = []
@@ -344,29 +337,37 @@ class Circuits:
 
     def is_superset(self, setA, setB) -> bool:
         """
-        **Description:**
         Check if the set encoded by setA is a superset of setB.
 
-        **Arguments:**
-        - `setA`: The candidate-superset encoding.
-        - `setB`: The candidate-subset encoding.
+        Parameters
+        ----------
+        setA
+            The candidate-superset encoding.
+        setB
+            The candidate-subset encoding.
 
-        **Returns:**
-        Whether setA is a superset of setB.
+        Returns
+        -------
+        bool
+            Whether setA is a superset of setB.
         """
         # as bitvector
         return (setA & setB) == setB
 
     def is_subset(self, setA: int, setB: int) -> bool:
         """
-        **Description:**
         Check if the set encoded by setA is a subset of setB.
 
-        **Arguments:**
-        - `setA`: The candidate-subset encoding.
-        - `setB`: The candidate-superset encoding.
+        Parameters
+        ----------
+        setA : int
+            The candidate-subset encoding.
+        setB : int
+            The candidate-superset encoding.
 
-        **Returns:**
-        Whether setA is a subset of setB.
+        Returns
+        -------
+        bool
+            Whether setA is a subset of setB.
         """
         return self.is_superset(setB, setA)

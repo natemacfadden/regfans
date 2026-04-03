@@ -51,23 +51,19 @@ class VectorConfiguration:
     analogous to CYTools' Polytope class. This object can be triangulated,
     making a simplicial fan.
 
-    **Description:**
     Constructs a `VectorConfiguration` object describing a lattice vector
-    configuration. This is handled by the hidden
-    [`__init__`](#__init__) function.
+    configuration.
 
-    **Arguments:**
-    - `vectors`:    The vectors defining the VC in row format. I.e., vectors[i],
-                    the ith row, is treated as the ith vector in the config.
-    - `labels`:     A list of labels for the vectors. Only integral labels are
-                    allowed.
-    - `eps`:        Threshold for checking for non-integral vectors.
-    - `gale_basis`: An optional basis for the gale transform. If provided, then
-                    the gale transform will be put in a basis such that the
-                    submatrix given by these labels equals the identity.
-
-    **Returns:**
-    Nothing.
+    Parameters
+    ----------
+    vectors
+        The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+    labels
+        A list of labels for the vectors. Only integral labels are allowed.
+    eps
+        Threshold for checking for non-integral vectors.
+    gale_basis
+        An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
     """
     def __init__(
         self,
@@ -77,21 +73,18 @@ class VectorConfiguration:
         gale_basis: Iterable[int] | None = None,
     ) -> None:
         """
-        **Description:**
         Initializes a `VectorConfiguration` object.
 
-        **Arguments:**
-        - `vectors`:    The vectors defining the VC in row format. I.e., vectors[i],
-                        the ith row, is treated as the ith vector in the config.
-        - `labels`:     A list of integer labels for the vectors. Only integral
-                        labels are allowed.
-        - `eps`:        Threshold for checking for non-integral vectors.
-        - `gale_basis`: An optional basis for the gale transform. If provided,
-                        then the gale transform will be put in a basis such that
-                        the submatrix given by these labels equals the identity.
-
-        **Returns:**
-        Nothing.
+        Parameters
+        ----------
+        vectors : ArrayLike
+            The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+        labels : Iterable[int] | None
+            A list of integer labels for the vectors. Only integral labels are allowed.
+        eps : float
+            Threshold for checking for non-integral vectors.
+        gale_basis : Iterable[int] | None
+            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
         """
         # sanitize vectors
         # ----------------
@@ -175,15 +168,13 @@ class VectorConfiguration:
     # ========
     def __repr__(self) -> str:
         """
-        **Description:**
         String representation of the VectorConfiguration.
         (more detailed than __str__)
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        String representation of the object.
+        Returns
+        -------
+        str
+            String representation of the object.
         """
         vecs = self.vectors().tolist()
 
@@ -195,15 +186,13 @@ class VectorConfiguration:
 
     def __str__(self) -> str:
         """
-        **Description:**
         String description of the VectorConfiguration.
         (less detailed than __repr__ but more readable)
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        String description of the object.
+        Returns
+        -------
+        str
+            String description of the object.
         """
         return (
             f"A {self.dim}-dimensional vector configuration consisting of "
@@ -212,15 +201,13 @@ class VectorConfiguration:
 
     def __hash__(self) -> int:
         """
-        **Description:**
         Hash for the vector configuration. Defined by hashing a dictionary from
         labels to vectors.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The hash.
+        Returns
+        -------
+        int
+            The hash.
         """
         # immutable dictionary-like object mapping labels to vectors
         l2v_immut = [
@@ -232,27 +219,33 @@ class VectorConfiguration:
 
     def __eq__(self, o: VectorConfiguration) -> bool:
         """
-        **Description:**
         Equality checking between two VectorConfiguration objects.
 
-        **Arguments:**
-        - `o`: The other VectorConfiguration to compare against.
+        Parameters
+        ----------
+        o : VectorConfiguration
+            The other VectorConfiguration to compare against.
 
-        **Returns:**
-        True if self==o. False if self!=o.
+        Returns
+        -------
+        bool
+            True if self==o. False if self!=o.
         """
         return not self.__ne__(o)
 
     def __ne__(self, o: VectorConfiguration) -> bool:
         """
-        **Description:**
         Inequality checking between two VectorConfiguration objects.
 
-        **Arguments:**
-        - `o`: The other VectorConfiguration to compare against.
+        Parameters
+        ----------
+        o : VectorConfiguration
+            The other VectorConfiguration to compare against.
 
-        **Returns:**
-        True if self!=o. False if self==o.
+        Returns
+        -------
+        bool
+            True if self!=o. False if self==o.
         """
         # check type
         if (self.__class__.__name__   != o.__class__.__name__):
@@ -271,14 +264,12 @@ class VectorConfiguration:
 
     def copy(self) -> VectorConfiguration:
         """
-        **Description:**
         Copy method.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        A copy of the vector configuration.
+        Returns
+        -------
+        VectorConfiguration
+            A copy of the vector configuration.
         """
         return copy.deepcopy(self)
 
@@ -287,29 +278,25 @@ class VectorConfiguration:
     @property
     def labels(self) -> tuple[int]:
         """
-        **Description:**
         Returns the labels of the vectors in the VC.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The labels of the vectors in the VC.
+        Returns
+        -------
+        tuple[int]
+            The labels of the vectors in the VC.
         """
         return self._labels
 
     @property
     def labels_to_inds_dict(self) -> dict[int, int]:
         """
-        **Description:**
         Returns a dictionary mapping vector labels to their indices in the
         vector configuration.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The mapping from labels to indices.
+        Returns
+        -------
+        dict[int, int]
+            The mapping from labels to indices.
         """
         if self._labels_to_inds is None:
             self._labels_to_inds = {
@@ -321,43 +308,37 @@ class VectorConfiguration:
     @property
     def size(self) -> int:
         """
-        **Description:**
         Returns the number of the vectors in the VC.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The number of the vectors in the VC.
+        Returns
+        -------
+        int
+            The number of the vectors in the VC.
         """
         return self._vectors.shape[0]
 
     @property
     def ambient_dim(self) -> int:
         """
-        **Description:**
         Returns the ambient dimension of the VC.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The ambient dimension of the VC.
+        Returns
+        -------
+        int
+            The ambient dimension of the VC.
         """
         return self._vectors.shape[1]
 
     @property
     def dim(self) -> int:
         """
-        **Description:**
         Returns the dimension of the VC. I.e., the dimension of the subspace
         spanned by the vectors.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The dimension of the VC.
+        Returns
+        -------
+        int
+            The dimension of the VC.
         """
         if self._dim is None:
             self._dim = util.cone_dim(R=self.vectors())
@@ -368,16 +349,17 @@ class VectorConfiguration:
     # -------
     def vectors(self, which: int | Iterable[int] | None = None) -> ArrayLike:
         """
-        **Description:**
         Returns the vectors, optionally only those with given labels.
 
-        **Arguments:**
-        - `which`: Either a single label, for which the single corresponding
-                   vector will be returned, or a list of labels. If not
-                   provided, then all vectors are returned.
+        Parameters
+        ----------
+        which : int | Iterable[int] | None
+            Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned.
 
-        **Returns:**
-        The corresponding vector(s), in order specified by which.
+        Returns
+        -------
+        ArrayLike
+            The corresponding vector(s), in order specified by which.
         """
         # if no labels are provided, return all vectors
         if which is None:
@@ -399,15 +381,17 @@ class VectorConfiguration:
 
     def vectors_to_labels(self, vectors: ArrayLike) -> int | list[int]:
         """
-        **Description:**
         Maps the vectors to their corresponding labels
 
-        **Arguments:**
-        - `vectors`: Either a single vector, for which the single corresponding
-                     label will be returned, or a list of vectors.
+        Parameters
+        ----------
+        vectors : ArrayLike
+            Either a single vector, for which the single corresponding label will be returned, or a list of vectors.
 
-        **Returns:**
-        The corresponding label(s).
+        Returns
+        -------
+        int | list[int]
+            The corresponding label(s).
         """
         # input sanitization
         vectors = np.array(vectors)
@@ -432,19 +416,22 @@ class VectorConfiguration:
                       ambient_labels: Iterable[int] | None = None,
                       offset: int = 0) -> int | Iterable[int]:
         """
-        **Description:**
         Maps the labels to their indices in ambient_labels, optionally with a
         fixed offset.
 
-        **Arguments:**
-        - `labels`:         The labels of interest.
-        - `ambient_labels`: The ambient labels to get the indices in. If None,
-                            use all labels of the VectorConfiguration.
-        - `offset`:         Return i+offset for i the index of a label in
-                            ambient_labels.
+        Parameters
+        ----------
+        labels : Iterable[int]
+            The labels of interest.
+        ambient_labels : Iterable[int] | None
+            The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration.
+        offset : int
+            Return i+offset for i the index of a label in ambient_labels.
 
-        **Returns:**
-        The indices of the labels.
+        Returns
+        -------
+        int | Iterable[int]
+            The indices of the labels.
         """
         # optimization for standard labels 1, ..., N
         if (ambient_labels is None) and self._standard_labels:
@@ -474,14 +461,12 @@ class VectorConfiguration:
     # ================
     def is_solid(self) -> bool:
         """
-        **Description:**
         Return whether or not the VC is full-dimensional.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the VC is full-dimensional. False otherwise.
+        Returns
+        -------
+        bool
+            True if the VC is full-dimensional. False otherwise.
         """
         return self.ambient_dim == self.dim
 
@@ -490,16 +475,14 @@ class VectorConfiguration:
 
     def is_totally_cyclic(self) -> bool:
         """
-        **Description:**
         Return whether or not the VC is totally cyclic. That is, whether
         self.conv() equals the subspace containing it (the supporting
         hyperplane).
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the VC is totally cyclic. False otherwise.
+        Returns
+        -------
+        bool
+            True if the VC is totally cyclic. False otherwise.
         """
         if not self.is_solid():
             # could definitely be generalized to non-solid
@@ -511,7 +494,6 @@ class VectorConfiguration:
 
     def is_acyclic(self) -> bool:
         """
-        **Description:**
         Return whether or not the VC is acyclic. That is, whether there exists
         some direction psi such that
             psi.vi > 0 for all vi.
@@ -519,25 +501,22 @@ class VectorConfiguration:
         This is equivalent to defining the cone {x: vi.x >= 0} and checking if
         it is full-dimensional.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the VC is acyclic. False otherwise.
+        Returns
+        -------
+        bool
+            True if the VC is acyclic. False otherwise.
         """
         return util.is_solid(H=self.vectors())
 
     def support(self) -> ArrayLike:
         """
-        **Description:**
         Get the support of the vector configuration as a hyperplane
         representation.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The hyperplanes defining the support.
+        Returns
+        -------
+        ArrayLike
+            The hyperplanes defining the support.
         """
         return util.dual_cone(self.vectors())
 
@@ -549,7 +528,6 @@ class VectorConfiguration:
                       vec_label: Iterable[int],
                       strict: bool = False) -> bool:
         """
-        **Description:**
         Check if a cone, specified by cone_labels, contains the ray specified
         by vec_label.
 
@@ -558,14 +536,19 @@ class VectorConfiguration:
             v = self.vectors(vec_label)
             H@v >= int(strict)
 
-        **Arguments:**
-        - `cone_labels`: The labels of vectors defining the cone.
-        - `vec_label`:   The label of the vector to check.
-        - `strict`:      Whether to check if the vector is in the strict
-                         interior.
+        Parameters
+        ----------
+        cone_labels : Iterable[int]
+            The labels of vectors defining the cone.
+        vec_label : Iterable[int]
+            The label of the vector to check.
+        strict : bool
+            Whether to check if the vector is in the strict interior.
 
-        **Returns:**
-        Whether the associated cone contains the vector.
+        Returns
+        -------
+        bool
+            Whether the associated cone contains the vector.
         """
         # combine all of the labels
         labs = list(cone_labels)+[vec_label]
@@ -608,16 +591,19 @@ class VectorConfiguration:
     # ==========
     def gale(self, set_basis: bool = False) -> ArrayLike:
         """
-        **Description:**
         Compute the gale transform of the config.
 
         I.e., a basis of the null-space of the vectors.
 
-        **Arguments:**
-        - `set_basis`: Whether to set a particular basis of the Gale transform.
+        Parameters
+        ----------
+        set_basis : bool
+            Whether to set a particular basis of the Gale transform.
 
-        **Returns:**
-        The gale transform.
+        Returns
+        -------
+        ArrayLike
+            The gale transform.
         """
         # compute it
         if set_basis:
@@ -665,14 +651,17 @@ class VectorConfiguration:
 
     def project(self, vec: ArrayLike) -> ArrayLike:
         """
-        **Description:**
         Project down a vector from height-space to chamber-space.
 
-        **Arguments:**
-        - `vec`: The height-space vector.
+        Parameters
+        ----------
+        vec : ArrayLike
+            The height-space vector.
 
-        **Returns:**
-        The chamber-space vector.
+        Returns
+        -------
+        ArrayLike
+            The chamber-space vector.
         """
         return self.gale().T@vec
 
@@ -681,16 +670,19 @@ class VectorConfiguration:
 
     def jorp(self, vec: ArrayLike) -> ArrayLike:
         """
-        **Description:**
         Undo a projection from height-space to chamber-space.
 
         I.e., map from chamber-space to height-space
 
-        **Arguments:**
-        - `vec`: The chamber-space vector.
+        Parameters
+        ----------
+        vec : ArrayLike
+            The chamber-space vector.
 
-        **Returns:**
-        The height-space vector.
+        Returns
+        -------
+        ArrayLike
+            The height-space vector.
         """
         return np.linalg.lstsq(self.gale().T, vec, rcond=None)[0]
 
@@ -708,26 +700,32 @@ class VectorConfiguration:
         verbosity: int = 0,
     ) -> Fan:
         """
-        **Description:**
         Subdivide the vector configuration either by specified cells/simplices
         or by heights.
 
-        **Arguments:**
-        - `heights`:       The heights to lift the vectors by.
-        - `cells`:         The cells to use in the triangulation.
-        - `tol`:           Numerical tolerance used for curing negative heights
-        - `backend`:       The lifting backend. Currently allowed to be "cgal"
-                           or "ppl".
-        - `make_fine`:     Convert the triangulation to a fine triangulation, if
-                           not already fine.
-        - `check_heights`: Whether to check that the heights land in the
-                           secondary cone of the output triangulation.
-        - `cure_heights`:  If the heights do not land in the secondary cone, try
-                           to cure them by linear flipping towards the heights.
-        - `verbosity`:     The verbosity level. Higher is more verbose
+        Parameters
+        ----------
+        heights : ArrayLike | None
+            The heights to lift the vectors by.
+        cells : ArrayLike | None
+            The cells to use in the triangulation.
+        tol : float
+            Numerical tolerance used for curing negative heights
+        backend : str | None
+            The lifting backend. Currently allowed to be "cgal" or "ppl".
+        make_fine : bool
+            Convert the triangulation to a fine triangulation, if not already fine.
+        check_heights : bool
+            Whether to check that the heights land in the secondary cone of the output triangulation.
+        cure_heights : bool
+            If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights.
+        verbosity : int
+            The verbosity level. Higher is more verbose
 
-        **Returns:**
-        The resultant subdivision.
+        Returns
+        -------
+        Fan
+            The resultant subdivision.
         """
         # triangulate via cells
         # =====================
@@ -948,7 +946,6 @@ class VectorConfiguration:
         verbosity: int = 0
     ) -> list[Fan]:
         """
-        **Description:**
         Generate all triangulations of this vector configuration via taking
         flips from some regular triangulation.
 
@@ -969,13 +966,19 @@ class VectorConfiguration:
         will be much slower than the flip-based method, but it would see *all*
         triangulations.
 
-        **Arguments:**
-        - `only_fine`:    Whether to restrict to fine triangulations
-        - `only_regular`: Whether to restrict to regular triangulations
-        - `verbosity`:    The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        only_fine : bool
+            Whether to restrict to fine triangulations
+        only_regular : bool
+            Whether to restrict to regular triangulations
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        A list of Fan objects, one for each triangulation of the VC.
+        Returns
+        -------
+        list[Fan]
+            A list of Fan objects, one for each triangulation of the VC.
         """
         G, triangs, labs = self.flip_graph(
             only_fine=only_fine, only_regular=only_regular, verbosity=verbosity
@@ -996,34 +999,33 @@ class VectorConfiguration:
         verbosity: int = 0,
     ) -> Generator[Fan] | list[Fan]:
         """
-        **Description:**
         Generate random regular triangulations by picking random heights.
 
-        **Arguments:**
-        - `method`:             Either "delaunay" or "isotropic". The former
-                                picks heights around some input height (e.g.,
-                                the Delaunay heights). The latter picks
-                                heights isotropically
-        - `h0`:                 The reference heights, for Delaunay method.
-        - `sigma`:              How big of a distribution to study around h0.
-        - `N`:                  The number of triangulations to generate. If
-                                as_list, then code will keep track of all
-                                triangulations, retrying at most
-                                attempts_per_triang tries to get a new
-                                triangulation until the list has N triangs.
-                                O/w, then the first N height vectors are used
-                                (regardless of duplicates).
-        - `as_list`:            Whether to return the triangulations as a list,
-                                or as a generator.
-        - `attempts_per_triang`: Quit if we can't generate a new triangulation
-                                after this many tries.
-        - `backend`:            The lifting backend. See
-                                `VectorConfiguration.triangulate`.
-        - `seed`:               A random number seed.
-        - `verbosity`:          The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        method : str
+            Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically
+        h0 : ArrayLike | None
+            The reference heights, for Delaunay method.
+        sigma : float
+            How big of a distribution to study around h0.
+        N : int | None
+            The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates).
+        as_list : bool
+            Whether to return the triangulations as a list, or as a generator.
+        attempts_per_triang : int
+            Quit if we can't generate a new triangulation after this many tries.
+        backend : str | None
+            The lifting backend. See `VectorConfiguration.triangulate`.
+        seed : int
+            A random number seed.
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        The random triangulations.
+        Returns
+        -------
+        Generator[Fan] | list[Fan]
+            The random triangulations.
         """
         # set default height
         if method == "delaunay":
@@ -1124,22 +1126,27 @@ class VectorConfiguration:
                 set_non_dependencies: bool = True,
                 save_circuits: bool = True) -> Circuit:
         """
-        **Description:**
         Format/compute the circuit corresponding to the specified labels.
 
-        **Arguments:**
-        - `labels`:               Labels indicating the vectors in the circuit.
-        - `lmbda`:                Vector demonstrating the dependence.
-        - `set_non_dependencies`: Whether to update our list of non-circuits.
-        - `save_circuits`:        Whether to save circuits... best to keep True
-                                  for most circumstances.
+        Parameters
+        ----------
+        labels : Iterable[int]
+            Labels indicating the vectors in the circuit.
+        lmbda : Iterable | None
+            Vector demonstrating the dependence.
+        set_non_dependencies : bool
+            Whether to update our list of non-circuits.
+        save_circuits : bool
+            Whether to save circuits... best to keep True for most circumstances.
 
-        **Returns:**
-        Circuit object containing
-            - the support of the circuit as property 'Z',
-            - the signed circuit as property 'Zpos' and 'Zneg',
-            - the dependency as property 'lmbda', and
-            - the signature as property 'signature'.
+        Returns
+        -------
+        Circuit
+            Circuit object containing
+                - the support of the circuit as property 'Z',
+                - the signed circuit as property 'Zpos' and 'Zneg',
+                - the dependency as property 'lmbda', and
+                - the signature as property 'signature'.
         """
         labels = tuple(sorted(labels))
 
@@ -1215,14 +1222,17 @@ class VectorConfiguration:
 
     def circuits(self, verbosity: int = 0) -> list[Circuit]:
         """
-        **Description:**
         Compute all possible circuits of this vector configuration.
 
-        **Arguments:**
-        - `verbosity`: The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        A list of Circuit objects.
+        Returns
+        -------
+        list[Circuit]
+            A list of Circuit objects.
         """
         # return answer if known
         if self._computed_all_circuits:
@@ -1263,30 +1273,30 @@ class VectorConfiguration:
         verbosity: int = 0,
     ) -> (nx.Graph, list[Fan], list[dict]):
         """
-        **Description:**
         Compute the flip graph. Wrapper for flip_subgraph.
 
-        **Arguments:**
-        - `max_flips`:           The maximum number of flips to take from the
-                                 seed. If none is provided, then the entire flip
-                                 graph is calculated.
-        - `only_fine`:           Whether to only compute fine triangulations.
-        - `only_regular`:        Whether to only compute regular triangulations.
-                                 Note, we never will see irregular
-                                 triangulations that are not connected to
-                                 regular ones.
-        - `only_pc_triang`:      Whether to only compute triangulations
-                                 that also correspond to star triangulations of
-                                 the underlying point config.
-        - `compute_node_labels`: Whether to check whether each node is fine,
-                                 regular, and a PC triangulation.
-        - `verbosity`:           The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        max_flips : int | None
+            The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated.
+        only_fine : bool
+            Whether to only compute fine triangulations.
+        only_regular : bool
+            Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones.
+        only_pc_triang : bool
+            Whether to only compute triangulations that also correspond to star triangulations of the underlying point config.
+        compute_node_labels : bool
+            Whether to check whether each node is fine, regular, and a PC triangulation.
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        - The flip graph as a networkx.Graph object.
-        - A list of the triangulations
-        - A list of the labels for each triangulation (labels are a
-          dictionary from the property to a bool)
+        Returns
+        -------
+        (nx.Graph, list[Fan], list[dict])
+            - The flip graph as a networkx.Graph object.
+            - A list of the triangulations
+            - A list of the labels for each triangulation (labels are a
+              dictionary from the property to a bool)
         """
         # lazily compute the flip graph
         args = (
@@ -1316,15 +1326,19 @@ class VectorConfiguration:
                       formal_fan: bool = False,
                       verbosity: int = 0):
         """
-        **Description:**
         Compute the secondary fan of the vector configuration.
 
-        **Arguments:**
-        - `only_fine`:  Restrict to fine triangulations.
-        - `formal_fan`: Save as a formal Fan object.
-        - `verbosity`:  The verbosity level. Higher is more verbose
+        Parameters
+        ----------
+        only_fine : bool
+            Restrict to fine triangulations.
+        formal_fan : bool
+            Save as a formal Fan object.
+        verbosity : int
+            The verbosity level. Higher is more verbose
 
-        **Returns:**
+        Returns
+        -------
         The secondary fan triangulations.
         """
         # want the entire fan
@@ -1355,15 +1369,13 @@ class VectorConfiguration:
     # ----
     def central_fan(self) -> Fan:
         """
-        **Description:**
         Generate the central fan of the vector configuration. Can be defined
         as lifting each vector by a height of 1.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The central fan.
+        Returns
+        -------
+        Fan
+            The central fan.
         """
         return self.subdivide(
             heights=[1 for _ in self.labels],

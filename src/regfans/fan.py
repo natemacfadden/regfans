@@ -47,41 +47,36 @@ class Fan:
     This class handles definition/operations on fans. It is analogous to
     CYTools' Triangulation class.
 
-    **Description:**
     Constructs a `Fan` object describing a triangulation of a lattice vector
-    configuration. This is handled by the hidden [`__init__`](#__init__)
-    function.
+    configuration.
 
     This class is *not* intended to be called directly. Instead, it is meant to
     be called through VectorConfiguration.triangulate.
 
-    **Arguments:**
-    - `vc`:      The ambient vector configuration that this fan is over.
-    - `cones`:   The cones defining the fan. Each cone is a collection of
-                 integer labels.
-    - `heights`: The heights defining the fan, if it is regular. Can be
-                 computed later.
-
-    **Returns:**
-    Nothing.
+    Parameters
+    ----------
+    vc
+        The ambient vector configuration that this fan is over.
+    cones
+        The cones defining the fan. Each cone is a collection of integer labels.
+    heights
+        The heights defining the fan, if it is regular. Can be computed later.
     """
     def __init__(self,
         vc: VectorConfiguration,
         cones: list[list[int]],
         heights: list[float] | None = None) -> None:
         """
-        **Description:**
         Initializes a `Fan` object.
 
-        **Arguments:**
-        - `vc`:      The ambient vector configuration that this fan is over.
-        - `cones`:   The cones defining the fan. Each cone is a collection of
-                     integer labels.
-        - `heights`: The heights defining the fan, if it is regular. Can be
-                     computed later.
-
-        **Returns:**
-        Nothing.
+        Parameters
+        ----------
+        vc : VectorConfiguration
+            The ambient vector configuration that this fan is over.
+        cones : list[list[int]]
+            The cones defining the fan. Each cone is a collection of integer labels.
+        heights : list[float] | None
+            The heights defining the fan, if it is regular. Can be computed later.
         """
         # read inputs
         # -----------
@@ -121,15 +116,13 @@ class Fan:
     # ========
     def __repr__(self) -> str:
         """
-        **Description:**
         String representation of the Fan.
         (more detailed than __str__)
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        String representation of the object.
+        Returns
+        -------
+        str
+            String representation of the object.
         """
         fine_str = "fine" if self.is_fine() else "non-fine"
 
@@ -153,15 +146,13 @@ class Fan:
 
     def __str__(self) -> str:
         """
-        **Description:**
         String description of the Fan.
         (less detailed than __repr__ but more readable)
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        String description of the object.
+        Returns
+        -------
+        str
+            String description of the object.
         """
         fine_str = "fine" if self.is_fine() else "non-fine"
 
@@ -185,40 +176,44 @@ class Fan:
 
     def __hash__(self) -> int:
         """
-        **Description:**
         Hash for the fan. Defined by hashing vector configuration and the cones.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The hash.
+        Returns
+        -------
+        int
+            The hash.
         """
         return hash((hash(self.vc), tuple(sorted(self._cones))))
 
     def __eq__(self, o: Fan) -> bool:
         """
-        **Description:**
         Equality checking between two Fan objects.
 
-        **Arguments:**
-        - `o`: The other Fan to compare against.
+        Parameters
+        ----------
+        o : Fan
+            The other Fan to compare against.
 
-        **Returns:**
-        True if self==o. False if self!=o.
+        Returns
+        -------
+        bool
+            True if self==o. False if self!=o.
         """
         return (self.vc == o.vc) and set(self._cones) == set(o._cones)
 
     def __ne__(self, o: Fan) -> bool:
         """
-        **Description:**
         Inequality checking between two Fan objects.
 
-        **Arguments:**
-        - `o`: The other Fan to compare against.
+        Parameters
+        ----------
+        o : Fan
+            The other Fan to compare against.
 
-        **Returns:**
-        True if self!=o. False if self==o.
+        Returns
+        -------
+        bool
+            True if self!=o. False if self==o.
         """
         return not (self == o)
 
@@ -227,14 +222,12 @@ class Fan:
     @property
     def vector_config(self) -> VectorConfiguration:
         """
-        **Description:**
         Returns the associated vector configuration.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The associated vector configuration.
+        Returns
+        -------
+        VectorConfiguration
+            The associated vector configuration.
         """
         return self._vc
 
@@ -244,28 +237,24 @@ class Fan:
     @property
     def labels(self) -> tuple[int]:
         """
-        **Description:**
         Returns the labels of the vectors in the VC.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The labels of the vectors in the VC.
+        Returns
+        -------
+        tuple[int]
+            The labels of the vectors in the VC.
         """
         return self.vc.labels
 
     @property
     def used_labels(self) -> tuple[int]:
         """
-        **Description:**
         Returns the labels of the vectors in the VC used by cones in the Fan.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The labels of the vectors in the VC used by cones in the Fan.
+        Returns
+        -------
+        tuple[int]
+            The labels of the vectors in the VC used by cones in the Fan.
         """
         if self._used_labels is None:
             self._used_labels = [lbl for simp in self._cones for lbl in simp]
@@ -275,15 +264,13 @@ class Fan:
     @property
     def labels_to_cones(self) -> dict[ int, set[tuple[int]] ]:
         """
-        **Description:**
         Returns a map from vector labels to the cones the vector appears in.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        A map from vector label to a set of cones (as tuples of labels) that
-        the vector appears in.
+        Returns
+        -------
+        dict[int, set[tuple[int]]]
+            A map from vector label to a set of cones (as tuples of labels) that
+            the vector appears in.
         """
         # lazily compute
         if self._labels_to_cones is None:
@@ -298,29 +285,25 @@ class Fan:
     @property
     def ambient_dim(self) -> int:
         """
-        **Description:**
         Returns the ambient dimension of the VC.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The ambient dimension of the VC.
+        Returns
+        -------
+        int
+            The ambient dimension of the VC.
         """
         return self.vc.ambient_dim
 
     @property
     def dim(self) -> int:
         """
-        **Description:**
         Returns the dimension of the VC. I.e., the dimension of the subspace
         spanned by the vectors.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The dimension of the VC.
+        Returns
+        -------
+        int
+            The dimension of the VC.
         """
         return self.vc.dim
 
@@ -330,19 +313,21 @@ class Fan:
         which: int | Iterable[int] | None = None,
         lifted: bool = False) -> ArrayLike:
         """
-        **Description:**
         Returns the vectors, optionally only those with given labels. Also,
         optionally, give the vectors lifted by the heights (if the Fan is
         regular).
 
-        **Arguments:**
-        - `which`:  Either a single label, for which the single corresponding
-                    vector will be returned, or a list of labels. If not
-                    provided, then all vectors are returned.
-        - `lifted`: Whether to give the lifted vectors.
+        Parameters
+        ----------
+        which : int | Iterable[int] | None
+            Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned.
+        lifted : bool
+            Whether to give the lifted vectors.
 
-        **Returns:**
-        The corresponding vector(s), in order specified by which.
+        Returns
+        -------
+        ArrayLike
+            The corresponding vector(s), in order specified by which.
         """
         # default labels
         if which is None:
@@ -363,7 +348,6 @@ class Fan:
         as_inds: bool = False,
         ind_offset: int = 0) -> tuple[tuple[int]] | list[ArrayLike]:
         """
-        **Description:**
         Returns the cones in the fan in a variety of formats. They are:
             - (default) as a tuple of labels
             - (as_rays=True) as an array whose rows are the generators
@@ -371,14 +355,21 @@ class Fan:
             - (as_inds=True) as a tuple of indices
         Optionally, allow an offset to the indices.
 
-        **Arguments:**
-        - `as_rays`:    Whether to return the cones as their generators.
-        - `as_hyps`:    Whether to return the cones as their hyperplanes.
-        - `as_inds`:    Whether to return the cones as indices (not labels).
-        - `ind_offset`: An additive offset for the indices
+        Parameters
+        ----------
+        as_rays : bool
+            Whether to return the cones as their generators.
+        as_hyps : bool
+            Whether to return the cones as their hyperplanes.
+        as_inds : bool
+            Whether to return the cones as indices (not labels).
+        ind_offset : int
+            An additive offset for the indices
 
-        **Returns:**
-        The cones, specified according to the input flags.
+        Returns
+        -------
+        tuple[tuple[int]] | list[ArrayLike]
+            The cones, specified according to the input flags.
         """
         # check that at most one of the format flags is set
         if (as_inds + as_rays + as_hyps) > 1:
@@ -409,15 +400,13 @@ class Fan:
 
     def facets(self) -> dict[tuple[int], list[tuple[int]]]:
         """
-        **Description:**
         Returns the facets of the cones. Save them as a dictionary from facet
         labels to a list of containing cones, stored by their labels.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        A dictionary from facet labels to a list of containing cones.
+        Returns
+        -------
+        dict[tuple[int], list[tuple[int]]]
+            A dictionary from facet labels to a list of containing cones.
         """
         if not self.is_triangulation():
             # the following assumes simplicial cones
@@ -438,16 +427,19 @@ class Fan:
     # ================
     def is_valid(self, verbosity: int = 0) -> bool:
         """
-        **Description:**
         Return whether or not the cones define a valid polyhedral fan.
 
         Follows cor. 4.5.13 of "Triangulations" by De Loera, Rambau, Santos.
 
-        **Arguments:**
-        - `verbosity`: The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        True if the cones define a valid fan. False otherwise.
+        Returns
+        -------
+        bool
+            True if the cones define a valid fan. False otherwise.
         """
         # helpers
         # -------
@@ -538,18 +530,19 @@ class Fan:
 
     def respects_ptconfig(self, via_circuits=False) -> bool:
         """
-        **Description:**
         Return whether or not the fan also defines a (star) subdivision of the
         original underlying point configuration.
 
-        **Arguments:**
-        - `via_circuits`: This method uses secondary cones. Allow construction
-            of the secondary cone via circuits. That's unsafe if the fan is
-            potentially irregular.
+        Parameters
+        ----------
+        via_circuits
+            This method uses secondary cones. Allow construction of the secondary cone via circuits. That's unsafe if the fan is potentially irregular.
 
-        **Returns:**
-        True if the fan defines a subdivision of the point configuration. False
-        otherwise.
+        Returns
+        -------
+        bool
+            True if the fan defines a subdivision of the point configuration. False
+            otherwise.
         """
         if not self.is_regular():
             # could be checked by MaxMP but I have't implemented that...
@@ -561,14 +554,12 @@ class Fan:
 
     def is_triangulation(self) -> bool:
         """
-        **Description:**
         Return whether or not the fan is a triangulation (not a subdivision).
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the fan is a triangulation. False otherwise.
+        Returns
+        -------
+        bool
+            True if the fan is a triangulation. False otherwise.
         """
         return all([len(c) == self.dim for c in self.cones()])
 
@@ -576,27 +567,23 @@ class Fan:
 
     def is_fine(self) -> bool:
         """
-        **Description:**
         Return whether or not the fan is fine.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the fan is fine. False otherwise.
+        Returns
+        -------
+        bool
+            True if the fan is fine. False otherwise.
         """
         return self.used_labels == self.labels
 
     def is_regular(self) -> bool:
         """
-        **Description:**
         Return whether or not the fan is regular.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        True if the fan is regular. False otherwise.
+        Returns
+        -------
+        bool
+            True if the fan is regular. False otherwise.
         """
         if self._is_regular is None:
             H = self.secondary_cone_hyperplanes()
@@ -606,15 +593,13 @@ class Fan:
 
     def heights(self) -> list[float] | None:
         """
-        **Description:**
         Return some heights defining the cone, if it is regular. Else, return
         None.
 
-        **Arguments:**
-        None.
-
-        **Returns:**
-        The heights defining the fan, if it is regular.
+        Returns
+        -------
+        list[float] | None
+            The heights defining the fan, if it is regular.
         """
         if self._heights is not None:
             return self._heights
@@ -631,18 +616,19 @@ class Fan:
     # -----
     def contains(self, c: Iterable[int] | Iterable[Iterable[int]]) -> bool:
         """
-        **Description:**
         Check if any cone (specified by its labels) is contained in the fan.
         The cone need not be solid. Can also be called for a collection of
         cones, in which case the check is if all cones are contained in the fan.
 
-        **Arguments:**
-        - `c`: The cone(s). Either a single collection of cone, specified by
-               an iterable of labels, or a collection of cones, each specified
-               by an iterable of labels.
+        Parameters
+        ----------
+        c : Iterable[int] | Iterable[Iterable[int]]
+            The cone(s). Either a single collection of cone, specified by an iterable of labels, or a collection of cones, each specified by an iterable of labels.
 
-        **Returns:**
-        Whether (all) cone(s) are contained in the fan.
+        Returns
+        -------
+        bool
+            Whether (all) cone(s) are contained in the fan.
         """
         # recursively call for all cones
         if isinstance(c[0], Iterable):
@@ -667,25 +653,31 @@ class Fan:
         verbosity: int = 0,
     ) -> Circuit:
         """
-        **Description:**
         Format/compute the circuit corresponding to the specified labels.
 
-        **Arguments:**
-        - `labels`:              Labels indicating the vectors in the circuit.
-        - `enforce_positive`:    A label to enforce is in Zpos.
-        - `lmbda`:               A dependency demonstrating the circuit.
-        - `check_containment`:   Whether to check that this fan contains every
-                                 cone in the positive triangulation, Tpos.
-        - `save_circuits_in_vc`: Whether to save circuits... best to keep True
-                                 for most circumstances.
-        - `verbosity`:           The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        labels : Iterable[int] | None
+            Labels indicating the vectors in the circuit.
+        enforce_positive : int | None
+            A label to enforce is in Zpos.
+        lmbda : Iterable[float] | None
+            A dependency demonstrating the circuit.
+        check_containment : bool
+            Whether to check that this fan contains every cone in the positive triangulation, Tpos.
+        save_circuits_in_vc : bool
+            Whether to save circuits... best to keep True for most circumstances.
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        Circuit object containing
-            - the support of the circuit as property 'Z',
-            - the signed circuit as property 'Zpos' and 'Zneg',
-            - the dependency as property 'lmbda', and
-            - the signature as property 'signature'.
+        Returns
+        -------
+        Circuit
+            Circuit object containing
+                - the support of the circuit as property 'Z',
+                - the signed circuit as property 'Zpos' and 'Zneg',
+                - the dependency as property 'lmbda', and
+                - the signature as property 'signature'.
         """
         # check for sufficient inputs
         if lmbda is None:
@@ -842,19 +834,22 @@ class Fan:
         facets: dict[Iterable[int], Iterable[Iterable[int]]] | None = None,
         verbosity: int = 0) -> list[Circuit]:
         """
-        **Description:**
         Compute all circuits associated to this fan (i.e., those 'embedded' in
         this fan). All will be oriented such that the positive triangulation
         (i.e., Tpos/T_+) is embedded in the fan. This enables us to directly
         interpret lambda as the normal in the secondary cone.
 
-        **Arguments:**
-        - `facets`:    The facets of the fan (not just the VC...). I.e., codim-1
-                       cones.
-        - `verbosity`: The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        facets : dict[Iterable[int], Iterable[Iterable[int]]] | None
+            The facets of the fan (not just the VC...). I.e., codim-1 cones.
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        A list of Circuit objects for all circuits embedded in the fan.
+        Returns
+        -------
+        list[Circuit]
+            A list of Circuit objects for all circuits embedded in the fan.
         """
         # return answer if known
         if self._computed_all_circuits:
@@ -953,16 +948,20 @@ class Fan:
         cell: Iterable[int],
         old_way: bool = False) -> Iterable[tuple[int]]:
         """
-        **Description:**
         Compute the star of some cell. This is the subcomplex of all cones
         containing the cell (and their faces)
 
-        **Arguments:**
-        - `cell`:    The cell of interest.
-        - `old_way`: Whether to do the computation in an old/slow manner.
+        Parameters
+        ----------
+        cell : Iterable[int]
+            The cell of interest.
+        old_way : bool
+            Whether to do the computation in an old/slow manner.
 
-        **Returns:**
-        A list of all solid cones (as tuples of ints) containing the cell.
+        Returns
+        -------
+        Iterable[tuple[int]]
+            A list of all solid cones (as tuples of ints) containing the cell.
         """
         if old_way:
             # old way... bit slow...
@@ -976,15 +975,18 @@ class Fan:
 
     def link(self, cell: Iterable[int]) -> list[tuple[int]]:
         """
-        **Description:**
         Compute the link of some cell. This is the subcomplex of all cones in
         the star that don't intersect the cell.
 
-        **Arguments:**
-        - `cell`: The cell of interest.
+        Parameters
+        ----------
+        cell : Iterable[int]
+            The cell of interest.
 
-        **Returns:**
-        The link.
+        Returns
+        -------
+        list[tuple[int]]
+            The link.
         """
         return [tuple(sorted(set(c) - set(cell))) for c in self.star(cell)]
 
@@ -992,16 +994,20 @@ class Fan:
         cell: Iterable[int],
         link: Iterable[Iterable[int]]) -> list[tuple[int]]:
         """
-        **Description:**
         Embed some cell into the Fan by combining it with each cell in the link.
 
-        **Arguments:**
-        - `cell`: The cell of interest.
-        - `link`: The link of said cell.
+        Parameters
+        ----------
+        cell : Iterable[int]
+            The cell of interest.
+        link : Iterable[Iterable[int]]
+            The link of said cell.
 
-        **Returns:**
-        A list of solid cones representing the embedding of the cell into the
-        Fan via the link.
+        Returns
+        -------
+        list[tuple[int]]
+            A list of solid cones representing the embedding of the cell into the
+            Fan via the link.
         """
         return [tuple(sorted(cell + link_cell)) for link_cell in link]
 
@@ -1012,17 +1018,21 @@ class Fan:
         formal: bool = True,
         verbosity: int = 0) -> Fan | tuple[tuple[int]]:
         """
-        **Description:**
         Make a flip across a circuit.
 
-        **Arguments:**
-        - `circ`:      The circuit to flip through.
-        - `formal`:    Whether to return a formal Fan (otherwise, just a tuple
-                       of cones).
-        - `verbosity`: The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        circ : Circuit
+            The circuit to flip through.
+        formal : bool
+            Whether to return a formal Fan (otherwise, just a tuple of cones).
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        The flipped Fan.
+        Returns
+        -------
+        Fan | tuple[tuple[int]]
+            The flipped Fan.
         """
         if verbosity >= 1:
             print(f"Flipping circuit {circ}...")
@@ -1128,7 +1138,6 @@ class Fan:
         eps: float = 1e-8,
         verbosity: int = 0) -> list[int|Exception, ArrayLike, Fan, ArrayLike, int]:
         """
-        **Description:**
         Compute all flips along the linear height homotopy
             t*h_target + (1-t)*h_init
         for t=0 increasing to t=1.
@@ -1138,44 +1147,39 @@ class Fan:
             - (default True) reaching a deletion flip or
             - (default False) hitting a fan that respects the point config.
 
-        **Arguments:**
-        (defining the homotopy)
-        - `h_target`:         The target heights.
-        - `direction`:        The direction to travel.
-        - `h_init`:           The initial heights (regular triangulations don't
-                              have unique heights, even up to scaling... any h
-                              in the secondary cone is valid. If this is left
-                              unset, then arbitrary valid heights are chosen)
-        (early stopping)
-        - `max_N_flips`:      The maximum number of flips allowed.
-        - `stop_at_deletion`: Whether to early-terminate the homotopy at any
-                              deletion flip seen.
-        - `stop_at_pct`:      Whether to early-terminate the homotopy at any
-                              fan that respects the point configuration.
-        (sanity checks)
-        - `check_regularity`: This method is inherently regular (it uses
-                              heights...). We can check the regularty of the
-                              initial fan.
-        (record keeping)
-        - `record_fans`:      Whether to record the fans seen along the
-                              homotopy.
-        - `record_circs`:     Whether to record the circuits flipped along the
-                              homotopy.
-        (numerical parameters)
-        - `eps`:              A small number for an allowed violation of heights
-                              landing outside the secondary fan (in case the
-                              heights 'truly' landed on a wall of the secondary
-                              fan). Such violations are naturally resolved by
-                              pulling heights back into the secondary fan.
-        (diagnostics)
-        - `verbosity`:        The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        h_target : Iterable[float] | None
+            The target heights.
+        direction : Iterable[float] | None
+            The direction to travel.
+        h_init : Iterable[float] | None
+            The initial heights (regular triangulations don't have unique heights, even up to scaling... any h in the secondary cone is valid. If this is left unset, then arbitrary valid heights are chosen) (early stopping)
+        max_N_flips : int | None
+            The maximum number of flips allowed.
+        stop_at_deletion : bool
+            Whether to early-terminate the homotopy at any deletion flip seen.
+        stop_at_pct : bool
+            Whether to early-terminate the homotopy at any fan that respects the point configuration. (sanity checks)
+        check_regularity : bool
+            This method is inherently regular (it uses heights...). We can check the regularty of the initial fan. (record keeping)
+        record_fans : bool
+            Whether to record the fans seen along the homotopy.
+        record_circs : bool
+            Whether to record the circuits flipped along the homotopy. (numerical parameters)
+        eps : float
+            A small number for an allowed violation of heights landing outside the secondary fan (in case the heights 'truly' landed on a wall of the secondary fan). Such violations are naturally resolved by pulling heights back into the secondary fan. (diagnostics)
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        - The status of the homotopy. Either 1 (if successful) or an Exception.
-        - The current heights at the end of the homotopy. Not always h_target.
-        - The associated fan at the end of the homotopy.
-        - The hyperplanes of the secondary cone at the end of the homotopy.
-        - The number of flips taken.
+        Returns
+        -------
+        list[int | Exception, ArrayLike, Fan, ArrayLike, int]
+            - The status of the homotopy. Either 1 (if successful) or an Exception.
+            - The current heights at the end of the homotopy. Not always h_target.
+            - The associated fan at the end of the homotopy.
+            - The hyperplanes of the secondary cone at the end of the homotopy.
+            - The number of flips taken.
         """
         if check_regularity and (not self.is_regular()):
             raise ValueError("Assumes regular triangulation...")
@@ -1454,21 +1458,25 @@ class Fan:
         formal: bool = True,
         verbosity: int = 0) -> tuple[ list[Fan | tuple[tuple[int]]], list[Circuit] ]:
         """
-        **Description:**
         Compute the neighboring fans (those reachable by a single flip).
 
         Allow restrictions to only fine fans.
 
-        **Arguments:**
-        - `only_fine`: Whether to only compute/return fine neighbors
-        - `formal`:    Whether to return the neighbors as formal fans (if
-                       False, just return cones).
-        - `verbosity`: The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        only_fine : bool
+            Whether to only compute/return fine neighbors
+        formal : bool
+            Whether to return the neighbors as formal fans (if False, just return cones).
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        - The neighbors, either as formal Fan objects or as collections of
-          cones (each cone a collection of labels)
-        - The circuits flipped to get the corresponding neighbors.
+        Returns
+        -------
+        tuple[list[Fan | tuple[tuple[int]]], list[Circuit]]
+            - The neighbors, either as formal Fan objects or as collections of
+              cones (each cone a collection of labels)
+            - The circuits flipped to get the corresponding neighbors.
         """
         neighbs = []
         neighb_circs = []
@@ -1520,7 +1528,6 @@ class Fan:
         via_circuits: bool = False,
         verbosity: int = 0) -> ArrayLike:
         """
-        **Description:**
         Compute the hyperplanes of the secondary cone associated to this fan.
         This cone has the interpretation:
             for a regular fan, a height h generates the fan iff it is in the
@@ -1536,15 +1543,17 @@ class Fan:
         ATTEMPTING TO COMPUTE THE SECONDARY CONE OF AN IRREGULAR FAN USING
         CIRCUITS, ONE CAN GET A FULL-DIMENSIONAL CONE!!!
 
-        **Arguments:**
-        - `via_circuits`:      Whether to use circuits to compute the secondary
-                               cone. Should always be correct if the fan is
-                               regular but dangerous/not correct for checking
-                               irregularity... Alternative is local folding.
-        - `verbosity`:         The verbosity level. Higher is more verbose.
+        Parameters
+        ----------
+        via_circuits : bool
+            Whether to use circuits to compute the secondary cone. Should always be correct if the fan is regular but dangerous/not correct for checking irregularity... Alternative is local folding.
+        verbosity : int
+            The verbosity level. Higher is more verbose.
 
-        **Returns:**
-        An array of hyperplanes, H, defining the cone as {x: Hx>=0}
+        Returns
+        -------
+        ArrayLike
+            An array of hyperplanes, H, defining the cone as {x: Hx>=0}
         """
         # compute the normals via circuits
         if via_circuits:
@@ -1651,14 +1660,17 @@ class Fan:
 # --------------
 def make_fine(fan: Fan) -> Fan:
     """
-    **Description:**
     Convert a fan to a fine fan by linear flipping
 
-    **Arguments:**
-    - `fan`: The initial fan.
+    Parameters
+    ----------
+    fan : Fan
+        The initial fan.
 
-    **Returns:**
-    A fine fan, from linearly flipping the original fan.
+    Returns
+    -------
+    Fan
+        A fine fan, from linearly flipping the original fan.
     """
     # get good initial heights
     h_init    = fan.heights()
@@ -1699,7 +1711,6 @@ def flip_subgraph(
     verbosity: int = 0,
 ) -> tuple[ nx.Graph, list[Fan], list[dict] ]:
     """
-    **Description:**
     Compute the flip graph centered at some input 'seed' triangulation.
 
     Optionally, allow restrictions including only allowing triangulations
@@ -1712,23 +1723,30 @@ def flip_subgraph(
     If any such restrictions are applied but the seed doesn't obey them, then an
     empty graph will be output.
 
-    **Arguments:**
-    - `seed`:                The seed triangulation (center of flip graph).
-    - `max_flips`:           Max number of flips to consider from seed.
-    - `only_fine`:           Whether to restrict to fine triangulations.
-    - `only_regular`:        Whether to restrict to regular triangulations.
-    - `only_pc_triang`:      Whether to restrict to triangulations which
-                             'respect the point configuration'.
-    - `compute_node_labels`: Whether to compute 'labels' for the nodes
-                             indicating whether the triangulation is fine,
-                             regular, and/or respects the point configuration.
-    - `verbosity`:           The verbosity level. Higher is more verbose.
+    Parameters
+    ----------
+    seed
+        The seed triangulation (center of flip graph).
+    max_flips : int | None
+        Max number of flips to consider from seed.
+    only_fine : bool
+        Whether to restrict to fine triangulations.
+    only_regular : bool
+        Whether to restrict to regular triangulations.
+    only_pc_triang : bool
+        Whether to restrict to triangulations which 'respect the point configuration'.
+    compute_node_labels : bool
+        Whether to compute 'labels' for the nodes indicating whether the triangulation is fine, regular, and/or respects the point configuration.
+    verbosity : int
+        The verbosity level. Higher is more verbose.
 
-    **Returns:**
-    - The flip graph as a networkx.Graph object.
-    - A list of the triangulations
-    - A list of the labels for each triangulation (labels are a dictionary from
-      the property to a bool)
+    Returns
+    -------
+    tuple[nx.Graph, list[Fan], list[dict]]
+        - The flip graph as a networkx.Graph object.
+        - A list of the triangulations
+        - A list of the labels for each triangulation (labels are a dictionary from
+          the property to a bool)
     """
     if verbosity >= 1:
         print(f"Computing the flip subgraph centered at {seed}...")

@@ -39,7 +39,6 @@ if TYPE_CHECKING:
 # ----------
 def gcd(vals: list[float], max_denom: float = 10**6) -> float:
     """
-    **Description:**
     Computes the 'GCD' of a collection of floating point numbers.
     This is the smallest number, g, such that g*values is integral.
 
@@ -49,12 +48,17 @@ def gcd(vals: list[float], max_denom: float = 10**6) -> float:
         3) computing the GCD, g', of [lcm*n0/d0, lcm*n1/d1, ...], and then
         4) returning g=g'/lcm.
 
-    **Arguments:**
-    - `vals`:      The numbers to compute the GCD of.
-    - `max_denom`: Assert |di| <= max_denom
+    Parameters
+    ----------
+    vals : list[float]
+        The numbers to compute the GCD of.
+    max_denom : float
+        Assert |di| <= max_denom
 
-    **Returns:**
-    The minimum number g' such that g'*vals is integral.
+    Returns
+    -------
+    float
+        The minimum number g' such that g'*vals is integral.
     """
     # compute the rational representation
     rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vals]
@@ -74,7 +78,6 @@ def gcd(vals: list[float], max_denom: float = 10**6) -> float:
 
 def primitive(vec: list[float], max_denom=10**6):
     """
-    **Description:**
     Computes the primitive vector associated to the input ray {c*vec: c>=0}.
     Very similar to the gcd function.
 
@@ -82,11 +85,15 @@ def primitive(vec: list[float], max_denom=10**6):
         vec/gcd(vec)
     but just uses a rational representation.
 
-    **Arguments:**
-    - `vec`:       A vector defining the ray {c*vec: c>=0}
-    - `max_denom`: Assert |di| <= max_denom
+    Parameters
+    ----------
+    vec : list[float]
+        A vector defining the ray {c*vec: c>=0}
+    max_denom
+        Assert |di| <= max_denom
 
-    **Returns:**
+    Returns
+    -------
     The primitive vector along the ray.
     """
     # compute the rational representation
@@ -107,7 +114,6 @@ def primitive(vec: list[float], max_denom=10**6):
 # --------------
 def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike:
     """
-    **Description:**
     Computes the point specified by t along the line passing through p0 and p1.
 
     Particular values:
@@ -115,13 +121,19 @@ def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike:
         -) t=0.5 -> (p0+p1)/2
         -) t=1   -> p1
 
-    **Arguments:**
-    - `p0`: One point.
-    - `p1`: The other point.
-    - `t`:  Parameter specifying where along the line Conv({p0, p1}) to return.
+    Parameters
+    ----------
+    p0 : ArrayLike
+        One point.
+    p1 : ArrayLike
+        The other point.
+    t : float
+        Parameter specifying where along the line Conv({p0, p1}) to return.
 
-    **Returns:**
-    The point p0 + t*(p1-p0).
+    Returns
+    -------
+    ArrayLike
+        The point p0 + t*(p1-p0).
     """
     # input sanitization
     p0 = np.array(p0)
@@ -136,22 +148,28 @@ def first_hit(
     H: ArrayLike,
     verbosity: int = 0) -> (int, float):
     """
-    **Description:**
     Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
     along the direction (p1-p0). I.e., the first intersection of the ray
     {p0+t*(p1-p0): t>=0} with the cones bounding hyperplanes.
 
     Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
 
-    **Arguments:**
-    - `p0`:         One point.
-    - `p1`:         The other point.
-    - `H`:          An array of hyperplane normals (as rows).
-    - `verbosity`:  The verbosity level. Higher is more verbose.
+    Parameters
+    ----------
+    p0 : ArrayLike
+        One point.
+    p1 : ArrayLike
+        The other point.
+    H : ArrayLike
+        An array of hyperplane normals (as rows).
+    verbosity : int
+        The verbosity level. Higher is more verbose.
 
-    **Returns:**
-    The index, i, of the first-hit hyperplane.
-    The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
+    Returns
+    -------
+    (int, float)
+        The index, i, of the first-hit hyperplane.
+        The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
     """
     # input sanitization
     p0 = np.array(p0)
@@ -199,7 +217,6 @@ def first_hit(
 # -------------
 def dual_cone(data: ArrayLike) -> ArrayLike:
     """
-    **Description:**
     Compute the data of the cone dual to the input 'primal' cone.
 
     This can be thought of in a couple of equivalent ways, summarized in the
@@ -216,11 +233,15 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
     For simplicity in the following discussion, take the convention that one
     maps hyperplanes of the primal to rays of the primal.
 
-    **Arguments:**
-    - `data`: An array whose rows represent rays of the primal cone. (see table)
+    Parameters
+    ----------
+    data : ArrayLike
+        An array whose rows represent rays of the primal cone. (see table)
 
-    **Returns:**
-    An array whose rows represent hyperplanes of the primal cone. (see table)
+    Returns
+    -------
+    ArrayLike
+        An array whose rows represent hyperplanes of the primal cone. (see table)
     """
     # check the ppl install
     try:
@@ -255,7 +276,6 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
 
 def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
     """
-    **Description:**
     Return the dimension of the cone.
 
     The cone is either specified via rays,
@@ -263,12 +283,17 @@ def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
     or via hyperplanes,
         {x: H @ x>=0}.
 
-    **Arguments:**
-    - `R`: The rays of the cone as rows.
-    - `H`: The hyperplanes defining the cone.
+    Parameters
+    ----------
+    R : ArrayLike
+        The rays of the cone as rows.
+    H : ArrayLike
+        The hyperplanes defining the cone.
 
-    **Returns:**
-    The dimension of the cone
+    Returns
+    -------
+    int
+        The dimension of the cone
     """
     assert (R is None) ^ (H is None)
 
@@ -282,7 +307,6 @@ def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
 
 def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool:
     """
-    **Description:**
     Return whether the cone is full-dimensional.
 
     The cone is either specified via rays,
@@ -290,12 +314,17 @@ def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool:
     or via hyperplanes,
         {x: H @ x>=0}.
 
-    **Arguments:**
-    - `R`: The rays of the cone as rows.
-    - `H`: The hyperplanes defining the cone.
+    Parameters
+    ----------
+    R : ArrayLike
+        The rays of the cone as rows.
+    H : ArrayLike
+        The hyperplanes defining the cone.
 
-    **Returns:**
-    Whether the cone is full-dimensional.
+    Returns
+    -------
+    bool
+        Whether the cone is full-dimensional.
     """
     assert (R is None) ^ (H is None)
 
@@ -314,7 +343,6 @@ def contains(*,
     R: ArrayLike = None,
     H: ArrayLike = None) -> bool:
     """
-    **Description:**
     Return if the point p is contained in the cone.
 
     The cone is either specified via rays,
@@ -322,13 +350,19 @@ def contains(*,
     or via hyperplanes,
         {x: H @ x>=0}.
 
-    **Arguments:**
-    - `p`: The query point.
-    - `R`: The rays of the cone as rows.
-    - `H`: The hyperplanes defining the cone.
+    Parameters
+    ----------
+    p : ArrayLike
+        The query point.
+    R : ArrayLike
+        The rays of the cone as rows.
+    H : ArrayLike
+        The hyperplanes defining the cone.
 
-    **Returns:**
-    Whether p is contained in the cone.
+    Returns
+    -------
+    bool
+        Whether p is contained in the cone.
     """
     assert (R is None) ^ (H is None)
 
@@ -347,7 +381,6 @@ def find_interior_point(*,
     nonneg: bool = False,
     verbosity: int = 0) -> ArrayLike | None:
     """
-    **Description:**
     Returns a point p in the strict interior of a cone. The cone can be
     specified either via its rays or its generators.
 
@@ -355,15 +388,23 @@ def find_interior_point(*,
 
     Modified from CYTools' `Cone.find_interior_point`.
 
-    **Arguments:**
-    - `R`:          Generators defining the cone.
-    - `H`:          Hyperplanes defining the cone.
-    - `stretching`: How far p must be from any hyperplane.
-    - `nonneg`:     Whether to restrict to non-negative vectors.
-    - `verbosity`:  The verbosity level.
+    Parameters
+    ----------
+    R : ArrayLike
+        Generators defining the cone.
+    H : ArrayLike
+        Hyperplanes defining the cone.
+    stretching : float
+        How far p must be from any hyperplane.
+    nonneg : bool
+        Whether to restrict to non-negative vectors.
+    verbosity : int
+        The verbosity level.
 
-    **Returns:**
-    A point p in the strict interior.
+    Returns
+    -------
+    ArrayLike | None
+        A point p in the strict interior.
     """
     if not ((R is None) ^ (H is None)):
         raise ValueError("Either R or H can be set, but not both!")
