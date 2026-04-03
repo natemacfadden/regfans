@@ -52,12 +52,12 @@ def gcd(vals: list[float], max_denom: float = 10**6) -> float:
     ----------
     vals : list[float]
         The numbers to compute the GCD of.
-    max_denom : float
-        Assert |di| <= max_denom
+    max_denom : float, optional
+        Assert |di| <= max_denom. Defaults to 10 ** 6.
 
     Returns
     -------
-    float
+    gcd : float
         The minimum number g' such that g'*vals is integral.
     """
     # compute the rational representation
@@ -89,12 +89,13 @@ def primitive(vec: list[float], max_denom=10**6):
     ----------
     vec : list[float]
         A vector defining the ray {c*vec: c>=0}
-    max_denom
-        Assert |di| <= max_denom
+    max_denom : float, optional
+        Assert |di| <= max_denom. Defaults to 10 ** 6.
 
     Returns
     -------
-    The primitive vector along the ray.
+    vec : list[int]
+        The primitive vector along the ray.
     """
     # compute the rational representation
     rat   = [fractions.Fraction(v).limit_denominator(max_denom) for v in vec]
@@ -132,7 +133,7 @@ def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike:
 
     Returns
     -------
-    ArrayLike
+    pt : ArrayLike
         The point p0 + t*(p1-p0).
     """
     # input sanitization
@@ -162,12 +163,12 @@ def first_hit(
         The other point.
     H : ArrayLike
         An array of hyperplane normals (as rows).
-    verbosity : int
-        The verbosity level. Higher is more verbose.
+    verbosity : int, optional
+        The verbosity level. Higher is more verbose. Defaults to 0.
 
     Returns
     -------
-    (int, float)
+    out : (int, float)
         The index, i, of the first-hit hyperplane.
         The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
     """
@@ -240,7 +241,7 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
 
     Returns
     -------
-    ArrayLike
+    out : ArrayLike
         An array whose rows represent hyperplanes of the primal cone. (see table)
     """
     # check the ppl install
@@ -285,14 +286,14 @@ def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
 
     Parameters
     ----------
-    R : ArrayLike
-        The rays of the cone as rows.
-    H : ArrayLike
-        The hyperplanes defining the cone.
+    R : ArrayLike, optional
+        The rays of the cone as rows. Defaults to None.
+    H : ArrayLike, optional
+        The hyperplanes defining the cone. Defaults to None.
 
     Returns
     -------
-    int
+    dim : int
         The dimension of the cone
     """
     assert (R is None) ^ (H is None)
@@ -316,14 +317,14 @@ def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool:
 
     Parameters
     ----------
-    R : ArrayLike
-        The rays of the cone as rows.
-    H : ArrayLike
-        The hyperplanes defining the cone.
+    R : ArrayLike, optional
+        The rays of the cone as rows. Defaults to None.
+    H : ArrayLike, optional
+        The hyperplanes defining the cone. Defaults to None.
 
     Returns
     -------
-    bool
+    out : bool
         Whether the cone is full-dimensional.
     """
     assert (R is None) ^ (H is None)
@@ -354,14 +355,14 @@ def contains(*,
     ----------
     p : ArrayLike
         The query point.
-    R : ArrayLike
-        The rays of the cone as rows.
-    H : ArrayLike
-        The hyperplanes defining the cone.
+    R : ArrayLike, optional
+        The rays of the cone as rows. Defaults to None.
+    H : ArrayLike, optional
+        The hyperplanes defining the cone. Defaults to None.
 
     Returns
     -------
-    bool
+    out : bool
         Whether p is contained in the cone.
     """
     assert (R is None) ^ (H is None)
@@ -390,20 +391,20 @@ def find_interior_point(*,
 
     Parameters
     ----------
-    R : ArrayLike
-        Generators defining the cone.
-    H : ArrayLike
-        Hyperplanes defining the cone.
-    stretching : float
-        How far p must be from any hyperplane.
-    nonneg : bool
-        Whether to restrict to non-negative vectors.
-    verbosity : int
-        The verbosity level.
+    R : ArrayLike, optional
+        Generators defining the cone. Defaults to None.
+    H : ArrayLike, optional
+        Hyperplanes defining the cone. Defaults to None.
+    stretching : float, optional
+        How far p must be from any hyperplane. Defaults to 1.
+    nonneg : bool, optional
+        Whether to restrict to non-negative vectors. Defaults to False.
+    verbosity : int, optional
+        The verbosity level. Defaults to 0.
 
     Returns
     -------
-    ArrayLike | None
+    p : ArrayLike | None
         A point p in the strict interior.
     """
     if not ((R is None) ^ (H is None)):

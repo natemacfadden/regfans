@@ -36,17 +36,17 @@ class Circuit:
 
     Parameters
     ----------
-    vc
+    vc : VectorConfiguration
         The ambient vector configuration.
-    Z
+    Z : Iterable[int]
         The support of the circuit.
-    Zpos
+    Zpos : Iterable[int]
         The 'positive' side of the circuit.
-    Zneg
+    Zneg : Iterable[int]
         The 'negative' side of the circuit.
-    lmbda
+    lmbda : ArrayLike
         A dependency vector demonstrating the circuit.
-    signature
+    signature : tuple[int, int]
         The signature (|Zpos|, |Zneg|) of the circuit.
     """
     def __init__(self, vc, Z, Zpos, Zneg, lmbda, signature) -> None:
@@ -55,17 +55,17 @@ class Circuit:
 
         Parameters
         ----------
-        vc
+        vc : VectorConfiguration
             The ambient vector configuration.
-        Z
+        Z : Iterable[int]
             The support of the circuit.
-        Zpos
+        Zpos : Iterable[int]
             The 'positive' side of the circuit.
-        Zneg
+        Zneg : Iterable[int]
             The 'negative' side of the circuit.
-        lmbda
+        lmbda : ArrayLike
             A dependency vector demonstrating the circuit.
-        signature
+        signature : tuple[int, int]
             The signature (|Zpos|, |Zneg|) of the circuit.
         """
         self.vc        = vc
@@ -171,7 +171,7 @@ class Circuits:
 
         Returns
         -------
-        Circuit | int
+        out : Circuit | int
             Cases
                 - if indices correspond to known circuit -> the `Circuit`
                 - if indices correspond to non-circuit   -> -1
@@ -205,8 +205,8 @@ class Circuits:
         ----------
         circuit : Circuit
             A Circuit object.
-        verbosity : int
-            The verbosity level.
+        verbosity : int, optional
+            The verbosity level. Defaults to 0.
         """
         encoding = self.encode(circuit.Z)
 
@@ -228,8 +228,8 @@ class Circuits:
         ----------
         label_inds : Iterable[int]
             The iterable of vector/label indices.
-        verbosity : int
-            The verbosity level.
+        verbosity : int, optional
+            The verbosity level. Defaults to 0.
         """
         encoding = self.encode(label_inds)
 
@@ -256,7 +256,7 @@ class Circuits:
 
         Returns
         -------
-        Iterable[Circuit]
+        out : Iterable[Circuit]
             The circuits.
         """
         return self.circuits.values()
@@ -267,7 +267,7 @@ class Circuits:
 
         Returns
         -------
-        Circuits
+        out : Circuits
             A copy of the circuits.
         """
         copied = Circuits()
@@ -299,7 +299,7 @@ class Circuits:
 
         Returns
         -------
-        int
+        out : int
             The encoding
         """
         # as bitvector
@@ -318,12 +318,12 @@ class Circuits:
 
         Parameters
         ----------
-        encoding
+        encoding : int
             The encoding to map to label indices
 
         Returns
         -------
-        list[int]
+        out : list[int]
             The label indices
         """
         # as bitvector
@@ -341,14 +341,14 @@ class Circuits:
 
         Parameters
         ----------
-        setA
+        setA : int
             The candidate-superset encoding.
-        setB
+        setB : int
             The candidate-subset encoding.
 
         Returns
         -------
-        bool
+        out : bool
             Whether setA is a superset of setB.
         """
         # as bitvector
@@ -367,7 +367,7 @@ class Circuits:
 
         Returns
         -------
-        bool
+        out : bool
             Whether setA is a subset of setB.
         """
         return self.is_superset(setB, setA)

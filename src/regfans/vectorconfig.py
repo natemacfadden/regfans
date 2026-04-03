@@ -56,13 +56,13 @@ class VectorConfiguration:
 
     Parameters
     ----------
-    vectors
+    vectors : ArrayLike
         The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
-    labels
+    labels : Iterable[int] | None
         A list of labels for the vectors. Only integral labels are allowed.
-    eps
+    eps : float
         Threshold for checking for non-integral vectors.
-    gale_basis
+    gale_basis : Iterable[int] | None
         An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
     """
     def __init__(
@@ -79,12 +79,12 @@ class VectorConfiguration:
         ----------
         vectors : ArrayLike
             The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
-        labels : Iterable[int] | None
-            A list of integer labels for the vectors. Only integral labels are allowed.
-        eps : float
-            Threshold for checking for non-integral vectors.
-        gale_basis : Iterable[int] | None
-            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
+        labels : Iterable[int] | None, optional
+            A list of integer labels for the vectors. Only integral labels are allowed. Defaults to None.
+        eps : float, optional
+            Threshold for checking for non-integral vectors. Defaults to 0.0001.
+        gale_basis : Iterable[int] | None, optional
+            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. Defaults to None.
         """
         # sanitize vectors
         # ----------------
@@ -173,7 +173,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        str
+        out : str
             String representation of the object.
         """
         vecs = self.vectors().tolist()
@@ -191,7 +191,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        str
+        out : str
             String description of the object.
         """
         return (
@@ -206,7 +206,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        int
+        out : int
             The hash.
         """
         # immutable dictionary-like object mapping labels to vectors
@@ -228,7 +228,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        bool
+        out : bool
             True if self==o. False if self!=o.
         """
         return not self.__ne__(o)
@@ -244,7 +244,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        bool
+        out : bool
             True if self!=o. False if self==o.
         """
         # check type
@@ -268,7 +268,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        VectorConfiguration
+        out : VectorConfiguration
             A copy of the vector configuration.
         """
         return copy.deepcopy(self)
@@ -282,7 +282,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        tuple[int]
+        out : tuple[int]
             The labels of the vectors in the VC.
         """
         return self._labels
@@ -295,7 +295,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        dict[int, int]
+        out : dict[int, int]
             The mapping from labels to indices.
         """
         if self._labels_to_inds is None:
@@ -312,7 +312,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        int
+        out : int
             The number of the vectors in the VC.
         """
         return self._vectors.shape[0]
@@ -324,7 +324,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        int
+        out : int
             The ambient dimension of the VC.
         """
         return self._vectors.shape[1]
@@ -337,7 +337,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        int
+        out : int
             The dimension of the VC.
         """
         if self._dim is None:
@@ -353,12 +353,12 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        which : int | Iterable[int] | None
-            Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned.
+        which : int | Iterable[int] | None, optional
+            Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
 
         Returns
         -------
-        ArrayLike
+        out : ArrayLike
             The corresponding vector(s), in order specified by which.
         """
         # if no labels are provided, return all vectors
@@ -390,7 +390,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        int | list[int]
+        out : int | list[int]
             The corresponding label(s).
         """
         # input sanitization
@@ -423,14 +423,14 @@ class VectorConfiguration:
         ----------
         labels : Iterable[int]
             The labels of interest.
-        ambient_labels : Iterable[int] | None
-            The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration.
-        offset : int
-            Return i+offset for i the index of a label in ambient_labels.
+        ambient_labels : Iterable[int] | None, optional
+            The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration. Defaults to None.
+        offset : int, optional
+            Return i+offset for i the index of a label in ambient_labels. Defaults to 0.
 
         Returns
         -------
-        int | Iterable[int]
+        out : int | Iterable[int]
             The indices of the labels.
         """
         # optimization for standard labels 1, ..., N
@@ -465,7 +465,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        bool
+        out : bool
             True if the VC is full-dimensional. False otherwise.
         """
         return self.ambient_dim == self.dim
@@ -481,7 +481,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        bool
+        out : bool
             True if the VC is totally cyclic. False otherwise.
         """
         if not self.is_solid():
@@ -503,7 +503,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        bool
+        out : bool
             True if the VC is acyclic. False otherwise.
         """
         return util.is_solid(H=self.vectors())
@@ -515,7 +515,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        ArrayLike
+        out : ArrayLike
             The hyperplanes defining the support.
         """
         return util.dual_cone(self.vectors())
@@ -542,12 +542,12 @@ class VectorConfiguration:
             The labels of vectors defining the cone.
         vec_label : Iterable[int]
             The label of the vector to check.
-        strict : bool
-            Whether to check if the vector is in the strict interior.
+        strict : bool, optional
+            Whether to check if the vector is in the strict interior. Defaults to False.
 
         Returns
         -------
-        bool
+        out : bool
             Whether the associated cone contains the vector.
         """
         # combine all of the labels
@@ -597,12 +597,12 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        set_basis : bool
-            Whether to set a particular basis of the Gale transform.
+        set_basis : bool, optional
+            Whether to set a particular basis of the Gale transform. Defaults to False.
 
         Returns
         -------
-        ArrayLike
+        out : ArrayLike
             The gale transform.
         """
         # compute it
@@ -660,7 +660,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        ArrayLike
+        out : ArrayLike
             The chamber-space vector.
         """
         return self.gale().T@vec
@@ -681,7 +681,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        ArrayLike
+        out : ArrayLike
             The height-space vector.
         """
         return np.linalg.lstsq(self.gale().T, vec, rcond=None)[0]
@@ -705,26 +705,26 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        heights : ArrayLike | None
-            The heights to lift the vectors by.
-        cells : ArrayLike | None
-            The cells to use in the triangulation.
-        tol : float
-            Numerical tolerance used for curing negative heights
-        backend : str | None
-            The lifting backend. Currently allowed to be "cgal" or "ppl".
-        make_fine : bool
-            Convert the triangulation to a fine triangulation, if not already fine.
-        check_heights : bool
-            Whether to check that the heights land in the secondary cone of the output triangulation.
-        cure_heights : bool
-            If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights.
-        verbosity : int
-            The verbosity level. Higher is more verbose
+        heights : ArrayLike | None, optional
+            The heights to lift the vectors by. Defaults to None.
+        cells : ArrayLike | None, optional
+            The cells to use in the triangulation. Defaults to None.
+        tol : float, optional
+            Numerical tolerance used for curing negative heights. Defaults to 1e-14.
+        backend : str | None, optional
+            The lifting backend. Currently allowed to be "cgal" or "ppl". Defaults to None.
+        make_fine : bool, optional
+            Convert the triangulation to a fine triangulation, if not already fine. Defaults to None.
+        check_heights : bool, optional
+            Whether to check that the heights land in the secondary cone of the output triangulation. Defaults to True.
+        cure_heights : bool, optional
+            If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights. Defaults to True.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        Fan
+        out : Fan
             The resultant subdivision.
         """
         # triangulate via cells
@@ -968,16 +968,16 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        only_fine : bool
-            Whether to restrict to fine triangulations
-        only_regular : bool
-            Whether to restrict to regular triangulations
-        verbosity : int
-            The verbosity level. Higher is more verbose.
+        only_fine : bool, optional
+            Whether to restrict to fine triangulations. Defaults to False.
+        only_regular : bool, optional
+            Whether to restrict to regular triangulations. Defaults to True.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        list[Fan]
+        out : list[Fan]
             A list of Fan objects, one for each triangulation of the VC.
         """
         G, triangs, labs = self.flip_graph(
@@ -1003,28 +1003,28 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        method : str
-            Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically
-        h0 : ArrayLike | None
-            The reference heights, for Delaunay method.
-        sigma : float
-            How big of a distribution to study around h0.
-        N : int | None
-            The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates).
-        as_list : bool
-            Whether to return the triangulations as a list, or as a generator.
-        attempts_per_triang : int
-            Quit if we can't generate a new triangulation after this many tries.
-        backend : str | None
-            The lifting backend. See `VectorConfiguration.triangulate`.
-        seed : int
-            A random number seed.
-        verbosity : int
-            The verbosity level. Higher is more verbose.
+        method : str, optional
+            Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically. Defaults to "delaunay".
+        h0 : ArrayLike | None, optional
+            The reference heights, for Delaunay method. Defaults to None.
+        sigma : float, optional
+            How big of a distribution to study around h0. Defaults to 0.1.
+        N : int | None, optional
+            The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates). Defaults to None.
+        as_list : bool, optional
+            Whether to return the triangulations as a list, or as a generator. Defaults to False.
+        attempts_per_triang : int, optional
+            Quit if we can't generate a new triangulation after this many tries. Defaults to 1000.
+        backend : str | None, optional
+            The lifting backend. See `VectorConfiguration.triangulate`. Defaults to None.
+        seed : int, optional
+            A random number seed. Defaults to 0.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        Generator[Fan] | list[Fan]
+        out : Generator[Fan] | list[Fan]
             The random triangulations.
         """
         # set default height
@@ -1132,16 +1132,16 @@ class VectorConfiguration:
         ----------
         labels : Iterable[int]
             Labels indicating the vectors in the circuit.
-        lmbda : Iterable | None
-            Vector demonstrating the dependence.
-        set_non_dependencies : bool
-            Whether to update our list of non-circuits.
-        save_circuits : bool
-            Whether to save circuits... best to keep True for most circumstances.
+        lmbda : Iterable | None, optional
+            Vector demonstrating the dependence. Defaults to None.
+        set_non_dependencies : bool, optional
+            Whether to update our list of non-circuits. Defaults to True.
+        save_circuits : bool, optional
+            Whether to save circuits... best to keep True for most circumstances. Defaults to True.
 
         Returns
         -------
-        Circuit
+        out : Circuit
             Circuit object containing
                 - the support of the circuit as property 'Z',
                 - the signed circuit as property 'Zpos' and 'Zneg',
@@ -1226,12 +1226,12 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        verbosity : int
-            The verbosity level. Higher is more verbose.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        list[Circuit]
+        out : list[Circuit]
             A list of Circuit objects.
         """
         # return answer if known
@@ -1277,22 +1277,22 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        max_flips : int | None
-            The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated.
-        only_fine : bool
-            Whether to only compute fine triangulations.
-        only_regular : bool
-            Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones.
-        only_pc_triang : bool
-            Whether to only compute triangulations that also correspond to star triangulations of the underlying point config.
-        compute_node_labels : bool
-            Whether to check whether each node is fine, regular, and a PC triangulation.
-        verbosity : int
-            The verbosity level. Higher is more verbose.
+        max_flips : int | None, optional
+            The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated. Defaults to None.
+        only_fine : bool, optional
+            Whether to only compute fine triangulations. Defaults to False.
+        only_regular : bool, optional
+            Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones. Defaults to True.
+        only_pc_triang : bool, optional
+            Whether to only compute triangulations that also correspond to star triangulations of the underlying point config. Defaults to False.
+        compute_node_labels : bool, optional
+            Whether to check whether each node is fine, regular, and a PC triangulation. Defaults to False.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        (nx.Graph, list[Fan], list[dict])
+        out : (nx.Graph, list[Fan], list[dict])
             - The flip graph as a networkx.Graph object.
             - A list of the triangulations
             - A list of the labels for each triangulation (labels are a
@@ -1330,16 +1330,17 @@ class VectorConfiguration:
 
         Parameters
         ----------
-        only_fine : bool
-            Restrict to fine triangulations.
-        formal_fan : bool
-            Save as a formal Fan object.
-        verbosity : int
-            The verbosity level. Higher is more verbose
+        only_fine : bool, optional
+            Restrict to fine triangulations. Defaults to False.
+        formal_fan : bool, optional
+            Save as a formal Fan object. Defaults to False.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
 
         Returns
         -------
-        The secondary fan triangulations.
+        out : tuple[list, list[Fan]]
+            The secondary fan triangulations (secondary cones and Fan list).
         """
         # want the entire fan
         triangs = self.all_triangulations(only_regular=True,
@@ -1374,7 +1375,7 @@ class VectorConfiguration:
 
         Returns
         -------
-        Fan
+        out : Fan
             The central fan.
         """
         return self.subdivide(
