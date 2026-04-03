@@ -83,3 +83,26 @@ Otherwise, please cite this repository:
 ```
 
 This package was developed for constructing toric varieties in [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817), supported in part by NSF grant PHY-2309456. Toric-geometric computations are provided by [CYTools](https://github.com/LiamMcAllisterGroup/cytools), which extends regfans via a `vector_config` module.
+
+## Organization
+
+```
+regfans/
+├── src/regfans/
+│   ├── vectorconfig.py   # VectorConfiguration class: triangulations, flip graph, VC properties
+│   ├── fan.py            # Fan class: triangulation of a vector configuration
+│   ├── circuits.py       # Circuit and Circuits classes
+│   └── util.py           # shared utilities for vector configuration computations
+├── tests/
+│   ├── test_vectorconfig.py   # tests for VectorConfiguration
+│   ├── test_fan.py            # tests for Fan
+│   ├── test_circuits.py       # tests for circuits
+│   └── test_util.py           # tests for utilities
+├── tutorials/
+│   ├── simple_lifting_ex.py   # constructing a regular triangulation via lifting
+│   └── all_fans_ex.py         # computing all triangulations and the flip graph
+├── documentation/
+│   ├── api.md                 # full API reference
+│   └── clean_api.py           # script to generate api.md
+└── pyproject.toml
+```
