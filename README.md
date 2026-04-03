@@ -1,3 +1,5 @@
+![Fan flip graph](images/fan_flip_graph.png)
+
 # regfans
 
 **regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group in Cornell.
@@ -50,8 +52,6 @@ print(fan.is_fine(), fan.is_regular())
 all_fans = vc.all_triangulations()
 G, fans, labels = vc.flip_graph(compute_node_labels=True)
 ```
-
-![Fan flip graph](images/fan_flip_graph.png)
 
 See [documentation/api.md](documentation/api.md) for the full API reference and the [tutorials directory](tutorials/) for annotated examples.
 
