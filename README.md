@@ -1,4 +1,4 @@
-![Fan flip graph](images/fan_flip_graph.png)
+![Fan flip graph](https://raw.githubusercontent.com/natemacfadden/regfans/main/images/fan_flip_graph.png)
 
 # regfans
 
@@ -56,5 +56,28 @@ G, fans, labels = vc.flip_graph(compute_node_labels=True)
 See [documentation/api.md](documentation/api.md) for the full API reference and the [tutorials directory](tutorials/) for annotated examples.
 
 ## Citation
+
+If you are using `regfans` for toric-geometric or Calabi-Yau applications, please cite [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817):
+
+```bibtex
+@article{MacFadden:2512.14817,
+  author  = {MacFadden, Nate and Sheridan, Elijah},
+  title   = {Calabi-{Y}au Threefolds from Vex Triangulations},
+  doi     = {10.48550/arXiv.2512.14817},
+  url     = {https://arxiv.org/abs/2512.14817},
+}
+```
+
+Otherwise, please cite this repository:
+
+```bibtex
+@software{regfans,
+  author  = {MacFadden, Nate},
+  title   = {regfans},
+  doi     = {ZENODO_DOI_PLACEHOLDER},
+  url     = {https://github.com/natemacfadden/regfans},
+  orcid   = {0000-0002-8481-3724},
+}
+```
 
 This package was developed for constructing toric varieties in [Calabi-Yau Threefolds from Vex Triangulations](https://arxiv.org/abs/2512.14817), supported in part by NSF grant PHY-2309456. Toric-geometric computations are provided by [CYTools](https://github.com/LiamMcAllisterGroup/cytools), which extends regfans via a `vector_config` module.
