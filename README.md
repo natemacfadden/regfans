@@ -4,7 +4,7 @@
 
 **regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group in Cornell.
 
-[![DOI](https://zenodo.org/badge/1129141072.svg)](https://doi.org/10.5281/zenodo.19406101)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406101.svg)](https://doi.org/10.5281/zenodo.19406101)
 
 ## Core Functionality
 
