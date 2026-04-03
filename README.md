@@ -4,6 +4,8 @@
 
 **regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group in Cornell.
 
+[![DOI](https://zenodo.org/badge/1129141072.svg)](https://doi.org/10.5281/zenodo.19406101)
+
 ## Core Functionality
 
 The library computes and modifies regular triangulations of vector configurations (regular polyhedral fans; "vex triangulations").
@@ -74,7 +76,7 @@ Otherwise, please cite this repository:
 @software{regfans,
   author  = {MacFadden, Nate},
   title   = {regfans},
-  doi     = {ZENODO_DOI_PLACEHOLDER},
+  doi     = {10.5281/zenodo.19406101},
   url     = {https://github.com/natemacfadden/regfans},
   orcid   = {0000-0002-8481-3724},
 }

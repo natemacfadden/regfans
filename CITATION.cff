@@ -8,7 +8,7 @@ authors:
     orcid: https://orcid.org/0000-0002-8481-3724
 repository-code: https://github.com/natemacfadden/regfans
 license: GPL-3.0-or-later
-doi: ZENODO_DOI_PLACEHOLDER
+doi: 10.5281/zenodo.19406101
 type: software
 references:
   - type: article
