@@ -850,7 +850,7 @@ class VectorConfiguration:
                         print(msg, end='\r')
                         Niter += 1
                     h_pc        = np.concatenate(([height_orig], heights))
-                    simp_pcinds = pc.triangulate_with_heights(h_pc).simplices()
+                    simp_pcinds = pc.triangulate_with_heights(h_pc).simplices
 
                     # lower the height of the origin if not star
                     if not all([0 in simp for simp in simp_pcinds]):
@@ -871,7 +871,7 @@ class VectorConfiguration:
                         warnings.warn(msg)
             else:
                 h_pc        = np.concatenate(([0], heights))
-                simp_pcinds = pc.triangulate_with_heights(h_pc).simplices()
+                simp_pcinds = pc.triangulate_with_heights(h_pc).simplices
 
             # read the simplices as indices in the VC
             if make_cgal_star and (not all([0 in s for s in simp_pcinds])):
