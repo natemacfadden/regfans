@@ -11,12 +11,12 @@
 The library computes and modifies regular triangulations of vector configurations (regular polyhedral fans; "vex triangulations").
 
 Key capabilities:
-- Construct regular triangulations via lifting
-- Compute all (regular) triangulations via flip graph traversal
-- Verify properties of vector configurations (solid, totally-cyclic) and fans (fine, regular, point-configuration-compatible)
-- Efficient linear flipping
+- Verify properties of vector configurations (solid, totally-cyclic) and fans (fine, regular, point-configuration-compatible),
+- Construct regular triangulations via lifting,
+- Compute all (regular) triangulations via flip graph traversal, and
+- Efficient linear flipping.
 
-See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive reference on such topics.
+See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive reference on such topics. It is a wonderful book.
 
 ## Installation
 
