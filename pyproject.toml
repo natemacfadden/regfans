@@ -28,7 +28,7 @@ dependencies = [
     "networkx",
     "numpy",
     "scipy",
-    "triangulumancer",
+    "triangulumancer>=0.3",
 ]
 requires-python = ">=3.9"
 
