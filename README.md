@@ -8,7 +8,7 @@
 
 ## Core Functionality
 
-The library computes and modifies regular triangulations of vector configurations (regular polyhedral fans; "vex triangulations").
+The library computes and modifies regular triangulations of vector configurations. These could also be known as "regular polyhedral fans" or "vex triangulations".
 
 Key capabilities:
 - Verify properties of vector configurations (solid, totally-cyclic) and fans (fine, regular, point-configuration-compatible),
