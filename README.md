@@ -2,7 +2,7 @@
 
 # regfans
 
-**regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group in Cornell.
+**regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group at Cornell.
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406101.svg)](https://doi.org/10.5281/zenodo.19406101)
 
@@ -14,7 +14,7 @@ Key capabilities:
 - Verify properties of vector configurations (solid, totally-cyclic) and fans (fine, regular, point-configuration-compatible),
 - Construct regular triangulations via lifting,
 - Compute all (regular) triangulations via flip graph traversal, and
-- Efficient linear flipping.
+- Perform efficient linear flips.
 
 See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive reference on such topics. It is a wonderful book.
 
