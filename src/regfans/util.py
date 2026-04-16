@@ -247,6 +247,7 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
     # check the ppl install
     try:
         import ppl
+        import ctypes; ctypes.CDLL(None).fesetround(0)  # ppl changes FPU rounding mode; reset to FE_TONEAREST
     except ImportError as e:
         raise ImportError(
             "pplpy is required for computations of dual cones"
