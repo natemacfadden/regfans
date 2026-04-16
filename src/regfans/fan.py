@@ -1654,7 +1654,7 @@ class Fan:
                 H.append(n)
 
         # return
-        return H
+        return H.reshape(-1, self.vc.size)
 
 # misc utilities
 # --------------
