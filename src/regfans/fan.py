@@ -686,8 +686,9 @@ class Fan:
         else:
             assert labels is None
             lmbda = np.array(lmbda).reshape(-1)
+            nz    = np.where(lmbda != 0)[0]
             try:
-                labels = [self.labels[i] for i in np.where(lmbda != 0)[0]]
+                labels = [self.labels[i] for i in nz]
             except IndexError:
                 print()
                 print('lmbda',lmbda.tolist())
@@ -696,6 +697,7 @@ class Fan:
                 print('num labels',len(self.labels))
                 raise ValueError()
             enforce_positive = self.labels[np.where(lmbda > 0)[0][0]]
+            lmbda  = lmbda[nz]
 
         # check if it's a known circuits
         if labels in self._circuits:
