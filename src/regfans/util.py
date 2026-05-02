@@ -202,7 +202,7 @@ def first_hit(
             first_hit_ind = k
 
     # check if we don't hit any hyperplanes
-    if first_hit_ind is None:
+    if first_hit_ind == -1:
         return None, None
 
     first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])
