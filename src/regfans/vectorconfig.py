@@ -1174,10 +1174,10 @@ class VectorConfiguration:
         else:
             assert len(lmbda) == len(labels)
 
-        # else check the data type
-        elif lmbda.dtype != int:
-            # dependencies must be integral
-            raise ValueError()
+            # check the data type
+            if lmbda.dtype != int:
+                # dependencies must be integral
+                raise ValueError()
 
         lmbda = tuple(lmbda.tolist())
 
