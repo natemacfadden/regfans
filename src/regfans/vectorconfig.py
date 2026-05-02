@@ -1171,6 +1171,8 @@ class VectorConfiguration:
             assert nullity == 1
             lmbda = np.array([int(X[i, 0]) for i in range(X.nrows())])
             lmbda = lmbda//np.gcd.reduce(lmbda)
+        else
+            assert len(lmbda) == len(labels)
 
         # else check the data type
         elif lmbda.dtype != int:
