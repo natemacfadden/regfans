@@ -1576,7 +1576,7 @@ class Fan:
             for circ in self.circuits(verbosity=verbosity-1):
                 n = [0]*self.vc.size
                 for lbl, coeff in zip(circ.Z, circ.lmbda):
-                    n[lbl-1] = coeff
+                    n[self.vc.label_to_ind(lbl)] = coeff
                 H.append(n)
 
         # do so via local folding
