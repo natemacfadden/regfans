@@ -408,7 +408,7 @@ class Fan:
         out : dict[tuple[int], list[tuple[int]]]
             A dictionary from facet labels to a list of containing cones.
         """
-        if not self.is_triangulation():
+        if not self._is_simplicial():
             # the following assumes simplicial cones
             raise NotImplementedError("Not implemented for non-triangulations")
 
@@ -552,6 +552,19 @@ class Fan:
         H = self.secondary_cone_hyperplanes(via_circuits=via_circuits)
         return all((H @ np.ones(self.vc.size)) >= 0)
 
+    def _is_simplicial(self) -> bool:
+        """
+        Return whether every cone has `len == self.dim`
+
+        Do not check validity.
+
+        Returns
+        -------
+        out : bool
+            True if all cones are simplices. False otherwise.
+        """
+        return all([len(c) == self.dim for c in self.cones()])
+
     def is_triangulation(self) -> bool:
         """
         Return whether or not the fan is a triangulation (not a subdivision).
@@ -561,7 +574,9 @@ class Fan:
         out : bool
             True if the fan is a triangulation. False otherwise.
         """
-        return all([len(c) == self.dim for c in self.cones()])
+        if not self._is_simplicial():
+            return False
+        return self.is_valid()
 
     is_triang = is_triangulation
 
