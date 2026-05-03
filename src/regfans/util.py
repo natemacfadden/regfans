@@ -420,6 +420,9 @@ def find_interior_point(*,
     # preliminary/sanitization
     H   = np.array(H)
     m, n = H.shape
+    if m == 0:
+        # no hyperplanes... anything works
+        return np.zeros(n, dtype=float)
 
     # create the solver
     solver = pywraplp.Solver.CreateSolver("GLOP")
