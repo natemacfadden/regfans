@@ -576,7 +576,7 @@ class Fan:
         """
         if not self._is_simplicial():
             return False
-        return self.is_valid()
+        return True
 
     is_triang = is_triangulation
 
