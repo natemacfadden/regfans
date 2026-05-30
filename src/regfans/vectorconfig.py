@@ -1355,9 +1355,9 @@ class VectorConfiguration:
         # map to a formal fan
         if formal_fan:
             fan_R    = [util.dual_cone(H) for H in secondary_cones]
-            all_rays = np.array(list({
-                 {tuple(r) for cone_R in fan_R for r in cone_R}
-            }))
+            all_rays = np.array(list(
+                {tuple(r) for cone_R in fan_R for r in cone_R}
+            ))
 
             # construct the VC
             vc = VectorConfiguration(all_rays)
