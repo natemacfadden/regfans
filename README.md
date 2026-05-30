@@ -33,7 +33,7 @@ Or via pip (see also [PyPI listing](https://pypi.org/project/regfans/)):
 pip install regfans
 ```
 
-**Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/), which cannot be installed automatically via pip. The conda environment handles this automatically.
+**Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/), which can be finicky to install via pip. The conda environment handles it reliably.
 
 ## Primary Interface
 
