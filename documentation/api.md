@@ -1,41 +1,40 @@
-<a id="circuits"></a>
+<a id="vectorconfig"></a>
 
 ---
 
 
-# circuits
+# vectorconfig
 
-<a id="circuits.Circuit"></a>
+<a id="vectorconfig.VectorConfiguration"></a>
 
 ---
 
 
-## Circuit Objects
+## VectorConfiguration Objects
 
 ```python
-class Circuit()
+class VectorConfiguration()
 ```
 
-This class is a helper data structure to contain a single circuit of some
-vector configuration.
+This class handles definition/operations on vector configurations. It is
+analogous to CYTools' Polytope class. This object can be triangulated,
+making a simplicial fan.
 
-**Description:**
-Constructs a `Circuit` object describing a circuit of a vector
-configuration. This is handled by the hidden [`__init__`](#__init__)
-function.
+Constructs a `VectorConfiguration` object describing a lattice vector
+configuration.
 
-**Arguments:**
-- `vc`:        The ambient vector configuration.
-- `Z`:         The support of the circuit.
-- `Zpos`:      The 'positive' side of the circuit.
-- `Zneg`:      The 'negative' side of the circuit.
-- `lmbda`:     A dependency vector demonstrating the circuit.
-- `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
+Parameters
+----------
+vectors : ArrayLike
+    The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+labels : Iterable[int] | None
+    A list of labels for the vectors. Only integral labels are allowed.
+eps : float
+    Threshold for checking for non-integral vectors.
+gale_basis : Iterable[int] | None
+    An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
 
-**Returns:**
-Nothing.
-
-<a id="circuits.Circuit.__init__"></a>
+<a id="vectorconfig.VectorConfiguration.__init__"></a>
 
 ---
 
@@ -43,153 +42,129 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__(vc, Z, Zpos, Zneg, lmbda, signature) -> None
+def __init__(vectors: ArrayLike,
+             labels: Iterable[int] | None = None,
+             eps: float = 1e-4,
+             gale_basis: Iterable[int] | None = None) -> None
 ```
 
-**Description:**
-Initializes a `Circuit` object.
+Initializes a `VectorConfiguration` object.
 
-**Arguments:**
-- `vc`:        The ambient vector configuration.
-- `Z`:         The support of the circuit.
-- `Zpos`:      The 'positive' side of the circuit.
-- `Zneg`:      The 'negative' side of the circuit.
-- `lmbda`:     A dependency vector demonstrating the circuit.
-- `signature`: The signature (|Zpos|, |Zneg|) of the circuit.
+Parameters
+----------
+vectors : ArrayLike
+    The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+labels : Iterable[int] | None, optional
+    A list of integer labels for the vectors. Only integral labels are allowed. Defaults to None.
+eps : float, optional
+    Threshold for checking for non-integral vectors. Defaults to 0.0001.
+gale_basis : Iterable[int] | None, optional
+    An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. Defaults to None.
 
-**Returns:**
-Nothing.
-
-<a id="circuits.Circuits"></a>
+<a id="vectorconfig.VectorConfiguration.__repr__"></a>
 
 ---
 
 
-## Circuits Objects
+#### \_\_repr\_\_
 
 ```python
-class Circuits()
+def __repr__() -> str
 ```
 
-This class is a helper data structure to contain the circuits of some
-vector configuration.
+String representation of the VectorConfiguration.
+(more detailed than __str__)
 
-**Description:**
-Constructs a `Circuits` object describing all circuits of some VC. This
-is handled by the hidden [`__init__`](#__init__) function.
+Returns
+-------
+out : str
+    String representation of the object.
 
-**Arguments:**
-None.
-
-**Returns:**
-Nothing.
-
-<a id="circuits.Circuits.__init__"></a>
+<a id="vectorconfig.VectorConfiguration.__str__"></a>
 
 ---
 
 
-#### \_\_init\_\_
+#### \_\_str\_\_
 
 ```python
-def __init__() -> None
+def __str__() -> str
 ```
 
-**Description:**
-Initializes a `Circuits` object.
+String description of the VectorConfiguration.
+(less detailed than __repr__ but more readable)
 
-**Arguments:**
-None.
+Returns
+-------
+out : str
+    String description of the object.
 
-**Returns:**
-Nothing.
-
-<a id="circuits.Circuits.__getitem__"></a>
+<a id="vectorconfig.VectorConfiguration.__hash__"></a>
 
 ---
 
 
-#### \_\_getitem\_\_
+#### \_\_hash\_\_
 
 ```python
-def __getitem__(label_inds: Iterable[int]) -> Circuit | int
+def __hash__() -> int
 ```
 
-**Description:**
-Get the circuit corresponding to the indicated indices.
+Hash for the vector configuration. Defined by hashing a dictionary from
+labels to vectors.
 
-**Arguments:**
-- `label_inds`: The iterable of vector/label indices.
+Returns
+-------
+out : int
+    The hash.
 
-**Returns:**
-Cases
-- if indices correspond to known circuit -> the `Circuit`
-- if indices correspond to non-circuit   -> -1
-- if indices aren't known                -> 0
-
-<a id="circuits.Circuits.set_circuit"></a>
+<a id="vectorconfig.VectorConfiguration.__eq__"></a>
 
 ---
 
 
-#### set\_circuit
+#### \_\_eq\_\_
 
 ```python
-def set_circuit(circuit: Circuit, verbosity: int = 0) -> None
+def __eq__(o: VectorConfiguration) -> bool
 ```
 
-**Description:**
-Set the circuit properties corresponding to the indicated indices.
+Equality checking between two VectorConfiguration objects.
 
-**Arguments:**
-- `circuit`:   A Circuit object.
-- `verbosity`: The verbosity level.
+Parameters
+----------
+o : VectorConfiguration
+    The other VectorConfiguration to compare against.
 
-**Returns:**
-Nothing.
+Returns
+-------
+out : bool
+    True if self==o. False if self!=o.
 
-<a id="circuits.Circuits.set_non_dependency"></a>
+<a id="vectorconfig.VectorConfiguration.__ne__"></a>
 
 ---
 
 
-#### set\_non\_dependency
+#### \_\_ne\_\_
 
 ```python
-def set_non_dependency(label_inds: Iterable[int], verbosity: int = 0) -> None
+def __ne__(o: VectorConfiguration) -> bool
 ```
 
-**Description:**
-Record a set of points that is not dependent
+Inequality checking between two VectorConfiguration objects.
 
-**Arguments:**
-- `label_inds`: The iterable of vector/label indices.
-- `verbosity`:  The verbosity level.
+Parameters
+----------
+o : VectorConfiguration
+    The other VectorConfiguration to compare against.
 
-**Returns:**
-Nothing.
+Returns
+-------
+out : bool
+    True if self!=o. False if self==o.
 
-<a id="circuits.Circuits.values"></a>
-
----
-
-
-#### values
-
-```python
-def values() -> Iterable[Circuit]
-```
-
-**Description:**
-Get the values (the actual circuits)
-
-**Arguments:**
-None
-
-**Returns:**
-The circuits.
-
-<a id="circuits.Circuits.copy"></a>
+<a id="vectorconfig.VectorConfiguration.copy"></a>
 
 ---
 
@@ -197,114 +172,978 @@ The circuits.
 #### copy
 
 ```python
-def copy() -> Circuits
+def copy() -> VectorConfiguration
 ```
 
-**Description:**
-Copy the circuits object
+Copy method.
 
-**Arguments:**
-None
+Returns
+-------
+out : VectorConfiguration
+    A copy of the vector configuration.
 
-**Returns:**
-A copy of the circuits.
-
-<a id="circuits.Circuits.pop"></a>
+<a id="vectorconfig.VectorConfiguration.labels"></a>
 
 ---
 
 
-#### pop
+#### labels
 
 ```python
-def pop(*args, **kwargs)
+@property
+def labels() -> tuple[int]
 ```
 
-Pop an element from the circuits dict
+Returns the labels of the vectors in the VC.
 
-<a id="circuits.Circuits.encode"></a>
+Returns
+-------
+out : tuple[int]
+    The labels of the vectors in the VC.
+
+<a id="vectorconfig.VectorConfiguration.labels_to_inds_dict"></a>
 
 ---
 
 
-#### encode
+#### labels\_to\_inds\_dict
 
 ```python
-def encode(label_inds: Iterable[int]) -> int
+@property
+def labels_to_inds_dict() -> dict[int, int]
 ```
 
-**Description:**
-Convert an iterable of integers to a binary vector, b, such that
-b_i = 1 <=> i in label_inds
+Returns a dictionary mapping vector labels to their indices in the
+vector configuration.
 
-**Arguments:**
-- `label_inds`: The iterable of integers.
+Returns
+-------
+out : dict[int, int]
+    The mapping from labels to indices.
 
-**Returns:**
-The encoding
-
-<a id="circuits.Circuits.decode"></a>
+<a id="vectorconfig.VectorConfiguration.size"></a>
 
 ---
 
 
-#### decode
+#### size
 
 ```python
-def decode(encoding) -> list[int]
+@property
+def size() -> int
 ```
 
-**Description:**
-Convert a binary vector b to a list of integers such that
-b_i = 1 <=> i in label_inds
+Returns the number of the vectors in the VC.
 
-**Arguments:**
-- `encoding`: The encoding to map to label indices
+Returns
+-------
+out : int
+    The number of the vectors in the VC.
 
-**Returns:**
-The label indices
-
-<a id="circuits.Circuits.is_superset"></a>
+<a id="vectorconfig.VectorConfiguration.ambient_dim"></a>
 
 ---
 
 
-#### is\_superset
+#### ambient\_dim
 
 ```python
-def is_superset(setA, setB) -> bool
+@property
+def ambient_dim() -> int
 ```
 
-**Description:**
-Check if the set encoded by setA is a superset of setB.
+Returns the ambient dimension of the VC.
 
-**Arguments:**
-- `setA`: The candidate-superset encoding.
-- `setB`: The candidate-subset encoding.
+Returns
+-------
+out : int
+    The ambient dimension of the VC.
 
-**Returns:**
-Whether setA is a superset of setB.
-
-<a id="circuits.Circuits.is_subset"></a>
+<a id="vectorconfig.VectorConfiguration.dim"></a>
 
 ---
 
 
-#### is\_subset
+#### dim
 
 ```python
-def is_subset(setA: int, setB: int) -> bool
+@property
+def dim() -> int
 ```
 
-**Description:**
-Check if the set encoded by setA is a subset of setB.
+Returns the dimension of the VC. I.e., the dimension of the subspace
+spanned by the vectors.
 
-**Arguments:**
-- `setA`: The candidate-subset encoding.
-- `setB`: The candidate-superset encoding.
+Returns
+-------
+out : int
+    The dimension of the VC.
 
-**Returns:**
-Whether setA is a subset of setB.
+<a id="vectorconfig.VectorConfiguration.vectors"></a>
+
+---
+
+
+#### vectors
+
+```python
+def vectors(which: int | Iterable[int] | None = None) -> ArrayLike
+```
+
+Returns the vectors, optionally only those with given labels.
+
+Parameters
+----------
+which : int | Iterable[int] | None, optional
+    Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
+
+Returns
+-------
+out : ArrayLike
+    The corresponding vector(s), in order specified by which.
+
+<a id="vectorconfig.VectorConfiguration.vectors_to_labels"></a>
+
+---
+
+
+#### vectors\_to\_labels
+
+```python
+def vectors_to_labels(vectors: ArrayLike) -> int | list[int]
+```
+
+Maps the vectors to their corresponding labels
+
+Parameters
+----------
+vectors : ArrayLike
+    Either a single vector, for which the single corresponding label will be returned, or a list of vectors.
+
+Returns
+-------
+out : int | list[int]
+    The corresponding label(s).
+
+<a id="vectorconfig.VectorConfiguration.labels_to_inds"></a>
+
+---
+
+
+#### labels\_to\_inds
+
+```python
+def labels_to_inds(labels: Iterable[int],
+                   ambient_labels: Iterable[int] | None = None,
+                   offset: int = 0) -> int | Iterable[int]
+```
+
+Maps the labels to their indices in ambient_labels, optionally with a
+fixed offset.
+
+Parameters
+----------
+labels : Iterable[int]
+    The labels of interest.
+ambient_labels : Iterable[int] | None, optional
+    The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration. Defaults to None.
+offset : int, optional
+    Return i+offset for i the index of a label in ambient_labels. Defaults to 0.
+
+Returns
+-------
+out : int | Iterable[int]
+    The indices of the labels.
+
+<a id="vectorconfig.VectorConfiguration.is_solid"></a>
+
+---
+
+
+#### is\_solid
+
+```python
+def is_solid() -> bool
+```
+
+Return whether or not the VC is full-dimensional.
+
+Returns
+-------
+out : bool
+    True if the VC is full-dimensional. False otherwise.
+
+<a id="vectorconfig.VectorConfiguration.is_totally_cyclic"></a>
+
+---
+
+
+#### is\_totally\_cyclic
+
+```python
+def is_totally_cyclic() -> bool
+```
+
+Return whether or not the VC is totally cyclic. That is, whether
+self.conv() equals the subspace containing it (the supporting
+hyperplane).
+
+Only implemented for solid (full-dimensional) VCs, the intended use
+case; raises NotImplementedError otherwise.
+
+Returns
+-------
+out : bool
+    True if the VC is totally cyclic. False otherwise.
+
+<a id="vectorconfig.VectorConfiguration.is_acyclic"></a>
+
+---
+
+
+#### is\_acyclic
+
+```python
+def is_acyclic() -> bool
+```
+
+Return whether or not the VC is acyclic. That is, whether there exists
+some direction psi such that
+    psi.vi > 0 for all vi.
+
+This is equivalent to defining the cone {x: vi.x >= 0} and checking if
+it is full-dimensional.
+
+Returns
+-------
+out : bool
+    True if the VC is acyclic. False otherwise.
+
+<a id="vectorconfig.VectorConfiguration.support"></a>
+
+---
+
+
+#### support
+
+```python
+def support() -> ArrayLike
+```
+
+Get the support of the vector configuration as a hyperplane
+representation.
+
+Returns
+-------
+out : ArrayLike
+    The hyperplanes defining the support.
+
+<a id="vectorconfig.VectorConfiguration.cone_contains"></a>
+
+---
+
+
+#### cone\_contains
+
+```python
+def cone_contains(cone_labels: Iterable[int],
+                  vec_label: Iterable[int],
+                  strict: bool = False) -> bool
+```
+
+Check if a cone, specified by cone_labels, contains the ray specified
+by vec_label.
+
+I.e., if
+    H = self.cone(cone_labels).hyperplanes()
+    v = self.vectors(vec_label)
+    H@v >= int(strict)
+
+Parameters
+----------
+cone_labels : Iterable[int]
+    The labels of vectors defining the cone.
+vec_label : Iterable[int]
+    The label of the vector to check.
+strict : bool, optional
+    Whether to check if the vector is in the strict interior. Defaults to False.
+
+Returns
+-------
+out : bool
+    Whether the associated cone contains the vector.
+
+<a id="vectorconfig.VectorConfiguration.gale"></a>
+
+---
+
+
+#### gale
+
+```python
+def gale(set_basis: bool = False) -> ArrayLike
+```
+
+Compute the gale transform of the config.
+
+I.e., a basis of the null-space of the vectors.
+
+Parameters
+----------
+set_basis : bool, optional
+    Whether to set a particular basis of the Gale transform. Defaults to False.
+
+Returns
+-------
+out : ArrayLike
+    The gale transform.
+
+<a id="vectorconfig.VectorConfiguration.project"></a>
+
+---
+
+
+#### project
+
+```python
+def project(vec: ArrayLike) -> ArrayLike
+```
+
+Project down a vector from height-space to chamber-space.
+
+Parameters
+----------
+vec : ArrayLike
+    The height-space vector.
+
+Returns
+-------
+out : ArrayLike
+    The chamber-space vector.
+
+<a id="vectorconfig.VectorConfiguration.jorp"></a>
+
+---
+
+
+#### jorp
+
+```python
+def jorp(vec: ArrayLike) -> ArrayLike
+```
+
+Undo a projection from height-space to chamber-space.
+
+I.e., map from chamber-space to height-space
+
+Parameters
+----------
+vec : ArrayLike
+    The chamber-space vector.
+
+Returns
+-------
+out : ArrayLike
+    The height-space vector.
+
+<a id="vectorconfig.VectorConfiguration.triangulate"></a>
+
+---
+
+
+#### triangulate
+
+```python
+def triangulate(heights: ArrayLike | None = None,
+                cells: ArrayLike | None = None,
+                tol: float = 1e-14,
+                backend: str | None = None,
+                make_fine: bool = None,
+                check_heights: bool = True,
+                cure_heights: bool = True,
+                verbosity: int = 0) -> Fan
+```
+
+Subdivide the vector configuration either by specified cells/simplices
+or by heights.
+
+Parameters
+----------
+heights : ArrayLike | None, optional
+    The heights to lift the vectors by. Defaults to None.
+cells : ArrayLike | None, optional
+    The cells to use in the triangulation. Defaults to None.
+tol : float, optional
+    Numerical tolerance used for curing negative heights. Defaults to 1e-14.
+backend : str | None, optional
+    The lifting backend. Currently allowed to be "cgal" or "ppl". Defaults to None.
+make_fine : bool, optional
+    Convert the triangulation to a fine triangulation, if not already fine. Defaults to None.
+check_heights : bool, optional
+    Whether to check that the heights land in the secondary cone of the output triangulation. Defaults to True.
+cure_heights : bool, optional
+    If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights. Defaults to True.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : Fan
+    The resultant subdivision.
+
+<a id="vectorconfig.VectorConfiguration.all_triangulations"></a>
+
+---
+
+
+#### all\_triangulations
+
+```python
+def all_triangulations(only_fine: bool = False,
+                       only_regular: bool = True,
+                       verbosity: int = 0) -> list[Fan]
+```
+
+Generate all triangulations of this vector configuration via taking
+flips from some regular triangulation.
+
+NOTE: In theory, this might miss an irregular triangulation that is
+disconnected from the regular triangulations.
+
+Such irregular triangulations exist (see "A Point Set Whose Space of
+Triangulations is Disconnected" by Santos) but are likely exceedingly
+rare. E.g., it is unknown whether such cases can occur in 4D.
+
+Could instead compute this via computing incidence vectors but that'd
+be *much* slower. Roughly, this would be to
+    1) compute all possible simplices
+    2) if there are N possible simplices, construct an N-dim space
+    3) define all 0/1-vectors. For each 0/1-vector, check if it defines
+       a valid triangulation. If so, save it
+The incidence vector strategy is analogous to rejection sampling and
+will be much slower than the flip-based method, but it would see *all*
+triangulations.
+
+Parameters
+----------
+only_fine : bool, optional
+    Whether to restrict to fine triangulations. Defaults to False.
+only_regular : bool, optional
+    Whether to restrict to regular triangulations. Defaults to True.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : list[Fan]
+    A list of Fan objects, one for each triangulation of the VC.
+
+<a id="vectorconfig.VectorConfiguration.random_triangulations_fast"></a>
+
+---
+
+
+#### random\_triangulations\_fast
+
+```python
+def random_triangulations_fast(
+        method: str = "delaunay",
+        h0: ArrayLike | None = None,
+        sigma: float = 0.1,
+        N: int | None = None,
+        as_list: bool = False,
+        attempts_per_triang: int = 1000,
+        backend: str | None = None,
+        seed: int = 0,
+        verbosity: int = 0) -> Generator[Fan] | list[Fan]
+```
+
+Generate random regular triangulations by picking random heights.
+
+Parameters
+----------
+method : str, optional
+    Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically. Defaults to "delaunay".
+h0 : ArrayLike | None, optional
+    The reference heights, for Delaunay method. Defaults to None.
+sigma : float, optional
+    How big of a distribution to study around h0. Defaults to 0.1.
+N : int | None, optional
+    The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates). Defaults to None.
+as_list : bool, optional
+    Whether to return the triangulations as a list, or as a generator. Defaults to False.
+attempts_per_triang : int, optional
+    Quit if we can't generate a new triangulation after this many tries. Defaults to 1000.
+backend : str | None, optional
+    The lifting backend. See `VectorConfiguration.triangulate`. Defaults to None.
+seed : int, optional
+    A random number seed. Defaults to 0.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : Generator[Fan] | list[Fan]
+    The random triangulations.
+
+<a id="vectorconfig.VectorConfiguration.circuit"></a>
+
+---
+
+
+#### circuit
+
+```python
+def circuit(labels: Iterable[int],
+            lmbda: Iterable | None = None,
+            set_non_dependencies: bool = True,
+            save_circuits: bool = True) -> Circuit
+```
+
+Format/compute the circuit corresponding to the specified labels.
+
+Parameters
+----------
+labels : Iterable[int]
+    Labels indicating the vectors in the circuit.
+lmbda : Iterable | None, optional
+    Vector demonstrating the dependence. Defaults to None.
+set_non_dependencies : bool, optional
+    Whether to update our list of non-circuits. Defaults to True.
+save_circuits : bool, optional
+    Whether to save circuits... best to keep True for most circumstances. Defaults to True.
+
+Returns
+-------
+out : Circuit
+    Circuit object containing
+        - the support of the circuit as property 'Z',
+        - the signed circuit as property 'Zpos' and 'Zneg',
+        - the dependency as property 'lmbda', and
+        - the signature as property 'signature'.
+
+<a id="vectorconfig.VectorConfiguration.circuits"></a>
+
+---
+
+
+#### circuits
+
+```python
+def circuits(verbosity: int = 0) -> list[Circuit]
+```
+
+Compute all possible circuits of this vector configuration.
+
+Parameters
+----------
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : list[Circuit]
+    A list of Circuit objects.
+
+<a id="vectorconfig.VectorConfiguration.flip_graph"></a>
+
+---
+
+
+#### flip\_graph
+
+```python
+def flip_graph(max_flips: int | None = None,
+               only_fine: bool = False,
+               only_regular: bool = True,
+               only_pc_triang: bool = False,
+               compute_node_labels: bool = False,
+               verbosity: int = 0) -> (nx.Graph, list[Fan], list[dict])
+```
+
+Compute the flip graph. Wrapper for flip_subgraph.
+
+Parameters
+----------
+max_flips : int | None, optional
+    The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated. Defaults to None.
+only_fine : bool, optional
+    Whether to only compute fine triangulations. Defaults to False.
+only_regular : bool, optional
+    Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones. Defaults to True.
+only_pc_triang : bool, optional
+    Whether to only compute triangulations that also correspond to star triangulations of the underlying point config. Defaults to False.
+compute_node_labels : bool, optional
+    Whether to check whether each node is fine, regular, and a PC triangulation. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : (nx.Graph, list[Fan], list[dict])
+    - The flip graph as a networkx.Graph object.
+    - A list of the triangulations
+    - A list of the labels for each triangulation (labels are a
+      dictionary from the property to a bool)
+
+<a id="vectorconfig.VectorConfiguration.secondary_fan"></a>
+
+---
+
+
+#### secondary\_fan
+
+```python
+def secondary_fan(only_fine: bool = False,
+                  formal_fan: bool = False,
+                  verbosity: int = 0)
+```
+
+Compute the secondary fan of the vector configuration.
+
+Parameters
+----------
+only_fine : bool, optional
+    Restrict to fine triangulations. Defaults to False.
+formal_fan : bool, optional
+    Save as a formal Fan object. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : tuple[list, list[Fan]]
+    The secondary fan triangulations (secondary cones and Fan list).
+
+<a id="vectorconfig.VectorConfiguration.central_fan"></a>
+
+---
+
+
+#### central\_fan
+
+```python
+def central_fan() -> Fan
+```
+
+Generate the central fan of the vector configuration. Can be defined
+as lifting each vector by a height of 1.
+
+Returns
+-------
+out : Fan
+    The central fan.
+
+<a id="util"></a>
+
+---
+
+
+# util
+
+<a id="util.gcd"></a>
+
+---
+
+
+#### gcd
+
+```python
+def gcd(vals: list[float], max_denom: float = 10**6) -> float
+```
+
+Computes the 'GCD' of a collection of floating point numbers.
+This is the smallest number, g, such that g*values is integral.
+
+This is computed by
+    1) converting `values` to be rational [n0/d0, n1/d1, ...],
+    2) computing the LCM, lcm, of [d0, d1, ...],
+    3) computing the GCD, g', of [lcm*n0/d0, lcm*n1/d1, ...], and then
+    4) returning g=g'/lcm.
+
+Parameters
+----------
+vals : list[float]
+    The numbers to compute the GCD of.
+max_denom : float, optional
+    Assert |di| <= max_denom. Defaults to 10 ** 6.
+
+Returns
+-------
+gcd : float
+    The minimum number g' such that g'*vals is integral.
+
+<a id="util.primitive"></a>
+
+---
+
+
+#### primitive
+
+```python
+def primitive(vec: list[float], max_denom=10**6)
+```
+
+Computes the primitive vector associated to the input ray {c*vec: c>=0}.
+Very similar to the gcd function.
+
+This is equivalent to
+    vec/gcd(vec)
+but just uses a rational representation.
+
+Parameters
+----------
+vec : list[float]
+    A vector defining the ray {c*vec: c>=0}
+max_denom : float, optional
+    Assert |di| <= max_denom. Defaults to 10 ** 6.
+
+Returns
+-------
+vec : list[int]
+    The primitive vector along the ray.
+
+<a id="util.lerp"></a>
+
+---
+
+
+#### lerp
+
+```python
+def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike
+```
+
+Computes the point specified by t along the line passing through p0 and p1.
+
+Particular values:
+    -) t=0   -> p0
+    -) t=0.5 -> (p0+p1)/2
+    -) t=1   -> p1
+
+Parameters
+----------
+p0 : ArrayLike
+    One point.
+p1 : ArrayLike
+    The other point.
+t : float
+    Parameter specifying where along the line Conv({p0, p1}) to return.
+
+Returns
+-------
+pt : ArrayLike
+    The point p0 + t*(p1-p0).
+
+<a id="util.first_hit"></a>
+
+---
+
+
+#### first\_hit
+
+```python
+def first_hit(p0: ArrayLike,
+              p1: ArrayLike,
+              H: ArrayLike,
+              verbosity: int = 0) -> (int, float)
+```
+
+Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
+along the direction (p1-p0). I.e., the first intersection of the ray
+{p0+t*(p1-p0): t>=0} with the cones bounding hyperplanes.
+
+Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
+
+Parameters
+----------
+p0 : ArrayLike
+    One point.
+p1 : ArrayLike
+    The other point.
+H : ArrayLike
+    An array of hyperplane normals (as rows).
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : (int, float)
+    The index, i, of the first-hit hyperplane.
+    The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
+
+<a id="util.dual_cone"></a>
+
+---
+
+
+#### dual\_cone
+
+```python
+def dual_cone(data: ArrayLike) -> ArrayLike
+```
+
+Compute the data of the cone dual to the input 'primal' cone.
+
+This can be thought of in a couple of equivalent ways, summarized in the
+following table. E.g., if rays of the primal are input, then the
+hyperplanes of the primal are output (or, equivalently, the rays of the
+dual).
+
+INPUT       | PRIMAL OUTPUT | DUAL OUTPUT
+-----------------------------------------
+rays        | hyperplanes   | rays
+hyperplanes | rays          | hyperplanes
+
+
+For simplicity in the following discussion, take the convention that one
+maps hyperplanes of the primal to rays of the primal.
+
+Parameters
+----------
+data : ArrayLike
+    An array whose rows represent rays of the primal cone. (see table)
+
+Returns
+-------
+out : ArrayLike
+    An array whose rows represent hyperplanes of the primal cone. (see table)
+
+<a id="util.cone_dim"></a>
+
+---
+
+
+#### cone\_dim
+
+```python
+def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int
+```
+
+Return the dimension of the cone.
+
+The cone is either specified via rays,
+    {R.T @ lambda: lambda>=0},
+or via hyperplanes,
+    {x: H @ x>=0}.
+
+Parameters
+----------
+R : ArrayLike, optional
+    The rays of the cone as rows. Defaults to None.
+H : ArrayLike, optional
+    The hyperplanes defining the cone. Defaults to None.
+
+Returns
+-------
+dim : int
+    The dimension of the cone
+
+<a id="util.is_solid"></a>
+
+---
+
+
+#### is\_solid
+
+```python
+def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool
+```
+
+Return whether the cone is full-dimensional.
+
+The cone is either specified via rays,
+    {R.T @ lambda: lambda>=0},
+or via hyperplanes,
+    {x: H @ x>=0}.
+
+Parameters
+----------
+R : ArrayLike, optional
+    The rays of the cone as rows. Defaults to None.
+H : ArrayLike, optional
+    The hyperplanes defining the cone. Defaults to None.
+
+Returns
+-------
+out : bool
+    Whether the cone is full-dimensional.
+
+<a id="util.contains"></a>
+
+---
+
+
+#### contains
+
+```python
+def contains(*,
+             p: ArrayLike,
+             R: ArrayLike = None,
+             H: ArrayLike = None) -> bool
+```
+
+Return if the point p is contained in the cone.
+
+The cone is either specified via rays,
+    {R.T @ lambda: lambda>=0},
+or via hyperplanes,
+    {x: H @ x>=0}.
+
+Parameters
+----------
+p : ArrayLike
+    The query point.
+R : ArrayLike, optional
+    The rays of the cone as rows. Defaults to None.
+H : ArrayLike, optional
+    The hyperplanes defining the cone. Defaults to None.
+
+Returns
+-------
+out : bool
+    Whether p is contained in the cone.
+
+<a id="util.find_interior_point"></a>
+
+---
+
+
+#### find\_interior\_point
+
+```python
+def find_interior_point(*,
+                        R: ArrayLike = None,
+                        H: ArrayLike = None,
+                        stretching: float = 1,
+                        nonneg: bool = False,
+                        verbosity: int = 0) -> ArrayLike | None
+```
+
+Returns a point p in the strict interior of a cone. The cone can be
+specified either via its rays or its generators.
+
+If no point p exists, return `None`.
+
+Modified from CYTools' `Cone.find_interior_point`.
+
+Parameters
+----------
+R : ArrayLike, optional
+    Generators defining the cone. Defaults to None.
+H : ArrayLike, optional
+    Hyperplanes defining the cone. Defaults to None.
+stretching : float, optional
+    How far p must be from any hyperplane. Defaults to 1.
+nonneg : bool, optional
+    Whether to restrict to non-negative vectors. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Defaults to 0.
+
+Returns
+-------
+p : ArrayLike | None
+    A point p in the strict interior.
 
 <a id="fan"></a>
 
@@ -327,23 +1166,20 @@ class Fan()
 This class handles definition/operations on fans. It is analogous to
 CYTools' Triangulation class.
 
-**Description:**
 Constructs a `Fan` object describing a triangulation of a lattice vector
-configuration. This is handled by the hidden [`__init__`](#__init__)
-function.
+configuration.
 
 This class is *not* intended to be called directly. Instead, it is meant to
 be called through VectorConfiguration.triangulate.
 
-**Arguments:**
-- `vc`:      The ambient vector configuration that this fan is over.
-- `cones`:   The cones defining the fan. Each cone is a collection of
-integer labels.
-- `heights`: The heights defining the fan, if it is regular. Can be
-computed later.
-
-**Returns:**
-Nothing.
+Parameters
+----------
+vc : VectorConfiguration
+    The ambient vector configuration that this fan is over.
+cones : list[list[int]]
+    The cones defining the fan. Each cone is a collection of integer labels.
+heights : list[float] | None
+    The heights defining the fan, if it is regular. Can be computed later.
 
 <a id="fan.Fan.__init__"></a>
 
@@ -358,18 +1194,16 @@ def __init__(vc: VectorConfiguration,
              heights: list[float] | None = None) -> None
 ```
 
-**Description:**
 Initializes a `Fan` object.
 
-**Arguments:**
-- `vc`:      The ambient vector configuration that this fan is over.
-- `cones`:   The cones defining the fan. Each cone is a collection of
-integer labels.
-- `heights`: The heights defining the fan, if it is regular. Can be
-computed later.
-
-**Returns:**
-Nothing.
+Parameters
+----------
+vc : VectorConfiguration
+    The ambient vector configuration that this fan is over.
+cones : list[list[int]]
+    The cones defining the fan. Each cone is a collection of integer labels.
+heights : list[float] | None, optional
+    The heights defining the fan, if it is regular. Can be computed later. Defaults to None.
 
 <a id="fan.Fan.__repr__"></a>
 
@@ -382,15 +1216,13 @@ Nothing.
 def __repr__() -> str
 ```
 
-**Description:**
 String representation of the Fan.
 (more detailed than __str__)
 
-**Arguments:**
-None.
-
-**Returns:**
-String representation of the object.
+Returns
+-------
+out : str
+    String representation of the object.
 
 <a id="fan.Fan.__str__"></a>
 
@@ -403,15 +1235,13 @@ String representation of the object.
 def __str__() -> str
 ```
 
-**Description:**
 String description of the Fan.
 (less detailed than __repr__ but more readable)
 
-**Arguments:**
-None.
-
-**Returns:**
-String description of the object.
+Returns
+-------
+out : str
+    String description of the object.
 
 <a id="fan.Fan.__hash__"></a>
 
@@ -424,14 +1254,12 @@ String description of the object.
 def __hash__() -> int
 ```
 
-**Description:**
 Hash for the fan. Defined by hashing vector configuration and the cones.
 
-**Arguments:**
-None.
-
-**Returns:**
-The hash.
+Returns
+-------
+out : int
+    The hash.
 
 <a id="fan.Fan.__eq__"></a>
 
@@ -444,14 +1272,17 @@ The hash.
 def __eq__(o: Fan) -> bool
 ```
 
-**Description:**
 Equality checking between two Fan objects.
 
-**Arguments:**
-- `o`: The other Fan to compare against.
+Parameters
+----------
+o : Fan
+    The other Fan to compare against.
 
-**Returns:**
-True if self==o. False if self!=o.
+Returns
+-------
+out : bool
+    True if self==o. False if self!=o.
 
 <a id="fan.Fan.__ne__"></a>
 
@@ -464,14 +1295,17 @@ True if self==o. False if self!=o.
 def __ne__(o: Fan) -> bool
 ```
 
-**Description:**
 Inequality checking between two Fan objects.
 
-**Arguments:**
-- `o`: The other Fan to compare against.
+Parameters
+----------
+o : Fan
+    The other Fan to compare against.
 
-**Returns:**
-True if self!=o. False if self==o.
+Returns
+-------
+out : bool
+    True if self!=o. False if self==o.
 
 <a id="fan.Fan.vector_config"></a>
 
@@ -485,14 +1319,12 @@ True if self!=o. False if self==o.
 def vector_config() -> VectorConfiguration
 ```
 
-**Description:**
 Returns the associated vector configuration.
 
-**Arguments:**
-None.
-
-**Returns:**
-The associated vector configuration.
+Returns
+-------
+vc : VectorConfiguration
+    The associated vector configuration.
 
 <a id="fan.Fan.labels"></a>
 
@@ -506,14 +1338,12 @@ The associated vector configuration.
 def labels() -> tuple[int]
 ```
 
-**Description:**
 Returns the labels of the vectors in the VC.
 
-**Arguments:**
-None.
-
-**Returns:**
-The labels of the vectors in the VC.
+Returns
+-------
+out : tuple[int]
+    The labels of the vectors in the VC.
 
 <a id="fan.Fan.used_labels"></a>
 
@@ -527,14 +1357,12 @@ The labels of the vectors in the VC.
 def used_labels() -> tuple[int]
 ```
 
-**Description:**
 Returns the labels of the vectors in the VC used by cones in the Fan.
 
-**Arguments:**
-None.
-
-**Returns:**
-The labels of the vectors in the VC used by cones in the Fan.
+Returns
+-------
+out : tuple[int]
+    The labels of the vectors in the VC used by cones in the Fan.
 
 <a id="fan.Fan.labels_to_cones"></a>
 
@@ -548,15 +1376,13 @@ The labels of the vectors in the VC used by cones in the Fan.
 def labels_to_cones() -> dict[int, set[tuple[int]]]
 ```
 
-**Description:**
 Returns a map from vector labels to the cones the vector appears in.
 
-**Arguments:**
-None.
-
-**Returns:**
-A map from vector label to a set of cones (as tuples of labels) that
-the vector appears in.
+Returns
+-------
+out : dict[int, set[tuple[int]]]
+    A map from vector label to a set of cones (as tuples of labels) that
+    the vector appears in.
 
 <a id="fan.Fan.ambient_dim"></a>
 
@@ -570,14 +1396,12 @@ the vector appears in.
 def ambient_dim() -> int
 ```
 
-**Description:**
 Returns the ambient dimension of the VC.
 
-**Arguments:**
-None.
-
-**Returns:**
-The ambient dimension of the VC.
+Returns
+-------
+out : int
+    The ambient dimension of the VC.
 
 <a id="fan.Fan.dim"></a>
 
@@ -591,15 +1415,13 @@ The ambient dimension of the VC.
 def dim() -> int
 ```
 
-**Description:**
 Returns the dimension of the VC. I.e., the dimension of the subspace
 spanned by the vectors.
 
-**Arguments:**
-None.
-
-**Returns:**
-The dimension of the VC.
+Returns
+-------
+out : int
+    The dimension of the VC.
 
 <a id="fan.Fan.vectors"></a>
 
@@ -613,19 +1435,21 @@ def vectors(which: int | Iterable[int] | None = None,
             lifted: bool = False) -> ArrayLike
 ```
 
-**Description:**
 Returns the vectors, optionally only those with given labels. Also,
 optionally, give the vectors lifted by the heights (if the Fan is
 regular).
 
-**Arguments:**
-- `which`:  Either a single label, for which the single corresponding
-vector will be returned, or a list of labels. If not
-provided, then all vectors are returned.
-- `lifted`: Whether to give the lifted vectors.
+Parameters
+----------
+which : int | Iterable[int] | None, optional
+    Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
+lifted : bool, optional
+    Whether to give the lifted vectors. Defaults to False.
 
-**Returns:**
-The corresponding vector(s), in order specified by which.
+Returns
+-------
+out : ArrayLike
+    The corresponding vector(s), in order specified by which.
 
 <a id="fan.Fan.cones"></a>
 
@@ -641,22 +1465,28 @@ def cones(as_rays: bool = False,
           ind_offset: int = 0) -> tuple[tuple[int]] | list[ArrayLike]
 ```
 
-**Description:**
 Returns the cones in the fan in a variety of formats. They are:
-- (default) as a tuple of labels
-- (as_rays=True) as an array whose rows are the generators
-- (as_hyps=True) as an array whose rows are hyperplane normals
-- (as_inds=True) as a tuple of indices
+    - (default) as a tuple of labels
+    - (as_rays=True) as an array whose rows are the generators
+    - (as_hyps=True) as an array whose rows are hyperplane normals
+    - (as_inds=True) as a tuple of indices
 Optionally, allow an offset to the indices.
 
-**Arguments:**
-- `as_rays`:    Whether to return the cones as their generators.
-- `as_hyps`:    Whether to return the cones as their hyperplanes.
-- `as_inds`:    Whether to return the cones as indices (not labels).
-- `ind_offset`: An additive offset for the indices
+Parameters
+----------
+as_rays : bool, optional
+    Whether to return the cones as their generators. Defaults to False.
+as_hyps : bool, optional
+    Whether to return the cones as their hyperplanes. Defaults to False.
+as_inds : bool, optional
+    Whether to return the cones as indices (not labels). Defaults to False.
+ind_offset : int, optional
+    An additive offset for the indices. Defaults to 0.
 
-**Returns:**
-The cones, specified according to the input flags.
+Returns
+-------
+out : tuple[tuple[int]] | list[ArrayLike]
+    The cones, specified according to the input flags.
 
 <a id="fan.Fan.facets"></a>
 
@@ -669,15 +1499,16 @@ The cones, specified according to the input flags.
 def facets() -> dict[tuple[int], list[tuple[int]]]
 ```
 
-**Description:**
 Returns the facets of the cones. Save them as a dictionary from facet
 labels to a list of containing cones, stored by their labels.
 
-**Arguments:**
-None.
+Only implemented for simplicial fans (triangulations), the intended
+use case; raises NotImplementedError otherwise.
 
-**Returns:**
-A dictionary from facet labels to a list of containing cones.
+Returns
+-------
+out : dict[tuple[int], list[tuple[int]]]
+    A dictionary from facet labels to a list of containing cones.
 
 <a id="fan.Fan.is_valid"></a>
 
@@ -690,16 +1521,22 @@ A dictionary from facet labels to a list of containing cones.
 def is_valid(verbosity: int = 0) -> bool
 ```
 
-**Description:**
 Return whether or not the cones define a valid polyhedral fan.
 
 Follows cor. 4.5.13 of "Triangulations" by De Loera, Rambau, Santos.
+Implements the MaxMP, MaxAdjHP, and (single-point) IPP conditions; the
+MaxAdjLP condition is a no-op for triangulations and is unimplemented
+for subdivisions.
 
-**Arguments:**
-- `verbosity`: The verbosity level. Higher is more verbose.
+Parameters
+----------
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-True if the cones define a valid fan. False otherwise.
+Returns
+-------
+out : bool
+    True if the cones define a valid fan. False otherwise.
 
 <a id="fan.Fan.respects_ptconfig"></a>
 
@@ -712,18 +1549,22 @@ True if the cones define a valid fan. False otherwise.
 def respects_ptconfig(via_circuits=False) -> bool
 ```
 
-**Description:**
 Return whether or not the fan also defines a (star) subdivision of the
 original underlying point configuration.
 
-**Arguments:**
-- `via_circuits`: This method uses secondary cones. Allow construction
-of the secondary cone via circuits. That's unsafe if the fan is
-potentially irregular.
+Only implemented for regular fans, the intended use case; raises
+NotImplementedError otherwise.
 
-**Returns:**
-True if the fan defines a subdivision of the point configuration. False
-otherwise.
+Parameters
+----------
+via_circuits : bool, optional
+    This method uses secondary cones. Allow construction of the secondary cone via circuits. That's unsafe if the fan is potentially irregular. Defaults to False.
+
+Returns
+-------
+out : bool
+    True if the fan defines a subdivision of the point configuration. False
+    otherwise.
 
 <a id="fan.Fan.is_triangulation"></a>
 
@@ -736,14 +1577,15 @@ otherwise.
 def is_triangulation() -> bool
 ```
 
-**Description:**
 Return whether or not the fan is a triangulation (not a subdivision).
 
-**Arguments:**
-None.
+Only checks that every cone is a simplex; it does not separately
+re-verify fan validity (see is_valid).
 
-**Returns:**
-True if the fan is a triangulation. False otherwise.
+Returns
+-------
+out : bool
+    True if the fan is a triangulation. False otherwise.
 
 <a id="fan.Fan.is_fine"></a>
 
@@ -756,14 +1598,12 @@ True if the fan is a triangulation. False otherwise.
 def is_fine() -> bool
 ```
 
-**Description:**
 Return whether or not the fan is fine.
 
-**Arguments:**
-None.
-
-**Returns:**
-True if the fan is fine. False otherwise.
+Returns
+-------
+out : bool
+    True if the fan is fine. False otherwise.
 
 <a id="fan.Fan.is_regular"></a>
 
@@ -776,14 +1616,12 @@ True if the fan is fine. False otherwise.
 def is_regular() -> bool
 ```
 
-**Description:**
 Return whether or not the fan is regular.
 
-**Arguments:**
-None.
-
-**Returns:**
-True if the fan is regular. False otherwise.
+Returns
+-------
+out : bool
+    True if the fan is regular. False otherwise.
 
 <a id="fan.Fan.heights"></a>
 
@@ -796,15 +1634,13 @@ True if the fan is regular. False otherwise.
 def heights() -> list[float] | None
 ```
 
-**Description:**
 Return some heights defining the cone, if it is regular. Else, return
 None.
 
-**Arguments:**
-None.
-
-**Returns:**
-The heights defining the fan, if it is regular.
+Returns
+-------
+out : list[float] | None
+    The heights defining the fan, if it is regular.
 
 <a id="fan.Fan.contains"></a>
 
@@ -817,18 +1653,19 @@ The heights defining the fan, if it is regular.
 def contains(c: Iterable[int] | Iterable[Iterable[int]]) -> bool
 ```
 
-**Description:**
 Check if any cone (specified by its labels) is contained in the fan.
 The cone need not be solid. Can also be called for a collection of
 cones, in which case the check is if all cones are contained in the fan.
 
-**Arguments:**
-- `c`: The cone(s). Either a single collection of cone, specified by
-an iterable of labels, or a collection of cones, each specified
-by an iterable of labels.
+Parameters
+----------
+c : Iterable[int] | Iterable[Iterable[int]]
+    The cone(s). Either a single collection of cone, specified by an iterable of labels, or a collection of cones, each specified by an iterable of labels.
 
-**Returns:**
-Whether (all) cone(s) are contained in the fan.
+Returns
+-------
+out : bool
+    Whether (all) cone(s) are contained in the fan.
 
 <a id="fan.Fan.circuit"></a>
 
@@ -846,25 +1683,31 @@ def circuit(labels: Iterable[int] | None = None,
             verbosity: int = 0) -> Circuit
 ```
 
-**Description:**
 Format/compute the circuit corresponding to the specified labels.
 
-**Arguments:**
-- `labels`:              Labels indicating the vectors in the circuit.
-- `enforce_positive`:    A label to enforce is in Zpos.
-- `lmbda`:               A dependency demonstrating the circuit.
-- `check_containment`:   Whether to check that this fan contains every
-cone in the positive triangulation, Tpos.
-- `save_circuits_in_vc`: Whether to save circuits... best to keep True
-for most circumstances.
-- `verbosity`:           The verbosity level. Higher is more verbose.
+Parameters
+----------
+labels : Iterable[int] | None, optional
+    Labels indicating the vectors in the circuit. Defaults to None.
+enforce_positive : int | None, optional
+    A label to enforce is in Zpos. Defaults to None.
+lmbda : Iterable[float] | None, optional
+    A dependency demonstrating the circuit. Defaults to None.
+check_containment : bool, optional
+    Whether to check that this fan contains every cone in the positive triangulation, Tpos. Defaults to True.
+save_circuits_in_vc : bool, optional
+    Whether to save circuits... best to keep True for most circumstances. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-Circuit object containing
-- the support of the circuit as property 'Z',
-- the signed circuit as property 'Zpos' and 'Zneg',
-- the dependency as property 'lmbda', and
-- the signature as property 'signature'.
+Returns
+-------
+out : Circuit
+    Circuit object containing
+        - the support of the circuit as property 'Z',
+        - the signed circuit as property 'Zpos' and 'Zneg',
+        - the dependency as property 'lmbda', and
+        - the signature as property 'signature'.
 
 <a id="fan.Fan.circuits"></a>
 
@@ -879,19 +1722,22 @@ def circuits(facets: dict[Iterable[int], Iterable[Iterable[int]]]
              verbosity: int = 0) -> list[Circuit]
 ```
 
-**Description:**
 Compute all circuits associated to this fan (i.e., those 'embedded' in
 this fan). All will be oriented such that the positive triangulation
 (i.e., Tpos/T_+) is embedded in the fan. This enables us to directly
 interpret lambda as the normal in the secondary cone.
 
-**Arguments:**
-- `facets`:    The facets of the fan (not just the VC...). I.e., codim-1
-cones.
-- `verbosity`: The verbosity level. Higher is more verbose.
+Parameters
+----------
+facets : dict[Iterable[int], Iterable[Iterable[int]]] | None, optional
+    The facets of the fan (not just the VC...). I.e., codim-1 cones. Defaults to None.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-A list of Circuit objects for all circuits embedded in the fan.
+Returns
+-------
+out : list[Circuit]
+    A list of Circuit objects for all circuits embedded in the fan.
 
 <a id="fan.Fan.star"></a>
 
@@ -904,16 +1750,20 @@ A list of Circuit objects for all circuits embedded in the fan.
 def star(cell: Iterable[int], old_way: bool = False) -> Iterable[tuple[int]]
 ```
 
-**Description:**
 Compute the star of some cell. This is the subcomplex of all cones
 containing the cell (and their faces)
 
-**Arguments:**
-- `cell`:    The cell of interest.
-- `old_way`: Whether to do the computation in an old/slow manner.
+Parameters
+----------
+cell : Iterable[int]
+    The cell of interest.
+old_way : bool, optional
+    Whether to do the computation in an old/slow manner. Defaults to False.
 
-**Returns:**
-A list of all solid cones (as tuples of ints) containing the cell.
+Returns
+-------
+out : Iterable[tuple[int]]
+    A list of all solid cones (as tuples of ints) containing the cell.
 
 <a id="fan.Fan.link"></a>
 
@@ -926,15 +1776,18 @@ A list of all solid cones (as tuples of ints) containing the cell.
 def link(cell: Iterable[int]) -> list[tuple[int]]
 ```
 
-**Description:**
 Compute the link of some cell. This is the subcomplex of all cones in
 the star that don't intersect the cell.
 
-**Arguments:**
-- `cell`: The cell of interest.
+Parameters
+----------
+cell : Iterable[int]
+    The cell of interest.
 
-**Returns:**
-The link.
+Returns
+-------
+out : list[tuple[int]]
+    The link.
 
 <a id="fan.Fan.embed"></a>
 
@@ -948,16 +1801,20 @@ def embed(cell: Iterable[int],
           link: Iterable[Iterable[int]]) -> list[tuple[int]]
 ```
 
-**Description:**
 Embed some cell into the Fan by combining it with each cell in the link.
 
-**Arguments:**
-- `cell`: The cell of interest.
-- `link`: The link of said cell.
+Parameters
+----------
+cell : Iterable[int]
+    The cell of interest.
+link : Iterable[Iterable[int]]
+    The link of said cell.
 
-**Returns:**
-A list of solid cones representing the embedding of the cell into the
-Fan via the link.
+Returns
+-------
+out : list[tuple[int]]
+    A list of solid cones representing the embedding of the cell into the
+    Fan via the link.
 
 <a id="fan.Fan.flip"></a>
 
@@ -972,17 +1829,21 @@ def flip(circ: Circuit,
          verbosity: int = 0) -> Fan | tuple[tuple[int]]
 ```
 
-**Description:**
 Make a flip across a circuit.
 
-**Arguments:**
-- `circ`:      The circuit to flip through.
-- `formal`:    Whether to return a formal Fan (otherwise, just a tuple
-of cones).
-- `verbosity`: The verbosity level. Higher is more verbose.
+Parameters
+----------
+circ : Circuit
+    The circuit to flip through.
+formal : bool, optional
+    Whether to return a formal Fan (otherwise, just a tuple of cones). Defaults to True.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-The flipped Fan.
+Returns
+-------
+out : Fan | tuple[tuple[int]]
+    The flipped Fan.
 
 <a id="fan.Fan.flip_linear"></a>
 
@@ -1010,54 +1871,48 @@ def flip_linear(
 ) -> list[int | Exception, ArrayLike, Fan, ArrayLike, int]
 ```
 
-**Description:**
 Compute all flips along the linear height homotopy
-t*h_target + (1-t)*h_init
+    t*h_target + (1-t)*h_init
 for t=0 increasing to t=1.
 
 Allow early stops of this homotopy at a certain number `max_N_flips` of
 flips. Also allow early stopping upon the following conditions
-- (default True) reaching a deletion flip or
-- (default False) hitting a fan that respects the point config.
+    - (default True) reaching a deletion flip or
+    - (default False) hitting a fan that respects the point config.
 
-**Arguments:**
-(defining the homotopy)
-- `h_target`:         The target heights.
-- `direction`:        The direction to travel.
-- `h_init`:           The initial heights (regular triangulations don't
-have unique heights, even up to scaling... any h
-in the secondary cone is valid. If this is left
-unset, then arbitrary valid heights are chosen)
-(early stopping)
-- `max_N_flips`:      The maximum number of flips allowed.
-- `stop_at_deletion`: Whether to early-terminate the homotopy at any
-deletion flip seen.
-- `stop_at_pct`:      Whether to early-terminate the homotopy at any
-fan that respects the point configuration.
-(sanity checks)
-- `check_regularity`: This method is inherently regular (it uses
-heights...). We can check the regularty of the
-initial fan.
-(record keeping)
-- `record_fans`:      Whether to record the fans seen along the
-homotopy.
-- `record_circs`:     Whether to record the circuits flipped along the
-homotopy.
-(numerical parameters)
-- `eps`:              A small number for an allowed violation of heights
-landing outside the secondary fan (in case the
-heights 'truly' landed on a wall of the secondary
-fan). Such violations are naturally resolved by
-pulling heights back into the secondary fan.
-(diagnostics)
-- `verbosity`:        The verbosity level. Higher is more verbose.
+Parameters
+----------
+h_target : Iterable[float] | None, optional
+    The target heights. Defaults to None.
+direction : Iterable[float] | None, optional
+    The direction to travel. Defaults to None.
+h_init : Iterable[float] | None, optional
+    The initial heights (regular triangulations don't have unique heights, even up to scaling... any h in the secondary cone is valid. If this is left unset, then arbitrary valid heights are chosen) (early stopping). Defaults to None.
+max_N_flips : int | None, optional
+    The maximum number of flips allowed. Defaults to None.
+stop_at_deletion : bool, optional
+    Whether to early-terminate the homotopy at any deletion flip seen. Defaults to True.
+stop_at_pct : bool, optional
+    Whether to early-terminate the homotopy at any fan that respects the point configuration. (sanity checks). Defaults to False.
+check_regularity : bool, optional
+    This method is inherently regular (it uses heights...). We can check the regularty of the initial fan. (record keeping). Defaults to True.
+record_fans : bool, optional
+    Whether to record the fans seen along the homotopy. Defaults to False.
+record_circs : bool, optional
+    Whether to record the circuits flipped along the homotopy. (numerical parameters). Defaults to False.
+eps : float, optional
+    A small number for an allowed violation of heights landing outside the secondary fan (in case the heights 'truly' landed on a wall of the secondary fan). Such violations are naturally resolved by pulling heights back into the secondary fan. (diagnostics). Defaults to 1e-08.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-- The status of the homotopy. Either 1 (if successful) or an Exception.
-- The current heights at the end of the homotopy. Not always h_target.
-- The associated fan at the end of the homotopy.
-- The hyperplanes of the secondary cone at the end of the homotopy.
-- The number of flips taken.
+Returns
+-------
+out : list[int | Exception, ArrayLike, Fan, ArrayLike, int]
+    - The status of the homotopy. Either 1 (if successful) or an Exception.
+    - The current heights at the end of the homotopy. Not always h_target.
+    - The associated fan at the end of the homotopy.
+    - The hyperplanes of the secondary cone at the end of the homotopy.
+    - The number of flips taken.
 
 <a id="fan.Fan.neighbors"></a>
 
@@ -1074,21 +1929,25 @@ def neighbors(
 ) -> tuple[list[Fan | tuple[tuple[int]]], list[Circuit]]
 ```
 
-**Description:**
 Compute the neighboring fans (those reachable by a single flip).
 
 Allow restrictions to only fine fans.
 
-**Arguments:**
-- `only_fine`: Whether to only compute/return fine neighbors
-- `formal`:    Whether to return the neighbors as formal fans (if
-False, just return cones).
-- `verbosity`: The verbosity level. Higher is more verbose.
+Parameters
+----------
+only_fine : bool, optional
+    Whether to only compute/return fine neighbors. Defaults to False.
+formal : bool, optional
+    Whether to return the neighbors as formal fans (if False, just return cones). Defaults to True.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-- The neighbors, either as formal Fan objects or as collections of
-cones (each cone a collection of labels)
-- The circuits flipped to get the corresponding neighbors.
+Returns
+-------
+out : tuple[list[Fan | tuple[tuple[int]]], list[Circuit]]
+    - The neighbors, either as formal Fan objects or as collections of
+      cones (each cone a collection of labels)
+    - The circuits flipped to get the corresponding neighbors.
 
 <a id="fan.Fan.secondary_cone_hyperplanes"></a>
 
@@ -1102,11 +1961,10 @@ def secondary_cone_hyperplanes(via_circuits: bool = False,
                                verbosity: int = 0) -> ArrayLike
 ```
 
-**Description:**
 Compute the hyperplanes of the secondary cone associated to this fan.
 This cone has the interpretation:
-for a regular fan, a height h generates the fan iff it is in the
-relative interior of the secondary cone.
+    for a regular fan, a height h generates the fan iff it is in the
+    relative interior of the secondary cone.
 
 Irregular fans do not have heights generating them and thus do not have
 secondary cones. One way to check regularity of a simplicial fan (i.e.,
@@ -1118,15 +1976,17 @@ IRREGULARITY CHECKING ONLY WORKS IF `via_circuits=False`. WHEN
 ATTEMPTING TO COMPUTE THE SECONDARY CONE OF AN IRREGULAR FAN USING
 CIRCUITS, ONE CAN GET A FULL-DIMENSIONAL CONE!!!
 
-**Arguments:**
-- `via_circuits`:      Whether to use circuits to compute the secondary
-cone. Should always be correct if the fan is
-regular but dangerous/not correct for checking
-irregularity... Alternative is local folding.
-- `verbosity`:         The verbosity level. Higher is more verbose.
+Parameters
+----------
+via_circuits : bool, optional
+    Whether to use circuits to compute the secondary cone. Should always be correct if the fan is regular but dangerous/not correct for checking irregularity... Alternative is local folding. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-An array of hyperplanes, H, defining the cone as {x: Hx>=0}
+Returns
+-------
+H : ArrayLike
+    An array of hyperplanes, H, defining the cone as {x: Hx>=0}
 
 <a id="fan.make_fine"></a>
 
@@ -1139,14 +1999,17 @@ An array of hyperplanes, H, defining the cone as {x: Hx>=0}
 def make_fine(fan: Fan) -> Fan
 ```
 
-**Description:**
 Convert a fan to a fine fan by linear flipping
 
-**Arguments:**
-- `fan`: The initial fan.
+Parameters
+----------
+fan : Fan
+    The initial fan.
 
-**Returns:**
-A fine fan, from linearly flipping the original fan.
+Returns
+-------
+out : Fan
+    A fine fan, from linearly flipping the original fan.
 
 <a id="fan.flip_subgraph"></a>
 
@@ -1166,353 +2029,83 @@ def flip_subgraph(
         verbosity: int = 0) -> tuple[nx.Graph, list[Fan], list[dict]]
 ```
 
-**Description:**
 Compute the flip graph centered at some input 'seed' triangulation.
 
 Optionally, allow restrictions including only allowing triangulations
-- that are fewer than `max_flips` from the seed,
-- that are fine (use all vectors),
-- that are regular, and
-- that consist of triangulations which 'respect the point configuration'
-(i.e., also correspond to a fine, star triangulation of the
-associated point configuration).
+    - that are fewer than `max_flips` from the seed,
+    - that are fine (use all vectors),
+    - that are regular, and
+    - that consist of triangulations which 'respect the point configuration'
+      (i.e., also correspond to a fine, star triangulation of the
+      associated point configuration).
 If any such restrictions are applied but the seed doesn't obey them, then an
 empty graph will be output.
 
-**Arguments:**
-- `seed`:                The seed triangulation (center of flip graph).
-- `max_flips`:           Max number of flips to consider from seed.
-- `only_fine`:           Whether to restrict to fine triangulations.
-- `only_regular`:        Whether to restrict to regular triangulations.
-- `only_pc_triang`:      Whether to restrict to triangulations which
-'respect the point configuration'.
-- `compute_node_labels`: Whether to compute 'labels' for the nodes
-indicating whether the triangulation is fine,
-regular, and/or respects the point configuration.
-- `verbosity`:           The verbosity level. Higher is more verbose.
+Parameters
+----------
+seed : Fan
+    The seed triangulation (center of flip graph).
+max_flips : int | None, optional
+    Max number of flips to consider from seed. Defaults to None.
+only_fine : bool, optional
+    Whether to restrict to fine triangulations. Defaults to False.
+only_regular : bool, optional
+    Whether to restrict to regular triangulations. Defaults to True.
+only_pc_triang : bool, optional
+    Whether to restrict to triangulations which 'respect the point configuration'. Defaults to False.
+compute_node_labels : bool, optional
+    Whether to compute 'labels' for the nodes indicating whether the triangulation is fine, regular, and/or respects the point configuration. Defaults to False.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
 
-**Returns:**
-- The flip graph as a networkx.Graph object.
-- A list of the triangulations
-- A list of the labels for each triangulation (labels are a dictionary from
-the property to a bool)
+Returns
+-------
+out : tuple[nx.Graph, list[Fan], list[dict]]
+    - The flip graph as a networkx.Graph object.
+    - A list of the triangulations
+    - A list of the labels for each triangulation (labels are a dictionary from
+      the property to a bool)
 
-<a id="util"></a>
+<a id="circuits"></a>
 
 ---
 
 
-# util
+# circuits
 
-<a id="util.gcd"></a>
+<a id="circuits.Circuit"></a>
 
 ---
 
 
-#### gcd
+## Circuit Objects
 
 ```python
-def gcd(vals: list[float], max_denom: float = 10**6) -> float
+class Circuit()
 ```
 
-**Description:**
-Computes the 'GCD' of a collection of floating point numbers.
-This is the smallest number, g, such that g*values is integral.
-
-This is computed by
-1) converting `values` to be rational [n0/d0, n1/d1, ...],
-2) computing the LCM, lcm, of [d0, d1, ...],
-3) computing the GCD, g', of [lcm*n0/d0, lcm*n1/d1, ...], and then
-4) returning g=g'/lcm.
-
-**Arguments:**
-- `vals`:      The numbers to compute the GCD of.
-- `max_denom`: Assert |di| <= max_denom
-
-**Returns:**
-The minimum number g' such that g'*vals is integral.
-
-<a id="util.primitive"></a>
-
----
-
-
-#### primitive
-
-```python
-def primitive(vec: list[float], max_denom=10**6)
-```
-
-**Description:**
-Computes the primitive vector associated to the input ray {c*vec: c>=0}.
-Very similar to the gcd function.
-
-This is equivalent to
-vec/gcd(vec)
-but just uses a rational representation.
-
-**Arguments:**
-- `vec`:       A vector defining the ray {c*vec: c>=0}
-- `max_denom`: Assert |di| <= max_denom
-
-**Returns:**
-The primitive vector along the ray.
-
-<a id="util.lerp"></a>
-
----
-
-
-#### lerp
-
-```python
-def lerp(p0: ArrayLike, p1: ArrayLike, t: float) -> ArrayLike
-```
-
-**Description:**
-Computes the point specified by t along the line passing through p0 and p1.
-
-Particular values:
--) t=0   -> p0
--) t=0.5 -> (p0+p1)/2
--) t=1   -> p1
-
-**Arguments:**
-- `p0`: One point.
-- `p1`: The other point.
-- `t`:  Parameter specifying where along the line Conv({p0, p1}) to return.
-
-**Returns:**
-The point p0 + t*(p1-p0).
-
-<a id="util.first_hit"></a>
-
----
-
-
-#### first\_hit
-
-```python
-def first_hit(p0: ArrayLike,
-              p1: ArrayLike,
-              H: ArrayLike,
-              verbosity: int = 0) -> (int, float)
-```
-
-**Description:**
-Given a point p0 in a convex cone {x: Hx>=0}, find the first hyperplane hit
-along the direction (p1-p0). I.e., the first intersection of the ray
-{p0+t*(p1-p0): t>=0} with the cones bounding hyperplanes.
-
-Allow violated hyperplanes (i.e., n such that n.p0 < 0) but ignore them.
-
-**Arguments:**
-- `p0`:         One point.
-- `p1`:         The other point.
-- `H`:          An array of hyperplane normals (as rows).
-- `verbosity`:  The verbosity level. Higher is more verbose.
-
-**Returns:**
-The index, i, of the first-hit hyperplane.
-The distance, t, such that dot(H[i], lerp(p0,p1,t)) = 0.
-
-<a id="util.dual_cone"></a>
-
----
-
-
-#### dual\_cone
-
-```python
-def dual_cone(data: ArrayLike) -> ArrayLike
-```
-
-**Description:**
-Compute the data of the cone dual to the input 'primal' cone.
-
-This can be thought of in a couple of equivalent ways, summarized in the
-following table. E.g., if rays of the primal are input, then the
-hyperplanes of the primal are output (or, equivalently, the rays of the
-dual).
-
-INPUT       | PRIMAL OUTPUT | DUAL OUTPUT
------------------------------------------
-rays        | hyperplanes   | rays
-hyperplanes | rays          | hyperplanes
-
-
-For simplicity in the following discussion, take the convention that one
-maps hyperplanes of the primal to rays of the primal.
-
-**Arguments:**
-- `data`: An array whose rows represent rays of the primal cone. (see table)
-
-**Returns:**
-An array whose rows represent hyperplanes of the primal cone. (see table)
-
-<a id="util.cone_dim"></a>
-
----
-
-
-#### cone\_dim
-
-```python
-def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int
-```
-
-**Description:**
-Return the dimension of the cone.
-
-The cone is either specified via rays,
-{R.T @ lambda: lambda>=0},
-or via hyperplanes,
-{x: H @ x>=0}.
-
-**Arguments:**
-- `R`: The rays of the cone as rows.
-- `H`: The hyperplanes defining the cone.
-
-**Returns:**
-The dimension of the cone
-
-<a id="util.is_solid"></a>
-
----
-
-
-#### is\_solid
-
-```python
-def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool
-```
-
-**Description:**
-Return whether the cone is full-dimensional.
-
-The cone is either specified via rays,
-{R.T @ lambda: lambda>=0},
-or via hyperplanes,
-{x: H @ x>=0}.
-
-**Arguments:**
-- `R`: The rays of the cone as rows.
-- `H`: The hyperplanes defining the cone.
-
-**Returns:**
-Whether the cone is full-dimensional.
-
-<a id="util.contains"></a>
-
----
-
-
-#### contains
-
-```python
-def contains(*,
-             p: ArrayLike,
-             R: ArrayLike = None,
-             H: ArrayLike = None) -> bool
-```
-
-**Description:**
-Return if the point p is contained in the cone.
-
-The cone is either specified via rays,
-{R.T @ lambda: lambda>=0},
-or via hyperplanes,
-{x: H @ x>=0}.
-
-**Arguments:**
-- `p`: The query point.
-- `R`: The rays of the cone as rows.
-- `H`: The hyperplanes defining the cone.
-
-**Returns:**
-Whether p is contained in the cone.
-
-<a id="util.find_interior_point"></a>
-
----
-
-
-#### find\_interior\_point
-
-```python
-def find_interior_point(*,
-                        R: ArrayLike = None,
-                        H: ArrayLike = None,
-                        stretching: float = 1,
-                        nonneg: bool = False,
-                        verbosity: int = 0) -> ArrayLike | None
-```
-
-**Description:**
-Returns a point p in the strict interior of a cone. The cone can be
-specified either via its rays or its generators.
-
-If no point p exists, return `None`.
-
-Modified from CYTools' `Cone.find_interior_point`.
-
-**Arguments:**
-- `R`:          Generators defining the cone.
-- `H`:          Hyperplanes defining the cone.
-- `stretching`: How far p must be from any hyperplane.
-- `nonneg`:     Whether to restrict to non-negative vectors.
-- `verbosity`:  The verbosity level.
-
-**Returns:**
-A point p in the strict interior.
-
-<a id="__init__"></a>
-
----
-
-
-# \_\_init\_\_
-
-<a id="vectorconfig"></a>
-
----
-
-
-# vectorconfig
-
-<a id="vectorconfig.VectorConfiguration"></a>
-
----
-
-
-## VectorConfiguration Objects
-
-```python
-class VectorConfiguration()
-```
-
-This class handles definition/operations on vector configurations. It is
-analogous to CYTools' Polytope class. This object can be triangulated,
-making a simplicial fan.
-
-**Description:**
-Constructs a `VectorConfiguration` object describing a lattice vector
-configuration. This is handled by the hidden
-[`__init__`](#__init__) function.
-
-**Arguments:**
-- `vectors`:    The vectors defining the VC.
-- `labels`:     A list of labels for the vectors. Only integral labels are
-allowed.
-- `eps`:        Threshold for checking for non-integral vectors.
-- `gale_basis`: An optional basis for the gale transform. If provided, then
-the gale transform will be put in a basis such that the
-submatrix given by these labels equals the identity.
-
-**Returns:**
-Nothing.
-
-<a id="vectorconfig.VectorConfiguration.__init__"></a>
+This class is a helper data structure to contain a single circuit of some
+vector configuration.
+
+Constructs a `Circuit` object describing a circuit of a vector
+configuration.
+
+Parameters
+----------
+vc : VectorConfiguration
+    The ambient vector configuration.
+Z : Iterable[int]
+    The support of the circuit.
+Zpos : Iterable[int]
+    The 'positive' side of the circuit.
+Zneg : Iterable[int]
+    The 'negative' side of the circuit.
+lmbda : ArrayLike
+    A dependency vector demonstrating the circuit.
+signature : tuple[int, int]
+    The signature (|Zpos|, |Zneg|) of the circuit.
+
+<a id="circuits.Circuit.__init__"></a>
 
 ---
 
@@ -1520,131 +2113,140 @@ Nothing.
 #### \_\_init\_\_
 
 ```python
-def __init__(vectors: ArrayLike,
-             labels: Iterable[int] | None = None,
-             eps: float = 1e-4,
-             gale_basis: Iterable[int] | None = None) -> None
+def __init__(vc, Z, Zpos, Zneg, lmbda, signature) -> None
 ```
 
-**Description:**
-Initializes a `VectorConfiguration` object.
+Initializes a `Circuit` object.
 
-**Arguments:**
-- `vectors`:    The vectors defining the VC.
-- `labels`:     A list of integer labels for the vectors. Only integral
-labels are allowed.
-- `eps`:        Threshold for checking for non-integral vectors.
-- `gale_basis`: An optional basis for the gale transform. If provided,
-then the gale transform will be put in a basis such that
-the submatrix given by these labels equals the identity.
+Parameters
+----------
+vc : VectorConfiguration
+    The ambient vector configuration.
+Z : Iterable[int]
+    The support of the circuit.
+Zpos : Iterable[int]
+    The 'positive' side of the circuit.
+Zneg : Iterable[int]
+    The 'negative' side of the circuit.
+lmbda : ArrayLike
+    A dependency vector demonstrating the circuit.
+signature : tuple[int, int]
+    The signature (|Zpos|, |Zneg|) of the circuit.
 
-**Returns:**
-Nothing.
-
-<a id="vectorconfig.VectorConfiguration.__repr__"></a>
+<a id="circuits.Circuits"></a>
 
 ---
 
 
-#### \_\_repr\_\_
+## Circuits Objects
 
 ```python
-def __repr__() -> str
+class Circuits()
 ```
 
-**Description:**
-String representation of the VectorConfiguration.
-(more detailed than __str__)
+This class is a helper data structure to contain the circuits of some
+vector configuration.
 
-**Arguments:**
-None.
+Constructs a `Circuits` object describing all circuits of some VC.
 
-**Returns:**
-String representation of the object.
-
-<a id="vectorconfig.VectorConfiguration.__str__"></a>
+<a id="circuits.Circuits.__init__"></a>
 
 ---
 
 
-#### \_\_str\_\_
+#### \_\_init\_\_
 
 ```python
-def __str__() -> str
+def __init__() -> None
 ```
 
-**Description:**
-String description of the VectorConfiguration.
-(less detailed than __repr__ but more readable)
+Initializes a `Circuits` object.
 
-**Arguments:**
-None.
-
-**Returns:**
-String description of the object.
-
-<a id="vectorconfig.VectorConfiguration.__hash__"></a>
+<a id="circuits.Circuits.__getitem__"></a>
 
 ---
 
 
-#### \_\_hash\_\_
+#### \_\_getitem\_\_
 
 ```python
-def __hash__() -> int
+def __getitem__(label_inds: Iterable[int]) -> Circuit | int
 ```
 
-**Description:**
-Hash for the vector configuration. Defined by hashing a dictionary from
-labels to vectors.
+Get the circuit corresponding to the indicated indices.
 
-**Arguments:**
-None.
+Parameters
+----------
+label_inds : Iterable[int]
+    The iterable of vector/label indices.
 
-**Returns:**
-The hash.
+Returns
+-------
+out : Circuit | int
+    Cases
+        - if indices correspond to known circuit -> the `Circuit`
+        - if indices correspond to non-circuit   -> -1
+        - if indices aren't known                -> 0
 
-<a id="vectorconfig.VectorConfiguration.__eq__"></a>
+<a id="circuits.Circuits.set_circuit"></a>
 
 ---
 
 
-#### \_\_eq\_\_
+#### set\_circuit
 
 ```python
-def __eq__(o: VectorConfiguration) -> bool
+def set_circuit(circuit: Circuit, verbosity: int = 0) -> None
 ```
 
-**Description:**
-Equality checking between two VectorConfiguration objects.
+Set the circuit properties corresponding to the indicated indices.
 
-**Arguments:**
-- `o`: The other VectorConfiguration to compare against.
+Parameters
+----------
+circuit : Circuit
+    A Circuit object.
+verbosity : int, optional
+    The verbosity level. Defaults to 0.
 
-**Returns:**
-True if self==o. False if self!=o.
-
-<a id="vectorconfig.VectorConfiguration.__ne__"></a>
+<a id="circuits.Circuits.set_non_dependency"></a>
 
 ---
 
 
-#### \_\_ne\_\_
+#### set\_non\_dependency
 
 ```python
-def __ne__(o: VectorConfiguration) -> bool
+def set_non_dependency(label_inds: Iterable[int], verbosity: int = 0) -> None
 ```
 
-**Description:**
-Inequality checking between two VectorConfiguration objects.
+Record a set of points that is not dependent
 
-**Arguments:**
-- `o`: The other VectorConfiguration to compare against.
+Parameters
+----------
+label_inds : Iterable[int]
+    The iterable of vector/label indices.
+verbosity : int, optional
+    The verbosity level. Defaults to 0.
 
-**Returns:**
-True if self!=o. False if self==o.
+<a id="circuits.Circuits.values"></a>
 
-<a id="vectorconfig.VectorConfiguration.copy"></a>
+---
+
+
+#### values
+
+```python
+def values() -> Iterable[Circuit]
+```
+
+Get the values (the actual circuits)
+
+Returns
+-------
+out : Iterable[Circuit]
+    The circuits.
+
+<a id="circuits.Circuits.copy"></a>
 
 ---
 
@@ -1652,642 +2254,131 @@ True if self!=o. False if self==o.
 #### copy
 
 ```python
-def copy() -> VectorConfiguration
+def copy() -> Circuits
 ```
 
-**Description:**
-Copy method.
+Copy the circuits object
 
-**Arguments:**
-None.
+Returns
+-------
+out : Circuits
+    A copy of the circuits.
 
-**Returns:**
-A copy of the vector configuration.
-
-<a id="vectorconfig.VectorConfiguration.labels"></a>
+<a id="circuits.Circuits.pop"></a>
 
 ---
 
 
-#### labels
+#### pop
 
 ```python
-@property
-def labels() -> tuple[int]
+def pop(*args, **kwargs)
 ```
 
-**Description:**
-Returns the labels of the vectors in the VC.
+Pop an element from the circuits dict
 
-**Arguments:**
-None.
-
-**Returns:**
-The labels of the vectors in the VC.
-
-<a id="vectorconfig.VectorConfiguration.labels_to_inds_dict"></a>
+<a id="circuits.Circuits.encode"></a>
 
 ---
 
 
-#### labels\_to\_inds\_dict
+#### encode
 
 ```python
-@property
-def labels_to_inds_dict() -> dict[int, int]
+def encode(label_inds: Iterable[int]) -> int
 ```
 
-**Description:**
-Returns a dictionary mapping vector labels to their indices in the
-vector configuration.
+Convert an iterable of integers to a binary vector, b, such that
+    b_i = 1 <=> i in label_inds
 
-**Arguments:**
-None.
+Parameters
+----------
+label_inds : Iterable[int]
+    The iterable of integers.
 
-**Returns:**
-The mapping from labels to indices.
+Returns
+-------
+out : int
+    The encoding
 
-<a id="vectorconfig.VectorConfiguration.size"></a>
+<a id="circuits.Circuits.decode"></a>
 
 ---
 
 
-#### size
+#### decode
 
 ```python
-@property
-def size() -> int
+def decode(encoding) -> list[int]
 ```
 
-**Description:**
-Returns the number of the vectors in the VC.
+Convert a binary vector b to a list of integers such that
+    b_i = 1 <=> i in label_inds
 
-**Arguments:**
-None.
+Parameters
+----------
+encoding : int
+    The encoding to map to label indices
 
-**Returns:**
-The number of the vectors in the VC.
+Returns
+-------
+out : list[int]
+    The label indices
 
-<a id="vectorconfig.VectorConfiguration.ambient_dim"></a>
+<a id="circuits.Circuits.is_superset"></a>
 
 ---
 
 
-#### ambient\_dim
+#### is\_superset
 
 ```python
-@property
-def ambient_dim() -> int
+def is_superset(setA, setB) -> bool
 ```
 
-**Description:**
-Returns the ambient dimension of the VC.
+Check if the set encoded by setA is a superset of setB.
 
-**Arguments:**
-None.
+Parameters
+----------
+setA : int
+    The candidate-superset encoding.
+setB : int
+    The candidate-subset encoding.
 
-**Returns:**
-The ambient dimension of the VC.
+Returns
+-------
+out : bool
+    Whether setA is a superset of setB.
 
-<a id="vectorconfig.VectorConfiguration.dim"></a>
+<a id="circuits.Circuits.is_subset"></a>
 
 ---
 
 
-#### dim
+#### is\_subset
 
 ```python
-@property
-def dim() -> int
+def is_subset(setA: int, setB: int) -> bool
 ```
 
-**Description:**
-Returns the dimension of the VC. I.e., the dimension of the subspace
-spanned by the vectors.
+Check if the set encoded by setA is a subset of setB.
 
-**Arguments:**
-None.
+Parameters
+----------
+setA : int
+    The candidate-subset encoding.
+setB : int
+    The candidate-superset encoding.
 
-**Returns:**
-The dimension of the VC.
+Returns
+-------
+out : bool
+    Whether setA is a subset of setB.
 
-<a id="vectorconfig.VectorConfiguration.vectors"></a>
+<a id="__init__"></a>
 
 ---
 
 
-#### vectors
-
-```python
-def vectors(which: int | Iterable[int] | None = None) -> ArrayLike
-```
-
-**Description:**
-Returns the vectors, optionally only those with given labels.
-
-**Arguments:**
-- `which`: Either a single label, for which the single corresponding
-vector will be returned, or a list of labels. If not
-provided, then all vectors are returned.
-
-**Returns:**
-The corresponding vector(s), in order specified by which.
-
-<a id="vectorconfig.VectorConfiguration.vectors_to_labels"></a>
-
----
-
-
-#### vectors\_to\_labels
-
-```python
-def vectors_to_labels(vectors: ArrayLike) -> int | list[int]
-```
-
-**Description:**
-Maps the vectors to their corresponding labels
-
-**Arguments:**
-- `vectors`: Either a single vector, for which the single corresponding
-label will be returned, or a list of vectors.
-
-**Returns:**
-The corresponding label(s).
-
-<a id="vectorconfig.VectorConfiguration.labels_to_inds"></a>
-
----
-
-
-#### labels\_to\_inds
-
-```python
-def labels_to_inds(labels: Iterable[int],
-                   ambient_labels: Iterable[int] | None = None,
-                   offset: int = 0) -> int | Iterable[int]
-```
-
-**Description:**
-Maps the labels to their indices in ambient_labels, optionally with a
-fixed offset.
-
-**Arguments:**
-- `labels`:         The labels of interest.
-- `ambient_labels`: The ambient labels to get the indices in. If None,
-use all labels of the VectorConfiguration.
-- `offset`:         Return i+offset for i the index of a label in
-ambient_labels.
-
-**Returns:**
-The indices of the labels.
-
-<a id="vectorconfig.VectorConfiguration.is_solid"></a>
-
----
-
-
-#### is\_solid
-
-```python
-def is_solid() -> bool
-```
-
-**Description:**
-Return whether or not the VC is full-dimensional.
-
-**Arguments:**
-None.
-
-**Returns:**
-True if the VC is full-dimensional. False otherwise.
-
-<a id="vectorconfig.VectorConfiguration.is_totally_cyclic"></a>
-
----
-
-
-#### is\_totally\_cyclic
-
-```python
-def is_totally_cyclic() -> bool
-```
-
-**Description:**
-Return whether or not the VC is totally cyclic. That is, whether
-self.conv() equals the subspace containing it (the supporting
-hyperplane).
-
-**Arguments:**
-None.
-
-**Returns:**
-True if the VC is totally cyclic. False otherwise.
-
-<a id="vectorconfig.VectorConfiguration.is_acyclic"></a>
-
----
-
-
-#### is\_acyclic
-
-```python
-def is_acyclic() -> bool
-```
-
-**Description:**
-Return whether or not the VC is acyclic. That is, whether there exists
-some direction psi such that
-psi.vi > 0 for all vi.
-
-This is equivalent to defining the cone {x: vi.x >= 0} and checking if
-it is full-dimensional.
-
-**Arguments:**
-None.
-
-**Returns:**
-True if the VC is acyclic. False otherwise.
-
-<a id="vectorconfig.VectorConfiguration.support"></a>
-
----
-
-
-#### support
-
-```python
-def support() -> ArrayLike
-```
-
-**Description:**
-Get the support of the vector configuration as a hyperplane
-representation.
-
-**Arguments:**
-None.
-
-**Returns:**
-The hyperplanes defining the support.
-
-<a id="vectorconfig.VectorConfiguration.cone_contains"></a>
-
----
-
-
-#### cone\_contains
-
-```python
-def cone_contains(cone_labels: Iterable[int],
-                  vec_label: Iterable[int],
-                  strict: bool = False) -> bool
-```
-
-**Description:**
-Check if a cone, specified by cone_labels, contains the ray specified
-by vec_label.
-
-I.e., if
-H = self.cone(cone_labels).hyperplanes()
-v = self.vectors(vec_label)
-H@v >= int(strict)
-
-**Arguments:**
-- `cone_labels`: The labels of vectors defining the cone.
-- `vec_label`:   The label of the vector to check.
-- `strict`:      Whether to check if the vector is in the strict
-interior.
-
-**Returns:**
-Whether the associated cone contains the vector.
-
-<a id="vectorconfig.VectorConfiguration.gale"></a>
-
----
-
-
-#### gale
-
-```python
-def gale(set_basis: bool = False) -> ArrayLike
-```
-
-**Description:**
-Compute the gale transform of the config.
-
-I.e., a basis of the null-space of the vectors.
-
-**Arguments:**
-- `set_basis`: Whether to set a particular basis of the Gale transform.
-
-**Returns:**
-The gale transform.
-
-<a id="vectorconfig.VectorConfiguration.project"></a>
-
----
-
-
-#### project
-
-```python
-def project(vec: ArrayLike) -> ArrayLike
-```
-
-**Description:**
-Project down a vector from height-space to chamber-space.
-
-**Arguments:**
-- `vec`: The height-space vector.
-
-**Returns:**
-The chamber-space vector.
-
-<a id="vectorconfig.VectorConfiguration.jorp"></a>
-
----
-
-
-#### jorp
-
-```python
-def jorp(vec: ArrayLike) -> ArrayLike
-```
-
-**Description:**
-Undo a projection from height-space to chamber-space.
-
-I.e., map from chamber-space to height-space
-
-**Arguments:**
-- `vec`: The chamber-space vector.
-
-**Returns:**
-The height-space vector.
-
-<a id="vectorconfig.VectorConfiguration.triangulate"></a>
-
----
-
-
-#### triangulate
-
-```python
-def triangulate(heights: ArrayLike | None = None,
-                cells: ArrayLike | None = None,
-                tol: float = 1e-14,
-                backend: str | None = None,
-                make_fine: bool = None,
-                check_heights: bool = True,
-                cure_heights: bool = True,
-                verbosity: int = 0) -> Fan
-```
-
-**Description:**
-Subdivide the vector configuration either by specified cells/simplices
-or by heights.
-
-**Arguments:**
-- `heights`:       The heights to lift the vectors by.
-- `cells`:         The cells to use in the triangulation.
-- `tol`:           Numerical tolerance used for curing negative heights
-- `backend`:       The lifting backend. Currently allowed to be "cgal"
-or "ppl".
-- `make_fine`:     Convert the triangulation to a fine triangulation, if
-not already fine.
-- `check_heights`: Whether to check that the heights land in the
-secondary cone of the output triangulation.
-- `cure_heights`:  If the heights do not land in the secondary cone, try
-to cure them by linear flipping towards the heights.
-- `verbosity`:     The verbosity level. Higher is more verbose
-
-**Returns:**
-The resultant subdivision.
-
-<a id="vectorconfig.VectorConfiguration.all_triangulations"></a>
-
----
-
-
-#### all\_triangulations
-
-```python
-def all_triangulations(only_fine: bool = False,
-                       only_regular: bool = True,
-                       verbosity: int = 0) -> list[Fan]
-```
-
-**Description:**
-Generate all triangulations of this vector configuration via taking
-flips from some regular triangulation.
-
-NOTE: In theory, this might miss an irregular triangulation that is
-disconnected from the regular triangulations.
-
-Such irregular triangulations exist (see "A Point Set Whose Space of
-Triangulations is Disconnected" by Santos) but are likely exceedingly
-rare. E.g., it is unknown whether such cases can occur in 4D.
-
-Could instead compute this via computing incidence vectors but that'd
-be *much* slower. Roughly, this would be to
-1) compute all possible simplices
-2) if there are N possible simplices, construct an N-dim space
-3) define all 0/1-vectors. For each 0/1-vector, check if it defines
-a valid triangulation. If so, save it
-The incidence vector strategy is analogous to rejection sampling and
-will be much slower than the flip-based method, but it would see *all*
-triangulations.
-
-**Arguments:**
-- `only_fine`:    Whether to restrict to fine triangulations
-- `only_regular`: Whether to restrict to regular triangulations
-- `verbosity`:    The verbosity level. Higher is more verbose.
-
-**Returns:**
-A list of Fan objects, one for each triangulation of the VC.
-
-<a id="vectorconfig.VectorConfiguration.random_triangulations_fast"></a>
-
----
-
-
-#### random\_triangulations\_fast
-
-```python
-def random_triangulations_fast(
-        method: str = "delaunay",
-        h0: ArrayLike | None = None,
-        sigma: float = 0.1,
-        N: int | None = None,
-        as_list: bool = False,
-        attempts_per_triang: int = 1000,
-        backend: str | None = None,
-        seed: int = 0,
-        verbosity: int = 0) -> Generator[Fan] | list[Fan]
-```
-
-**Description:**
-Generate random regular triangulations by picking random heights.
-
-**Arguments:**
-- `method`:             Either "delaunay" or "isotropic". The former
-picks heights around some input height (e.g.,
-the Delaunay heights). The latter picks
-heights isotropically
-- `h0`:                 The reference heights, for Delaunay method.
-- `sigma`:              How big of a distribution to study around h0.
-- `N`:                  The number of triangulations to generate. If
-as_list, then code will keep track of all
-triangulations, retrying at most
-attempts_per_triang tries to get a new
-triangulation until the list has N triangs.
-O/w, then the first N height vectors are used
-(regardless of duplicates).
-- `as_list`:            Whether to return the triangulations as a list,
-or as a generator.
-- `attempts_per_triang`: Quit if we can't generate a new triangulation
-after this many tries.
-- `backend`:            The lifting backend. See
-`VectorConfiguration.triangulate`.
-- `seed`:               A random number seed.
-- `verbosity`:          The verbosity level. Higher is more verbose.
-
-**Returns:**
-The random triangulations.
-
-<a id="vectorconfig.VectorConfiguration.circuit"></a>
-
----
-
-
-#### circuit
-
-```python
-def circuit(labels: Iterable[int],
-            lmbda: Iterable | None = None,
-            set_non_dependencies: bool = True,
-            save_circuits: bool = True) -> Circuit
-```
-
-**Description:**
-Format/compute the circuit corresponding to the specified labels.
-
-**Arguments:**
-- `labels`:               Labels indicating the vectors in the circuit.
-- `lmbda`:                Vector demonstrating the dependence.
-- `set_non_dependencies`: Whether to update our list of non-circuits.
-- `save_circuits`:        Whether to save circuits... best to keep True
-for most circumstances.
-
-**Returns:**
-Circuit object containing
-- the support of the circuit as property 'Z',
-- the signed circuit as property 'Zpos' and 'Zneg',
-- the dependency as property 'lmbda', and
-- the signature as property 'signature'.
-
-<a id="vectorconfig.VectorConfiguration.circuits"></a>
-
----
-
-
-#### circuits
-
-```python
-def circuits(verbosity: int = 0) -> list[Circuit]
-```
-
-**Description:**
-Compute all possible circuits of this vector configuration.
-
-**Arguments:**
-- `verbosity`: The verbosity level. Higher is more verbose.
-
-**Returns:**
-A list of Circuit objects.
-
-<a id="vectorconfig.VectorConfiguration.flip_graph"></a>
-
----
-
-
-#### flip\_graph
-
-```python
-def flip_graph(max_flips: int | None = None,
-               only_fine: bool = False,
-               only_regular: bool = True,
-               only_pc_triang: bool = False,
-               compute_node_labels: bool = False,
-               verbosity: int = 0) -> (nx.Graph, list[Fan], list[dict])
-```
-
-**Description:**
-Compute the flip graph. Wrapper for flip_subgraph.
-
-**Arguments:**
-- `max_flips`:           The maximum number of flips to take from the
-seed. If none is provided, then the entire flip
-graph is calculated.
-- `only_fine`:           Whether to only compute fine triangulations.
-- `only_regular`:        Whether to only compute regular triangulations.
-Note, we never will see irregular
-triangulations that are not connected to
-regular ones.
-- `only_pc_triang`:      Whether to only compute triangulations
-that also correspond to star triangulations of
-the underlying point config.
-- `compute_node_labels`: Whether to check whether each node is fine,
-regular, and a PC triangulation.
-- `verbosity`:           The verbosity level. Higher is more verbose.
-
-**Returns:**
-- The flip graph as a networkx.Graph object.
-- A list of the triangulations
-- A list of the labels for each triangulation (labels are a
-dictionary from the property to a bool)
-
-<a id="vectorconfig.VectorConfiguration.secondary_fan"></a>
-
----
-
-
-#### secondary\_fan
-
-```python
-def secondary_fan(only_fine: bool = False,
-                  formal_fan: bool = False,
-                  verbosity: int = 0)
-```
-
-**Description:**
-Compute the secondary fan of the vector configuration.
-
-**Arguments:**
-- `only_fine`:  Restrict to fine triangulations.
-- `formal_fan`: Save as a formal Fan object.
-- `verbosity`:  The verbosity level. Higher is more verbose
-
-**Returns:**
-The secondary fan triangulations.
-
-<a id="vectorconfig.VectorConfiguration.central_fan"></a>
-
----
-
-
-#### central\_fan
-
-```python
-def central_fan() -> Fan
-```
-
-**Description:**
-Generate the central fan of the vector configuration. Can be defined
-as lifting each vector by a height of 1.
-
-**Arguments:**
-None.
-
-**Returns:**
-The central fan.
+# \_\_init\_\_
 
