@@ -403,6 +403,9 @@ class Fan:
         Returns the facets of the cones. Save them as a dictionary from facet
         labels to a list of containing cones, stored by their labels.
 
+        Only implemented for simplicial fans (triangulations), the intended
+        use case; raises NotImplementedError otherwise.
+
         Returns
         -------
         out : dict[tuple[int], list[tuple[int]]]
@@ -532,6 +535,9 @@ class Fan:
         """
         Return whether or not the fan also defines a (star) subdivision of the
         original underlying point configuration.
+
+        Only implemented for regular fans, the intended use case; raises
+        NotImplementedError otherwise.
 
         Parameters
         ----------

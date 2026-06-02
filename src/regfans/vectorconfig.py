@@ -479,6 +479,9 @@ class VectorConfiguration:
         self.conv() equals the subspace containing it (the supporting
         hyperplane).
 
+        Only implemented for solid (full-dimensional) VCs, the intended use
+        case; raises NotImplementedError otherwise.
+
         Returns
         -------
         out : bool
