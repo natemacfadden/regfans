@@ -205,12 +205,11 @@ def first_hit(
     if first_hit_ind == -1:
         return None, None
 
+    # first-hit parameter solving H[first_hit_ind] @ lerp(p0, p1, t) == 0,
+    # i.e. t = -Hp0/(Hp1 - Hp0)... H is exact (integer), so for rational p0/p1
+    # this ratio is exact, but here p0/p1 are floating-point heights, so this
+    # division is the one inexact step in an otherwise exact pipeline
     first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])
-    #-np.dot(H[first_hit_ind],p0)/denoms[first_hit_ind]
-    # the above line is extremely sensitive... likely pointing to unfortunate
-    # fragility/lack of stability in the associated methods. E.g., using
-    # `-Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])` shows a tiny
-    # bit of noise but leads to crashes in the operation...
 
     return first_hit_ind, first_hit_dist
 
