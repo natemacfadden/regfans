@@ -433,6 +433,9 @@ class Fan:
         Return whether or not the cones define a valid polyhedral fan.
 
         Follows cor. 4.5.13 of "Triangulations" by De Loera, Rambau, Santos.
+        Implements the MaxMP, MaxAdjHP, and (single-point) IPP conditions; the
+        MaxAdjLP condition is a no-op for triangulations and is unimplemented
+        for subdivisions.
 
         Parameters
         ----------
@@ -574,6 +577,9 @@ class Fan:
     def is_triangulation(self) -> bool:
         """
         Return whether or not the fan is a triangulation (not a subdivision).
+
+        Only checks that every cone is a simplex; it does not separately
+        re-verify fan validity (see is_valid).
 
         Returns
         -------
