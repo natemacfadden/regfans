@@ -107,7 +107,7 @@ class VectorConfiguration:
         small_norm = np.where(norms < 0.5)[0]
 
         if len(small_norm):
-            print(
+            warnings.warn(
                 f"The vectors {[self._vectors[i] for i in small_norm]} "
                 "all had too-small norms... deleting them..."
             )
@@ -788,17 +788,7 @@ class VectorConfiguration:
             Bh = B.T@heights
             heights_new, res = sp.optimize.nnls(B.T, Bh)
             if res > tol:
-                print(f"Residuals {res} > tol {tol}...")
-                raise ValueError("Invalid heights")
-
-            # do the check
-            if False: # too slow... instead just check if we found coeffs...
-                H = sigma.hyperplanes()  # noqa: F821
-
-                if np.any(H@Bh < 0):
-                    msg =   "Heights outside support of secondary fan! "
-                    msg += f"{H@B.T@heights}"
-                    raise ValueError(msg)
+                raise ValueError(f"Invalid heights: residuals {res} > tol {tol}")
 
             # get non-negative heights
             if verbosity >= 1:

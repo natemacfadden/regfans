@@ -705,12 +705,11 @@ class Fan:
             try:
                 labels = [self.labels[i] for i in nz]
             except IndexError:
-                print()
-                print('lmbda',lmbda.tolist())
-                print('nonzero',np.where(lmbda != 0)[0])
-                print('labels',self.labels)
-                print('num labels',len(self.labels))
-                raise ValueError()
+                raise ValueError(
+                    f"label lookup failed: lmbda={lmbda.tolist()}, "
+                    f"nonzero={nz.tolist()}, labels={self.labels} "
+                    f"(num labels={len(self.labels)})"
+                )
             enforce_positive = self.labels[np.where(lmbda > 0)[0][0]]
             lmbda  = lmbda[nz]
 
@@ -1298,17 +1297,12 @@ class Fan:
                                                         h_curr,h_target,sc_curr)
             if first_hit_ind is None:
                 ftmp = self.vc.triangulate(heights=h_target)
-                print(f"vc = {self.vc.vectors().tolist()}")
-                print(f"T_curr = {T_curr.cones()}")
-                print(f"ftmp = {ftmp.cones()}")
-                print('ftmp == T_curr ',ftmp == T_curr)
-                print(np.min(sc_curr@h_curr))
-                print(np.min(sc_curr@h_target))
-                print("????")
-
                 msg = "first_hit_ind=None... should've been caught earlier... "
                 msg += f"min(H@h_curr)={np.min(sc_curr@h_curr)}; "
                 msg += f"min(H@h_target)={np.min(sc_curr@h_target)}...; "
+                msg += f"vc={self.vc.vectors().tolist()}, "
+                msg += f"T_curr={T_curr.cones()}, ftmp={ftmp.cones()}, "
+                msg += f"ftmp==T_curr={ftmp == T_curr}; "
                 msg += f"H={sc_curr.tolist()}, h_curr={h_curr.tolist()}, "
                 msg += f"h_target={h_target.tolist()}"
                 raise ValueError(msg)
@@ -1319,11 +1313,13 @@ class Fan:
                 circ = T_curr.circuit(lmbda = first_hit_normal,
                                       verbosity=verbosity-1)
             except (IndexError, ValueError):
-                print(sc_curr.shape, first_hit_ind)
-                print('curr dists', sc_curr@h_curr)
-                print('target dists', sc_curr@h_target)
-                print('h_target',h_target)
-                raise ValueError()
+                raise ValueError(
+                    f"circuit lookup failed: sc_curr.shape={sc_curr.shape}, "
+                    f"first_hit_ind={first_hit_ind}, "
+                    f"curr dists={(sc_curr@h_curr).tolist()}, "
+                    f"target dists={(sc_curr@h_target).tolist()}, "
+                    f"h_target={h_target.tolist()}"
+                )
 
             # check the circuit type
             if 0 in circ.signature:
@@ -1401,25 +1397,23 @@ class Fan:
                     assert util.contains(p=h_next, H=sc_curr)
                     h_curr = h_next
             except Exception as e:
-                print("FAIL")
-
-                dists = sc_curr@h_next
-                i = np.argmin(dists)
-                print(f"argmin           = {i}")
-                print(f"dists[argmin]    = {dists[i]}")
-                print(f"H[argmin]        = {sc_curr[i].tolist()}")
-                print(f"first_hit_normal = {first_hit_normal.tolist()}")
-                print(f"next_hit_normal  = {next_hit_normal.tolist()}")
-                print()
-                print("to reproduce the next_hit_normal call, run:")
-                print("util.first_hit(")
-                print(f"    {h_curr.tolist()},")
-                print(f"    {h_target.tolist()},")
-                print(f"    {sc_curr.tolist()}")
-                print(")")
-
-                print(end='', flush=True)
-                raise e
+                # build a diagnostic with a runnable reproduction recipe; guard
+                # its construction so a missing local can't mask the real error
+                try:
+                    dists = sc_curr@h_next
+                    i = np.argmin(dists)
+                    diag = (
+                        f"argmin={i}, dists[argmin]={dists[i]}, "
+                        f"H[argmin]={sc_curr[i].tolist()}, "
+                        f"first_hit_normal={first_hit_normal.tolist()}, "
+                        f"next_hit_normal={next_hit_normal.tolist()}. "
+                        "To reproduce the next_hit_normal call, run: "
+                        f"util.first_hit({h_curr.tolist()}, "
+                        f"{h_target.tolist()}, {sc_curr.tolist()})"
+                    )
+                except Exception:
+                    diag = "(diagnostic unavailable)"
+                raise ValueError(f"linear flip step failed: {diag}") from e
 
             # check that the heights make sense
             if util.contains(p=h_curr, H=sc_curr):
