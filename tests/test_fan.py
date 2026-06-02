@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from regfans.vectorconfig import VectorConfiguration
+from regfans.fan import Fan
 from regfans import util
 
 def test_neighbors():
@@ -88,3 +89,41 @@ def test_is_triangulation_false():
     # a single cone containing all 7 labels in 4D is NOT a triangulation
     subdiv = vc.subdivide(cells=[list(vc.labels)])
     assert not subdiv.is_triangulation()
+
+def test_is_regular_false_santos_patching():
+    # Santos patching example (Kaibel-Ziegler 2003): two fine *regular*
+    # triangulations of [0,2]x[0,4] patched into a single *irregular*
+    # triangulation of [0,4]^2... homogenize each lattice point (x,y) -> (x,y,1)
+    verts  = sorted({(x, y) for x in range(5) for y in range(5)})
+    points = [[x, y, 1] for (x, y) in verts]
+    lbl    = {p: i + 1 for i, p in enumerate(verts)}
+
+    triangles = [
+        # left block [0,2]x[0,4] (regular on its own)
+        ((0,0),(1,0),(0,1)), ((1,0),(1,1),(0,1)), ((1,1),(1,0),(2,0)), ((2,1),(2,0),(1,1)),
+        ((0,1),(0,2),(1,1)), ((0,2),(1,1),(2,1)), ((0,2),(2,1),(1,2)), ((1,2),(2,2),(2,1)),
+        ((0,2),(0,3),(1,3)), ((0,2),(1,2),(1,3)), ((0,3),(0,4),(1,4)), ((0,3),(1,3),(1,4)),
+        ((1,2),(2,2),(2,3)), ((1,2),(2,3),(2,4)), ((1,2),(2,4),(1,3)), ((1,3),(1,4),(2,4)),
+        # right block [2,4]x[0,4] (regular on its own)
+        ((2,0),(3,0),(3,1)), ((2,0),(3,1),(3,2)), ((2,0),(2,1),(3,2)), ((2,1),(2,2),(3,2)),
+        ((3,0),(4,0),(4,1)), ((3,0),(4,1),(3,1)), ((3,1),(4,1),(4,2)), ((3,1),(3,2),(4,2)),
+        ((2,2),(2,3),(3,2)), ((2,3),(3,2),(4,2)), ((2,3),(3,3),(4,2)), ((3,3),(4,3),(4,2)),
+        ((2,3),(2,4),(3,3)), ((2,4),(3,4),(3,3)), ((3,3),(3,4),(4,3)), ((3,4),(4,3),(4,4)),
+    ]
+    cones = [sorted(lbl[p] for p in t) for t in triangles]
+
+    vc  = VectorConfiguration(points)
+    fan = Fan(vc, cones)
+
+    # it is a fine triangulation...
+    assert fan.is_triangulation()
+    assert fan.is_fine()
+
+    # ... but irregular -- the whole point of the example
+    assert not fan.is_regular()
+
+    # patching property: each half on its own IS regular
+    left  = [c for c, t in zip(cones, triangles) if all(p[0] <= 2 for p in t)]
+    right = [c for c, t in zip(cones, triangles) if all(p[0] >= 2 for p in t)]
+    assert Fan(vc, left).is_regular()
+    assert Fan(vc, right).is_regular()
