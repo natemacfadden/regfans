@@ -1098,7 +1098,7 @@ class VectorConfiguration:
 
                 try:
                     t = self.triangulate(heights=h, backend=backend)
-                except sp.spatial.qhull.QhullError:
+                except sp.spatial.QhullError:
                     # QHull error :(
                     if verbosity >= 0:
                         print(f"QHull error for heights = {h}... :( skipping!")
