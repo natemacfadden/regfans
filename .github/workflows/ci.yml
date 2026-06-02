@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: pytest (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    defaults:
+      run:
+        shell: bash -el {0}        # login shell so the conda env activates
+    steps:
+      - uses: actions/checkout@v6
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: python=${{ matrix.python }}
+          cache-environment: true
+      - name: Run tests
+        run: pytest -v
