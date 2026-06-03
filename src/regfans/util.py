@@ -241,12 +241,14 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
     Returns
     -------
     out : ArrayLike
-        An array whose rows represent hyperplanes of the primal cone. (see table)
+        An array whose rows represent hyperplanes of the primal cone.
+        (see table)
     """
     # check the ppl install
     try:
         import ppl
-        import ctypes; ctypes.CDLL(None).fesetround(0)  # ppl changes FPU rounding mode; reset to FE_TONEAREST
+        # ppl changes FPU rounding mode; reset to FE_TONEAREST
+        import ctypes; ctypes.CDLL(None).fesetround(0)
     except ImportError as e:
         raise ImportError(
             "pplpy is required for computations of dual cones"

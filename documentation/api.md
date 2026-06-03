@@ -26,13 +26,17 @@ configuration.
 Parameters
 ----------
 vectors : ArrayLike
-    The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+    The vectors defining the VC in row format. I.e., vectors[i], the
+    ith row, is treated as the ith vector in the config.
 labels : Iterable[int] | None
     A list of labels for the vectors. Only integral labels are allowed.
 eps : float
     Threshold for checking for non-integral vectors.
 gale_basis : Iterable[int] | None
-    An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised.
+    An optional basis for the gale transform. If provided, the gale
+    transform is put in a basis such that the submatrix given by these
+    labels equals the identity. These labels must index a unimodular
+    submatrix (determinant +/-1).
 
 <a id="vectorconfig.VectorConfiguration.__init__"></a>
 
@@ -53,13 +57,18 @@ Initializes a `VectorConfiguration` object.
 Parameters
 ----------
 vectors : ArrayLike
-    The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+    The vectors defining the VC in row format. I.e., vectors[i],
+    the ith row, is treated as the ith vector in the config.
 labels : Iterable[int] | None, optional
-    A list of integer labels for the vectors. Only integral labels are allowed. Defaults to None.
+    A list of integer labels for the vectors. Only integral labels
+    are allowed. Defaults to None.
 eps : float, optional
     Threshold for checking for non-integral vectors. Defaults to 0.0001.
 gale_basis : Iterable[int] | None, optional
-    An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised. Defaults to None.
+    An optional basis for the gale transform. If provided, the gale
+    transform is put in a basis such that the submatrix given by
+    these labels equals the identity. These labels must index a
+    unimodular submatrix (determinant +/-1). Defaults to None.
 
 <a id="vectorconfig.VectorConfiguration.__repr__"></a>
 
@@ -295,7 +304,9 @@ Returns the vectors, optionally only those with given labels.
 Parameters
 ----------
 which : int | Iterable[int] | None, optional
-    Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
+    Either a single label, for which the single corresponding vector
+    will be returned, or a list of labels. If not provided, then all
+    vectors are returned. Defaults to None.
 
 Returns
 -------
@@ -318,7 +329,8 @@ Maps the vectors to their corresponding labels
 Parameters
 ----------
 vectors : ArrayLike
-    Either a single vector, for which the single corresponding label will be returned, or a list of vectors.
+    Either a single vector, for which the single corresponding label
+    will be returned, or a list of vectors.
 
 Returns
 -------
@@ -346,9 +358,11 @@ Parameters
 labels : Iterable[int]
     The labels of interest.
 ambient_labels : Iterable[int] | None, optional
-    The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration. Defaults to None.
+    The ambient labels to get the indices in. If None, use all labels
+    of the VectorConfiguration. Defaults to None.
 offset : int, optional
-    Return i+offset for i the index of a label in ambient_labels. Defaults to 0.
+    Return i+offset for i the index of a label in ambient_labels.
+    Defaults to 0.
 
 Returns
 -------
@@ -466,7 +480,8 @@ cone_labels : Iterable[int]
 vec_label : Iterable[int]
     The label of the vector to check.
 strict : bool, optional
-    Whether to check if the vector is in the strict interior. Defaults to False.
+    Whether to check if the vector is in the strict interior. Defaults
+    to False.
 
 Returns
 -------
@@ -491,7 +506,8 @@ I.e., a basis of the null-space of the vectors.
 Parameters
 ----------
 set_basis : bool, optional
-    Whether to set a particular basis of the Gale transform. Defaults to False.
+    Whether to set a particular basis of the Gale transform. Defaults
+    to False.
 
 Returns
 -------
@@ -574,15 +590,20 @@ heights : ArrayLike | None, optional
 cells : ArrayLike | None, optional
     The cells to use in the triangulation. Defaults to None.
 tol : float, optional
-    Numerical tolerance used for curing negative heights. Defaults to 1e-14.
+    Numerical tolerance used for curing negative heights. Defaults to
+    1e-14.
 backend : str | None, optional
-    The lifting backend. Currently allowed to be "cgal" or "ppl". Defaults to None.
+    The lifting backend. Currently allowed to be "cgal" or "ppl".
+    Defaults to None.
 make_fine : bool, optional
-    Convert the triangulation to a fine triangulation, if not already fine. Defaults to None.
+    Convert the triangulation to a fine triangulation, if not already
+    fine. Defaults to None.
 check_heights : bool, optional
-    Whether to check that the heights land in the secondary cone of the output triangulation. Defaults to True.
+    Whether to check that the heights land in the secondary cone of the
+    output triangulation. Defaults to True.
 cure_heights : bool, optional
-    If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights. Defaults to True.
+    If the heights do not land in the secondary cone, try to cure them
+    by linear flipping towards the heights. Defaults to True.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -663,19 +684,28 @@ Generate random regular triangulations by picking random heights.
 Parameters
 ----------
 method : str, optional
-    Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically. Defaults to "delaunay".
+    Either "delaunay" or "isotropic". The former picks heights around
+    some input height (e.g., the Delaunay heights). The latter picks
+    heights isotropically. Defaults to "delaunay".
 h0 : ArrayLike | None, optional
     The reference heights, for Delaunay method. Defaults to None.
 sigma : float, optional
     How big of a distribution to study around h0. Defaults to 0.1.
 N : int | None, optional
-    The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates). Defaults to None.
+    The number of triangulations to generate. If as_list, then code
+    will keep track of all triangulations, retrying at most
+    attempts_per_triang tries to get a new triangulation until the list
+    has N triangs. O/w, then the first N height vectors are used
+    (regardless of duplicates). Defaults to None.
 as_list : bool, optional
-    Whether to return the triangulations as a list, or as a generator. Defaults to False.
+    Whether to return the triangulations as a list, or as a generator.
+    Defaults to False.
 attempts_per_triang : int, optional
-    Quit if we can't generate a new triangulation after this many tries. Defaults to 1000.
+    Quit if we can't generate a new triangulation after this many
+    tries. Defaults to 1000.
 backend : str | None, optional
-    The lifting backend. See `VectorConfiguration.triangulate`. Defaults to None.
+    The lifting backend. See `VectorConfiguration.triangulate`. Defaults
+    to None.
 seed : int, optional
     A random number seed. Defaults to 0.
 verbosity : int, optional
@@ -711,7 +741,8 @@ lmbda : Iterable | None, optional
 set_non_dependencies : bool, optional
     Whether to update our list of non-circuits. Defaults to True.
 save_circuits : bool, optional
-    Whether to save circuits... best to keep True for most circumstances. Defaults to True.
+    Whether to save circuits... best to keep True for most
+    circumstances. Defaults to True.
 
 Returns
 -------
@@ -766,15 +797,21 @@ Compute the flip graph. Wrapper for flip_subgraph.
 Parameters
 ----------
 max_flips : int | None, optional
-    The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated. Defaults to None.
+    The maximum number of flips to take from the seed. If none is
+    provided, then the entire flip graph is calculated. Defaults to
+    None.
 only_fine : bool, optional
     Whether to only compute fine triangulations. Defaults to False.
 only_regular : bool, optional
-    Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones. Defaults to True.
+    Whether to only compute regular triangulations. Note, we never will
+    see irregular triangulations that are not connected to regular
+    ones. Defaults to True.
 only_pc_triang : bool, optional
-    Whether to only compute triangulations that also correspond to star triangulations of the underlying point config. Defaults to False.
+    Whether to only compute triangulations that also correspond to star
+    triangulations of the underlying point config. Defaults to False.
 compute_node_labels : bool, optional
-    Whether to check whether each node is fine, regular, and a PC triangulation. Defaults to False.
+    Whether to check whether each node is fine, regular, and a PC
+    triangulation. Defaults to False.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1007,7 +1044,8 @@ data : ArrayLike
 Returns
 -------
 out : ArrayLike
-    An array whose rows represent hyperplanes of the primal cone. (see table)
+    An array whose rows represent hyperplanes of the primal cone.
+    (see table)
 
 <a id="util.cone_dim"></a>
 
@@ -1201,9 +1239,11 @@ Parameters
 vc : VectorConfiguration
     The ambient vector configuration that this fan is over.
 cones : list[list[int]]
-    The cones defining the fan. Each cone is a collection of integer labels.
+    The cones defining the fan. Each cone is a collection of
+    integer labels.
 heights : list[float] | None, optional
-    The heights defining the fan, if it is regular. Can be computed later. Defaults to None.
+    The heights defining the fan, if it is regular. Can be
+    computed later. Defaults to None.
 
 <a id="fan.Fan.__repr__"></a>
 
@@ -1442,7 +1482,9 @@ regular).
 Parameters
 ----------
 which : int | Iterable[int] | None, optional
-    Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
+    Either a single label, for which the single corresponding
+    vector will be returned, or a list of labels. If not
+    provided, then all vectors are returned. Defaults to None.
 lifted : bool, optional
     Whether to give the lifted vectors. Defaults to False.
 
@@ -1479,7 +1521,8 @@ as_rays : bool, optional
 as_hyps : bool, optional
     Whether to return the cones as their hyperplanes. Defaults to False.
 as_inds : bool, optional
-    Whether to return the cones as indices (not labels). Defaults to False.
+    Whether to return the cones as indices (not labels).
+    Defaults to False.
 ind_offset : int, optional
     An additive offset for the indices. Defaults to 0.
 
@@ -1558,13 +1601,15 @@ NotImplementedError otherwise.
 Parameters
 ----------
 via_circuits : bool, optional
-    This method uses secondary cones. Allow construction of the secondary cone via circuits. That's unsafe if the fan is potentially irregular. Defaults to False.
+    This method uses secondary cones. Allow construction of the
+    secondary cone via circuits. That's unsafe if the fan is
+    potentially irregular. Defaults to False.
 
 Returns
 -------
 out : bool
-    True if the fan defines a subdivision of the point configuration. False
-    otherwise.
+    True if the fan defines a subdivision of the point
+    configuration. False otherwise.
 
 <a id="fan.Fan.is_triangulation"></a>
 
@@ -1660,7 +1705,9 @@ cones, in which case the check is if all cones are contained in the fan.
 Parameters
 ----------
 c : Iterable[int] | Iterable[Iterable[int]]
-    The cone(s). Either a single collection of cone, specified by an iterable of labels, or a collection of cones, each specified by an iterable of labels.
+    The cone(s). Either a single collection of cone, specified
+    by an iterable of labels, or a collection of cones, each
+    specified by an iterable of labels.
 
 Returns
 -------
@@ -1694,9 +1741,11 @@ enforce_positive : int | None, optional
 lmbda : Iterable[float] | None, optional
     A dependency demonstrating the circuit. Defaults to None.
 check_containment : bool, optional
-    Whether to check that this fan contains every cone in the positive triangulation, Tpos. Defaults to True.
+    Whether to check that this fan contains every cone in the
+    positive triangulation, Tpos. Defaults to True.
 save_circuits_in_vc : bool, optional
-    Whether to save circuits... best to keep True for most circumstances. Defaults to False.
+    Whether to save circuits... best to keep True for most
+    circumstances. Defaults to False.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1730,7 +1779,8 @@ interpret lambda as the normal in the secondary cone.
 Parameters
 ----------
 facets : dict[Iterable[int], Iterable[Iterable[int]]] | None, optional
-    The facets of the fan (not just the VC...). I.e., codim-1 cones. Defaults to None.
+    The facets of the fan (not just the VC...). I.e., codim-1
+    cones. Defaults to None.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1758,7 +1808,8 @@ Parameters
 cell : Iterable[int]
     The cell of interest.
 old_way : bool, optional
-    Whether to do the computation in an old/slow manner. Defaults to False.
+    Whether to do the computation in an old/slow manner.
+    Defaults to False.
 
 Returns
 -------
@@ -1813,8 +1864,8 @@ link : Iterable[Iterable[int]]
 Returns
 -------
 out : list[tuple[int]]
-    A list of solid cones representing the embedding of the cell into the
-    Fan via the link.
+    A list of solid cones representing the embedding of the cell
+    into the Fan via the link.
 
 <a id="fan.Fan.flip"></a>
 
@@ -1836,7 +1887,8 @@ Parameters
 circ : Circuit
     The circuit to flip through.
 formal : bool, optional
-    Whether to return a formal Fan (otherwise, just a tuple of cones). Defaults to True.
+    Whether to return a formal Fan (otherwise, just a tuple of
+    cones). Defaults to True.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1887,29 +1939,45 @@ h_target : Iterable[float] | None, optional
 direction : Iterable[float] | None, optional
     The direction to travel. Defaults to None.
 h_init : Iterable[float] | None, optional
-    The initial heights (regular triangulations don't have unique heights, even up to scaling... any h in the secondary cone is valid. If this is left unset, then arbitrary valid heights are chosen) (early stopping). Defaults to None.
+    The initial heights (regular triangulations don't have
+    unique heights, even up to scaling... any h in the secondary
+    cone is valid. If this is left unset, then arbitrary valid
+    heights are chosen) (early stopping). Defaults to None.
 max_N_flips : int | None, optional
     The maximum number of flips allowed. Defaults to None.
 stop_at_deletion : bool, optional
-    Whether to early-terminate the homotopy at any deletion flip seen. Defaults to True.
+    Whether to early-terminate the homotopy at any deletion flip
+    seen. Defaults to True.
 stop_at_pct : bool, optional
-    Whether to early-terminate the homotopy at any fan that respects the point configuration. (sanity checks). Defaults to False.
+    Whether to early-terminate the homotopy at any fan that
+    respects the point configuration. (sanity checks). Defaults
+    to False.
 check_regularity : bool, optional
-    This method is inherently regular (it uses heights...). We can check the regularty of the initial fan. (record keeping). Defaults to True.
+    This method is inherently regular (it uses heights...). We
+    can check the regularty of the initial fan. (record
+    keeping). Defaults to True.
 record_fans : bool, optional
-    Whether to record the fans seen along the homotopy. Defaults to False.
+    Whether to record the fans seen along the homotopy. Defaults
+    to False.
 record_circs : bool, optional
-    Whether to record the circuits flipped along the homotopy. (numerical parameters). Defaults to False.
+    Whether to record the circuits flipped along the homotopy.
+    (numerical parameters). Defaults to False.
 eps : float, optional
-    A small number for an allowed violation of heights landing outside the secondary fan (in case the heights 'truly' landed on a wall of the secondary fan). Such violations are naturally resolved by pulling heights back into the secondary fan. (diagnostics). Defaults to 1e-08.
+    A small number for an allowed violation of heights landing
+    outside the secondary fan (in case the heights 'truly'
+    landed on a wall of the secondary fan). Such violations are
+    naturally resolved by pulling heights back into the secondary
+    fan. (diagnostics). Defaults to 1e-08.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
 Returns
 -------
 out : list[int | Exception, ArrayLike, Fan, ArrayLike, int]
-    - The status of the homotopy. Either 1 (if successful) or an Exception.
-    - The current heights at the end of the homotopy. Not always h_target.
+    - The status of the homotopy. Either 1 (if successful) or
+    an Exception.
+    - The current heights at the end of the homotopy. Not
+    always h_target.
     - The associated fan at the end of the homotopy.
     - The hyperplanes of the secondary cone at the end of the homotopy.
     - The number of flips taken.
@@ -1938,7 +2006,8 @@ Parameters
 only_fine : bool, optional
     Whether to only compute/return fine neighbors. Defaults to False.
 formal : bool, optional
-    Whether to return the neighbors as formal fans (if False, just return cones). Defaults to True.
+    Whether to return the neighbors as formal fans (if False,
+    just return cones). Defaults to True.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1979,7 +2048,10 @@ CIRCUITS, ONE CAN GET A FULL-DIMENSIONAL CONE!!!
 Parameters
 ----------
 via_circuits : bool, optional
-    Whether to use circuits to compute the secondary cone. Should always be correct if the fan is regular but dangerous/not correct for checking irregularity... Alternative is local folding. Defaults to False.
+    Whether to use circuits to compute the secondary cone.
+    Should always be correct if the fan is regular but
+    dangerous/not correct for checking irregularity...
+    Alternative is local folding. Defaults to False.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -2052,9 +2124,12 @@ only_fine : bool, optional
 only_regular : bool, optional
     Whether to restrict to regular triangulations. Defaults to True.
 only_pc_triang : bool, optional
-    Whether to restrict to triangulations which 'respect the point configuration'. Defaults to False.
+    Whether to restrict to triangulations which 'respect the point
+    configuration'. Defaults to False.
 compute_node_labels : bool, optional
-    Whether to compute 'labels' for the nodes indicating whether the triangulation is fine, regular, and/or respects the point configuration. Defaults to False.
+    Whether to compute 'labels' for the nodes indicating whether the
+    triangulation is fine, regular, and/or respects the point
+    configuration. Defaults to False.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -2063,8 +2138,8 @@ Returns
 out : tuple[nx.Graph, list[Fan], list[dict]]
     - The flip graph as a networkx.Graph object.
     - A list of the triangulations
-    - A list of the labels for each triangulation (labels are a dictionary from
-      the property to a bool)
+    - A list of the labels for each triangulation (labels are a
+      dictionary from the property to a bool)
 
 <a id="circuits"></a>
 

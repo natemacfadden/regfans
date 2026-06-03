@@ -57,13 +57,17 @@ class VectorConfiguration:
     Parameters
     ----------
     vectors : ArrayLike
-        The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+        The vectors defining the VC in row format. I.e., vectors[i], the
+        ith row, is treated as the ith vector in the config.
     labels : Iterable[int] | None
         A list of labels for the vectors. Only integral labels are allowed.
     eps : float
         Threshold for checking for non-integral vectors.
     gale_basis : Iterable[int] | None
-        An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised.
+        An optional basis for the gale transform. If provided, the gale
+        transform is put in a basis such that the submatrix given by these
+        labels equals the identity. These labels must index a unimodular
+        submatrix (determinant +/-1).
     """
     def __init__(
         self,
@@ -78,13 +82,18 @@ class VectorConfiguration:
         Parameters
         ----------
         vectors : ArrayLike
-            The vectors defining the VC in row format. I.e., vectors[i], the ith row, is treated as the ith vector in the config.
+            The vectors defining the VC in row format. I.e., vectors[i],
+            the ith row, is treated as the ith vector in the config.
         labels : Iterable[int] | None, optional
-            A list of integer labels for the vectors. Only integral labels are allowed. Defaults to None.
+            A list of integer labels for the vectors. Only integral labels
+            are allowed. Defaults to None.
         eps : float, optional
             Threshold for checking for non-integral vectors. Defaults to 0.0001.
         gale_basis : Iterable[int] | None, optional
-            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised. Defaults to None.
+            An optional basis for the gale transform. If provided, the gale
+            transform is put in a basis such that the submatrix given by
+            these labels equals the identity. These labels must index a
+            unimodular submatrix (determinant +/-1). Defaults to None.
         """
         # sanitize vectors
         # ----------------
@@ -354,7 +363,9 @@ class VectorConfiguration:
         Parameters
         ----------
         which : int | Iterable[int] | None, optional
-            Either a single label, for which the single corresponding vector will be returned, or a list of labels. If not provided, then all vectors are returned. Defaults to None.
+            Either a single label, for which the single corresponding vector
+            will be returned, or a list of labels. If not provided, then all
+            vectors are returned. Defaults to None.
 
         Returns
         -------
@@ -386,7 +397,8 @@ class VectorConfiguration:
         Parameters
         ----------
         vectors : ArrayLike
-            Either a single vector, for which the single corresponding label will be returned, or a list of vectors.
+            Either a single vector, for which the single corresponding label
+            will be returned, or a list of vectors.
 
         Returns
         -------
@@ -424,9 +436,11 @@ class VectorConfiguration:
         labels : Iterable[int]
             The labels of interest.
         ambient_labels : Iterable[int] | None, optional
-            The ambient labels to get the indices in. If None, use all labels of the VectorConfiguration. Defaults to None.
+            The ambient labels to get the indices in. If None, use all labels
+            of the VectorConfiguration. Defaults to None.
         offset : int, optional
-            Return i+offset for i the index of a label in ambient_labels. Defaults to 0.
+            Return i+offset for i the index of a label in ambient_labels.
+            Defaults to 0.
 
         Returns
         -------
@@ -546,7 +560,8 @@ class VectorConfiguration:
         vec_label : Iterable[int]
             The label of the vector to check.
         strict : bool, optional
-            Whether to check if the vector is in the strict interior. Defaults to False.
+            Whether to check if the vector is in the strict interior. Defaults
+            to False.
 
         Returns
         -------
@@ -601,7 +616,8 @@ class VectorConfiguration:
         Parameters
         ----------
         set_basis : bool, optional
-            Whether to set a particular basis of the Gale transform. Defaults to False.
+            Whether to set a particular basis of the Gale transform. Defaults
+            to False.
 
         Returns
         -------
@@ -716,15 +732,20 @@ class VectorConfiguration:
         cells : ArrayLike | None, optional
             The cells to use in the triangulation. Defaults to None.
         tol : float, optional
-            Numerical tolerance used for curing negative heights. Defaults to 1e-14.
+            Numerical tolerance used for curing negative heights. Defaults to
+            1e-14.
         backend : str | None, optional
-            The lifting backend. Currently allowed to be "cgal" or "ppl". Defaults to None.
+            The lifting backend. Currently allowed to be "cgal" or "ppl".
+            Defaults to None.
         make_fine : bool, optional
-            Convert the triangulation to a fine triangulation, if not already fine. Defaults to None.
+            Convert the triangulation to a fine triangulation, if not already
+            fine. Defaults to None.
         check_heights : bool, optional
-            Whether to check that the heights land in the secondary cone of the output triangulation. Defaults to True.
+            Whether to check that the heights land in the secondary cone of the
+            output triangulation. Defaults to True.
         cure_heights : bool, optional
-            If the heights do not land in the secondary cone, try to cure them by linear flipping towards the heights. Defaults to True.
+            If the heights do not land in the secondary cone, try to cure them
+            by linear flipping towards the heights. Defaults to True.
         verbosity : int, optional
             The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1000,19 +1021,28 @@ class VectorConfiguration:
         Parameters
         ----------
         method : str, optional
-            Either "delaunay" or "isotropic". The former picks heights around some input height (e.g., the Delaunay heights). The latter picks heights isotropically. Defaults to "delaunay".
+            Either "delaunay" or "isotropic". The former picks heights around
+            some input height (e.g., the Delaunay heights). The latter picks
+            heights isotropically. Defaults to "delaunay".
         h0 : ArrayLike | None, optional
             The reference heights, for Delaunay method. Defaults to None.
         sigma : float, optional
             How big of a distribution to study around h0. Defaults to 0.1.
         N : int | None, optional
-            The number of triangulations to generate. If as_list, then code will keep track of all triangulations, retrying at most attempts_per_triang tries to get a new triangulation until the list has N triangs. O/w, then the first N height vectors are used (regardless of duplicates). Defaults to None.
+            The number of triangulations to generate. If as_list, then code
+            will keep track of all triangulations, retrying at most
+            attempts_per_triang tries to get a new triangulation until the list
+            has N triangs. O/w, then the first N height vectors are used
+            (regardless of duplicates). Defaults to None.
         as_list : bool, optional
-            Whether to return the triangulations as a list, or as a generator. Defaults to False.
+            Whether to return the triangulations as a list, or as a generator.
+            Defaults to False.
         attempts_per_triang : int, optional
-            Quit if we can't generate a new triangulation after this many tries. Defaults to 1000.
+            Quit if we can't generate a new triangulation after this many
+            tries. Defaults to 1000.
         backend : str | None, optional
-            The lifting backend. See `VectorConfiguration.triangulate`. Defaults to None.
+            The lifting backend. See `VectorConfiguration.triangulate`. Defaults
+            to None.
         seed : int, optional
             A random number seed. Defaults to 0.
         verbosity : int, optional
@@ -1133,7 +1163,8 @@ class VectorConfiguration:
         set_non_dependencies : bool, optional
             Whether to update our list of non-circuits. Defaults to True.
         save_circuits : bool, optional
-            Whether to save circuits... best to keep True for most circumstances. Defaults to True.
+            Whether to save circuits... best to keep True for most
+            circumstances. Defaults to True.
 
         Returns
         -------
@@ -1276,15 +1307,21 @@ class VectorConfiguration:
         Parameters
         ----------
         max_flips : int | None, optional
-            The maximum number of flips to take from the seed. If none is provided, then the entire flip graph is calculated. Defaults to None.
+            The maximum number of flips to take from the seed. If none is
+            provided, then the entire flip graph is calculated. Defaults to
+            None.
         only_fine : bool, optional
             Whether to only compute fine triangulations. Defaults to False.
         only_regular : bool, optional
-            Whether to only compute regular triangulations. Note, we never will see irregular triangulations that are not connected to regular ones. Defaults to True.
+            Whether to only compute regular triangulations. Note, we never will
+            see irregular triangulations that are not connected to regular
+            ones. Defaults to True.
         only_pc_triang : bool, optional
-            Whether to only compute triangulations that also correspond to star triangulations of the underlying point config. Defaults to False.
+            Whether to only compute triangulations that also correspond to star
+            triangulations of the underlying point config. Defaults to False.
         compute_node_labels : bool, optional
-            Whether to check whether each node is fine, regular, and a PC triangulation. Defaults to False.
+            Whether to check whether each node is fine, regular, and a PC
+            triangulation. Defaults to False.
         verbosity : int, optional
             The verbosity level. Higher is more verbose. Defaults to 0.
 
