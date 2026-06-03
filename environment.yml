@@ -14,4 +14,3 @@ dependencies:
     - ortools
     - pplpy
     - triangulumancer
-    - -e .

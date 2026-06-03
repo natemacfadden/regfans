@@ -1265,7 +1265,7 @@ class Fan:
         # main loop
         status = 1
         while True:
-            if not all(sc_curr @ h_curr) > 0:
+            if not all(sc_curr @ h_curr > 0):
                 mindist = min(sc_curr @ h_curr)
                 msg = f"Min dist of h_curr to hyperplanes = {mindist}\n"
                 msg += "=> h_curr not in interior of sc_curr..."

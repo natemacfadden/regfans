@@ -27,6 +27,7 @@ Install via conda (recommended — includes pplpy):
 ```
 conda env create -f environment.yml
 conda activate regfans
+pip install -e .
 ```
 
 Or via pip (see also [PyPI listing](https://pypi.org/project/regfans/)):

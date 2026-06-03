@@ -63,7 +63,7 @@ class VectorConfiguration:
     eps : float
         Threshold for checking for non-integral vectors.
     gale_basis : Iterable[int] | None
-        An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity.
+        An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised.
     """
     def __init__(
         self,
@@ -84,7 +84,7 @@ class VectorConfiguration:
         eps : float, optional
             Threshold for checking for non-integral vectors. Defaults to 0.0001.
         gale_basis : Iterable[int] | None, optional
-            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. Defaults to None.
+            An optional basis for the gale transform. If provided, then the gale transform will be put in a basis such that the submatrix given by these labels equals the identity. These labels must index a unimodular submatrix (determinant +/-1); otherwise the rebased transform is non-integral and a ValueError is raised. Defaults to None.
         """
         # sanitize vectors
         # ----------------
@@ -642,7 +642,10 @@ class VectorConfiguration:
             if np.allclose(Bint, B):
                 B = Bint
             else:
-                raise ValueError
+                raise ValueError(
+                    "gale_basis must index a unimodular submatrix (det +/-1); "
+                    "the rebased Gale transform is non-integral otherwise"
+                )
 
         # save/return
         if set_basis:
