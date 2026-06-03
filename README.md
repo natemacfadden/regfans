@@ -18,6 +18,8 @@ Key capabilities:
 
 See [Triangulations: Structures for Algorithms and Applications](https://link.springer.com/book/10.1007/978-3-642-12971-1) by De Loera, Rambau, and Santos for a definitive reference on such topics. It is a wonderful book.
 
+regfans has a lot of overlap with [TOPCOM](https://www.wm.uni-bayreuth.de/de/team/rambau_joerg/TOPCOM/); `regfans` will port over more computations to TOPCOM as beneficial for speed (via [triangulumancer](https://github.com/ariostas/triangulumancer)).
+
 ## Installation
 
 Install via conda (recommended — includes pplpy):
