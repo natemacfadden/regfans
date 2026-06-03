@@ -24,6 +24,8 @@ jobs:
           miniforge-version: latest
           environment-file: environment.yml
           activate-environment: regfans
+      - name: Install regfans
+        run: conda run -n regfans pip install -e .
       - name: Run tests
         run: conda run -n regfans pytest -v
 
