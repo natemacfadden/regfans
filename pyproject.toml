@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "regfans"
-version = "0.1.1"
+version = "0.2.0"
 description = "A Python library for computing regular triangulations of lattice vector configurations"
 authors = [{ name = "Nate MacFadden" }]
 readme = "README.md"
