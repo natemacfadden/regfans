@@ -24,7 +24,7 @@ regfans has a lot of overlap with [TOPCOM](https://www.wm.uni-bayreuth.de/de/tea
 
 ## Installation
 
-Install via conda (recommended -- includes pplpy):
+Install via conda (most robust across platforms):
 
 ```
 conda env create -f environment.yml
@@ -38,7 +38,7 @@ Or via pip (see also [PyPI listing](https://pypi.org/project/regfans/)):
 pip install regfans
 ```
 
-**Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/), which can be finicky to install via pip. The conda environment handles it reliably.
+**Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/). On macOS and Linux x86_64, `pip install` pulls a prebuilt pplpy wheel automatically (no system libraries needed). On other platforms (Windows, or ARM/musl Linux on older Pythons) there is no wheel and pip falls back to a source build that needs the ppl/gmp C libraries; the conda environment supplies those reliably.
 
 ## Primary Interface
 

@@ -29,12 +29,12 @@ dependencies = [
     "numpy",
     "scipy",
     "triangulumancer>=0.3",
+    "pplpy>=0.8.10",
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
 test = [
-  "pplpy",
   "pytest"
 ]
 

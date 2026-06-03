@@ -251,8 +251,11 @@ def dual_cone(data: ArrayLike) -> ArrayLike:
         import ctypes; ctypes.CDLL(None).fesetround(0)
     except ImportError as e:
         raise ImportError(
-            "pplpy is required for computations of dual cones"
-            "Please install via conda: conda install -c conda-forge pplpy"
+            "pplpy is required for computations of dual cones. "
+            "On macOS and Linux x86_64 it installs from pip "
+            "(pip install pplpy). On other platforms (e.g. Windows, "
+            "ARM/musl Linux on older Pythons) install the ppl/gmp C "
+            "libraries first, e.g. conda install -c conda-forge pplpy."
         ) from e
 
     # input sanitization
