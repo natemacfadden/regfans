@@ -6,6 +6,8 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406101.svg)](https://doi.org/10.5281/zenodo.19406101)
 
+**Used by** [CYTools](https://cy.tools/).
+
 ## Core Functionality
 
 The library computes and modifies regular triangulations of vector configurations. These could also be known as "regular polyhedral fans" or "vex triangulations".
