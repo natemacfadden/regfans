@@ -637,8 +637,14 @@ class VectorConfiguration:
         A = self.vectors().T.tolist()
         B, nullity = flint.fmpz_mat(A).nullspace()
 
-        # map to a numpy array
-        B = np.array(B.tolist()).astype(int)
+        # map to a numpy array; the fast int64 path covers the common case,
+        # falling back to exact python ints only when the d x d minors
+        # exceed int64 (large coordinates), which would otherwise overflow
+        rows = B.tolist()
+        try:
+            B = np.array(rows, dtype=np.int64)
+        except OverflowError:
+            B = np.array(rows, dtype=object)
         B = B.T[:nullity]
         B = B//np.gcd.reduce(B, axis=1).reshape(-1, 1)
 
