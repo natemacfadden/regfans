@@ -22,7 +22,7 @@ regfans has a lot of overlap with [TOPCOM](https://www.wm.uni-bayreuth.de/de/tea
 
 ## Installation
 
-Install via conda (recommended — includes pplpy):
+Install via conda (recommended -- includes pplpy):
 
 ```
 conda env create -f environment.yml
