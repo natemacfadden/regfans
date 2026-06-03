@@ -1,6 +1,7 @@
 loaders:
 - type: python
   search_path: ["src/regfans"]
+  modules: ["vectorconfig", "util", "fan", "circuits", "__init__"]
 renderer:
   type: markdown
   filename: "documentation/api.md"
