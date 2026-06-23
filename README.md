@@ -40,6 +40,15 @@ pip install regfans
 
 **Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/). On macOS and Linux x86_64, `pip install` pulls a prebuilt pplpy wheel automatically (no system libraries needed). On other platforms (Windows, or ARM/musl Linux on older Pythons) there is no wheel and pip falls back to a source build that needs the ppl/gmp C libraries; the conda environment supplies those reliably.
 
+## Tests
+
+Install the test extra and run the suite:
+
+```
+pip install -e ".[test]"
+pytest
+```
+
 ## Primary Interface
 
 The main class is `VectorConfiguration`:

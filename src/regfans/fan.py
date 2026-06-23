@@ -201,6 +201,8 @@ class Fan:
         out : bool
             True if self==o. False if self!=o.
         """
+        if not isinstance(o, Fan):
+            return NotImplemented
         return (self.vc == o.vc) and set(self._cones) == set(o._cones)
 
     def __ne__(self, o: Fan) -> bool:

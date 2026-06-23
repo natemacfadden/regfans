@@ -256,11 +256,11 @@ class VectorConfiguration:
         out : bool
             True if self!=o. False if self==o.
         """
-        # check type
+        # check type: a different type means the two are not equal
         if (self.__class__.__name__   != o.__class__.__name__):
-            return False
+            return True
         if (self.__class__.__module__ != o.__class__.__module__):
-            return False
+            return True
 
         # check that labels and vectors identically match
         if self.labels != o.labels:
@@ -1138,8 +1138,9 @@ class VectorConfiguration:
                 try:
                     t = self.triangulate(heights=h, backend=backend)
                 except sp.spatial.QhullError:
-                    # QHull error :(
-                    if verbosity >= 0:
+                    # degenerate random height (no valid triangulation); skip it --
+                    # informational only, expected during random sampling
+                    if verbosity >= 1:
                         print(f"QHull error for heights = {h}... :( skipping!")
                     continue
 
