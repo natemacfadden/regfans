@@ -1,10 +1,11 @@
 ![Fan flip graph](https://raw.githubusercontent.com/natemacfadden/regfans/main/images/fan_flip_graph.png)
 
 # regfans
-
-**regfans** is a Python library for studying lattice vector configurations, developed by Nate MacFadden at the Liam McAllister Group at Cornell.
+*[Nate MacFadden](https://github.com/natemacfadden), Liam McAllister Group, Cornell*
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406101.svg)](https://doi.org/10.5281/zenodo.19406101)
+
+**regfans** is a Python library for studying lattice vector configurations.
 
 **Used by** [CYTools](https://cy.tools/).
 
