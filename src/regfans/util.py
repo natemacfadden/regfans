@@ -30,7 +30,7 @@ import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
-from ortools.linear_solver import pywraplp
+import highspy
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -428,38 +428,33 @@ def find_interior_point(*,
         # no hyperplanes... anything works
         return np.zeros(n, dtype=float)
 
-    # create the solver
-    solver = pywraplp.Solver.CreateSolver("GLOP")
-    if verbosity >= 1:
-        solver.EnableOutput()
+    # interior point via LP (HiGHS): minimize grading @ p given H @ p >= stretching
+    # grading lies in the dual cone interior, so grading @ p = mean_i(H_i @ p)
+    # >= stretching on the feasible region, hence the objective is bounded below
+    # -> OPTIMAL iff the cone is full-dimensional, else INFEASIBLE
+    grading = H.sum(axis=0) / m
+    inf     = highspy.kHighsInf
+    lb      = np.zeros(n) if nonneg else np.full(n, -inf)
 
-    # create the variables
-    inf = solver.infinity()
-    if nonneg:
-        low, up = 0,    inf
-    else:
-        low, up = -inf, inf
-    p   = [solver.NumVar(low, up, f"p_{i}") for i in range(n)]
+    h = highspy.Highs()
+    if verbosity < 1:
+        h.silent()
+    h.addVars(n, lb, np.full(n, inf))
+    h.changeColsCost(n, np.arange(n, dtype=np.int32),
+                     np.ascontiguousarray(grading, dtype=float))
+    # rows H @ p in [stretching, inf)
+    starts = (np.arange(m) * n).astype(np.int32)
+    index  = np.tile(np.arange(n, dtype=np.int32), m)
+    h.addRows(m, np.full(m, float(stretching)), np.full(m, inf),
+              m * n, starts, index, H.astype(float).ravel())
+    h.run()
 
-    # impose H @ p >= stretching
-    for i in range(m):
-        cons = solver.Constraint(stretching, solver.infinity())
-        for j in range(n):
-            cons.SetCoefficient(p[j], float(H[i,j]))
-
-    # pick a semi-arbitrary grading vector and return p with minimal degree
-    grading = H.sum(axis=0) / m # guaranteed to be in the interior of the dual cone
-    solver.Minimize(sum(gj*pj for gj, pj in zip(grading, p)))
-
-    # solve/parse
-    status = solver.Solve()
-    if status in (solver.FEASIBLE, solver.OPTIMAL):
-        solution = np.array([pi.solution_value() for pi in p])
-        return solution
-    elif status == solver.INFEASIBLE:
+    status = h.getModelStatus()
+    if status == highspy.HighsModelStatus.kOptimal:
+        return np.asarray(h.getSolution().col_value, dtype=float)
+    if status == highspy.HighsModelStatus.kInfeasible:
         if verbosity >= 1:
             warnings.warn("Cone is not full-dimensional")
         return None
-    else:
-        warnings.warn("Unexpected error")
-        return None
+    warnings.warn(f"find_interior_point: unexpected LP status {status!r}")
+    return None
