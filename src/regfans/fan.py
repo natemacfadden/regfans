@@ -444,6 +444,23 @@ class Fan:
         MaxAdjLP condition is a no-op for triangulations and is unimplemented
         for subdivisions.
 
+        Assumptions / scope
+        -------------------
+        - Triangulations only. Every cone must be a genuine full-dimensional
+          simplex (`self.dim` linearly independent rays). Cones with more than
+          `self.dim` rays are subdivisions: MaxAdjLP is unimplemented for them,
+          so they raise NotImplementedError. Degenerate cones (the right, or
+          too few, rays but rank-deficient) make the fan invalid, so they
+          return False.
+        - Solid (full-dimensional) configurations only. Both the IPP witness
+          and the support-facet boundary test (MaxMP) assume the ambient space
+          equals the span of the vectors; a non-solid VC raises
+          NotImplementedError.
+        - Exact integer coordinates. Boundary detection uses exact equality
+          (`n . v == 0`) and the dual-cone computation feeds integer
+          constraints to ppl, so vectors are assumed to have exact integer
+          entries; floating-point coordinates are not supported.
+
         Parameters
         ----------
         verbosity : int, optional
@@ -454,6 +471,38 @@ class Fan:
         out : bool
             True if the cones define a valid fan. False otherwise.
         """
+        # preconditions (see the assumptions in the docstring)
+        # ----------------------------------------------------
+        # solid (full-dimensional) configuration: required by the IPP witness
+        # and the support-facet boundary test below.
+        if not self.vc.is_solid():
+            raise NotImplementedError(
+                "is_valid is only implemented for solid (full-dimensional) "
+                "vector configurations."
+            )
+
+        # triangulations only: cones with more than dim rays are subdivisions,
+        # for which MaxAdjLP is unimplemented.
+        if any(len(c) > self.dim for c in self.cones()):
+            raise NotImplementedError(
+                "is_valid is only implemented for triangulations; a cone has "
+                "more than dim rays (a subdivision)."
+            )
+
+        # every maximal cell must be a genuine full-dimensional simplex, i.e.
+        # exactly `self.dim` linearly independent rays. A cone that is
+        # rank-deficient (or has too few rays) is degenerate, so the collection
+        # cannot be a valid fan.
+        # (config is solid, so each `dim`-ray simplex is a square matrix and
+        # the independence test below is an exact `det != 0` invertibility
+        # check rather than a rank computation)
+        for c in self.cones():
+            if len(c) != self.dim or \
+                    not util.is_full_rank(self.vectors(which=c)):
+                if verbosity >= 2:
+                    print(f"cone {c} is not a full-dimensional simplex")
+                return False
+
         # helpers
         # -------
         # get the cones
@@ -518,11 +567,12 @@ class Fan:
                 return False
 
         # MaxAdjLP
+        # No-op: MaxAdjLP is trivially satisfied for triangulations (the
+        # intersection of independent simplices is always a common face). The
+        # preconditions above already guaranteed every cone is a genuine
+        # simplex and rejected subdivisions, so there is nothing to check.
         if verbosity >= 1:
             print("Checking MaxAdjLP...")
-        if not self.is_triangulation():
-            msg = "MaxAdjLP not yet implemented for subdivisions..."
-            raise NotImplementedError(msg)
 
         # IPP
         if verbosity >= 1:
@@ -569,7 +619,13 @@ class Fan:
 
     def _is_simplicial(self) -> bool:
         """
-        Return whether every cone has `len == self.dim`
+        Return whether every cone is a genuine full-dimensional simplex.
+
+        A cone is simplicial iff it has exactly `self.dim` rays *and* those
+        rays are linearly independent (rank `self.dim`). The independence
+        check guards against degenerate cones that carry the right number of
+        rays but span too small a space; those are not simplices even though
+        they have the right cardinality.
 
         Do not check validity.
 
@@ -578,7 +634,12 @@ class Fan:
         out : bool
             True if all cones are simplices. False otherwise.
         """
-        return all([len(c) == self.dim for c in self.cones()])
+        for c in self.cones():
+            if len(c) != self.dim:
+                return False
+            if not util.is_full_rank(self.vectors(which=c)):
+                return False
+        return True
 
     def is_triangulation(self) -> bool:
         """

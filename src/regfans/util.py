@@ -31,6 +31,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import highspy
+import flint
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike
@@ -310,6 +311,37 @@ def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
 
     # return
     return np.linalg.matrix_rank(R.T)
+
+def is_full_rank(R: ArrayLike) -> bool:
+    """
+    Return whether the rows of R are linearly independent (exact).
+
+    This answers "do these `m` rays span an `m`-dimensional cone?" without
+    computing the rank itself: for a square matrix (as many rays as ambient
+    dimensions, i.e. a solid configuration) linear independence is just
+    invertibility, `det != 0`, which is both cheaper and, via flint's exact
+    integer arithmetic, free of the floating-point fragility of a rank/SVD
+    computation. For a non-square matrix (fewer rays than the ambient
+    dimension, e.g. a non-solid configuration) we fall back to the exact rank.
+
+    Assumes integer entries (consistent with the rest of the library).
+
+    Parameters
+    ----------
+    R : ArrayLike
+        The rays as rows.
+
+    Returns
+    -------
+    out : bool
+        True iff the rows of R are linearly independent.
+    """
+    R = np.asarray(R)
+    m, n = R.shape
+    M = flint.fmpz_mat(R.tolist())
+    if m == n:
+        return M.det() != 0
+    return M.rank() == m
 
 def is_solid(*, R: ArrayLike = None, H: ArrayLike = None) -> bool:
     """
