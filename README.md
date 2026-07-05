@@ -121,3 +121,7 @@ regfans/
 │   └── clean_api.py           # script to generate api.md
 └── pyproject.toml
 ```
+
+## License
+
+[GPLv3](LICENSE). Copyright (c) 2026 Nate MacFadden.

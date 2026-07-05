@@ -489,33 +489,30 @@ class Fan:
                 return False
 
         # MaxAdjHP
+        # Only facet-adjacent maximal cells need checking (cor. 4.5.13). Each
+        # interior facet is shared by exactly two cones and gives one such pair,
+        # so iterate the facets rather than all O(#cones^2) cone pairs (a vector
+        # in many cones, e.g. the origin, otherwise makes almost every pair
+        # vertex-adjacent).
         if verbosity >= 1:
             print("Checking MaxAdjHP...")
-        tmp = (len(_cones) * (len(_cones)-1))//2
-        for i, (c1, c2) in enumerate(itertools.combinations(_cones, 2)):
-            if verbosity >= 2:
-                print(f"{i+1}/{tmp}", end='\r')
-
-            # only required for adjacent cells
-            label_inter = set(c1).intersection(c2)
-            if len(label_inter) == 0:
+        for f, containing in _cone_facets.items():
+            if len(containing) != 2:
+                # boundary facet (1) or already rejected by MaxMP (!=2)
                 continue
+            c1, c2 = containing
 
             # the intersected cone as in an abstract simplicial complex
-            R_rhs = self.vectors(which=sorted(label_inter))
+            label_inter = sorted(set(c1).intersection(c2))
+            R_rhs = self.vectors(which=label_inter)
             H_rhs = np.array(util.dual_cone(R_rhs))
 
             # the intersected cone as in a geometric simplicial complex
-            H1 = _cones[c1]
-            H2 = _cones[c2]
-            H_lhs = np.vstack([H1, H2])
+            H_lhs = np.vstack([_cones[c1], _cones[c2]])
             R_lhs = np.array(util.dual_cone(H_lhs))
 
             # need these two cones to be the same
-            if np.all(H_rhs@R_lhs.T >= 0) and np.all(H_lhs@R_rhs.T >= 0):
-                # cones are equal
-                pass
-            else:
+            if not (np.all(H_rhs@R_lhs.T >= 0) and np.all(H_lhs@R_rhs.T >= 0)):
                 if verbosity >= 2:
                     print(f"{c1},{c2} failed")
                 return False
