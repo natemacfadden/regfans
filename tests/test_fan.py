@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from itertools import combinations
 from regfans.vectorconfig import VectorConfiguration
 from regfans.fan import Fan
 from regfans import util
@@ -127,3 +128,70 @@ def test_is_regular_false_santos_patching():
     right = [c for c, t in zip(cones, triangles) if all(p[0] >= 2 for p in t)]
     assert Fan(vc, left).is_regular()
     assert Fan(vc, right).is_regular()
+
+def test_cones_dim_matches_maximal_at_top_dim():
+    vc  = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+    # simplicial => each maximal cone has exactly `dim` rays,
+    # so cones(dim=fan.dim) reproduces the maximal cones
+    assert set(fan.cones(dim=fan.dim)) == set(fan.cones())
+
+def test_cones_dim_faces():
+    vc  = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+    maximal = fan.cones()
+
+    for d in range(1, fan.dim + 1):
+        faces = fan.cones(dim=d)
+
+        # each face has exactly d rays; results are de-duplicated
+        assert all(len(f) == d for f in faces)
+        assert len(set(faces)) == len(faces)
+
+        # the faces are exactly the distinct d-subsets of the maximal cones
+        expected = {c for m in maximal for c in combinations(m, d)}
+        assert set(faces) == expected
+
+def test_cones_dim_above_top_is_empty():
+    vc  = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+    # no cone has more than `dim` rays, so there are no higher faces
+    assert fan.cones(dim=fan.dim + 1) == ()
+
+def test_cones_dim_respects_format_flags():
+    vc  = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+
+    # labels: two rays per 2-cone
+    assert all(len(c) == 2 for c in fan.cones(dim=2))
+
+    # as_inds: two indices per 2-cone
+    assert {len(c) for c in fan.cones(dim=2, as_inds=True)} == {2}
+
+    # as_rays: each 2-cone is a 2-row array of generators
+    assert all(len(r) == 2 for r in fan.cones(dim=2, as_rays=True))
+
+    # ind_offset shifts every index by the offset
+    base    = fan.cones(dim=2, as_inds=True)
+    shifted = fan.cones(dim=2, as_inds=True, ind_offset=10)
+    assert sorted(tuple(i + 10 for i in c) for c in base) == sorted(shifted)
+
+def test_cones_dim_aliases_agree():
+    vc  = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+    ref = set(fan.cones(dim=2))
+    assert set(fan.simps(dim=2)) == ref
+    assert set(fan.simplices(dim=2)) == ref
+    assert set(fan.cells(dim=2)) == ref
+
+def test_cones_dim_requires_simplicial():
+    vc  = VectorConfiguration(_PTS)
+    # a single cone containing all labels is non-simplicial
+    sub = vc.subdivide(cells=[list(vc.labels)])
+    assert not sub.is_triangulation()
+
+    # dim=None still works on a non-simplicial fan...
+    assert len(sub.cones()) == 1
+    # ...but requesting faces by dim is not implemented => raises
+    with pytest.raises(ValueError):
+        sub.cones(dim=2)

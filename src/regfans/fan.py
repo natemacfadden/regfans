@@ -349,6 +349,7 @@ class Fan:
             return vecs
 
     def cones(self,
+        dim: int = None,
         as_rays: bool = False,
         as_hyps: bool = False,
         as_inds: bool = False,
@@ -361,8 +362,15 @@ class Fan:
             - (as_inds=True) as a tuple of indices
         Optionally, allow an offset to the indices.
 
+        By default the maximal cones are returned. If `dim` is set, then return
+        the `dim`-dimensional cones (faces of maximal ones). Only implemented
+        for simplicial fans currently
+
         Parameters
         ----------
+        dim : int, optional
+            If set, return the `dim`-dimensional sub-cones Only implemented
+            for simplicial fans. Defaults to None.
         as_rays : bool, optional
             Whether to return the cones as their generators. Defaults to False.
         as_hyps : bool, optional
@@ -383,21 +391,30 @@ class Fan:
             msg = "At most 1 of `as_inds`, `as_rays`, and `as_hyps` can be set."
             raise ValueError(msg)
 
+        # select the base cones: the maximal cones, or (if dim is set) their
+        # dim-dimensional faces
+        if dim is None:
+            base = self._cones
+        else:
+            if not self._is_simplicial():
+                raise ValueError("`dim` can only be set for simplicial fans.")
+            base = tuple({face for simp in self._cones
+                          for face in itertools.combinations(simp, dim)})
+
         # format case-by-case
         if as_inds:
             # as indices
             cones = tuple(tuple(self.vc.label_to_ind(i)+ind_offset for i in simp)
-                for simp in self._cones)
+                for simp in base)
         elif as_rays:
             # as rays
-            cones = [self.vectors(which=simp).tolist() for simp in self._cones]
+            cones = [self.vectors(which=simp).tolist() for simp in base]
         elif as_hyps:
             # as hyperplanes
-            cones = [util.dual_cone(self.vectors(which=simp)) for simp in\
-                                                                    self._cones]
+            cones = [util.dual_cone(self.vectors(which=simp)) for simp in base]
         else:
             # as labels
-            cones = self._cones
+            cones = base
 
         return cones
 
