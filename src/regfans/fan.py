@@ -461,22 +461,8 @@ class Fan:
         MaxAdjLP condition is a no-op for triangulations and is unimplemented
         for subdivisions.
 
-        Assumptions / scope
-        -------------------
-        - Triangulations only. Every cone must be a genuine full-dimensional
-          simplex (`self.dim` linearly independent rays). Cones with more than
-          `self.dim` rays are subdivisions: MaxAdjLP is unimplemented for them,
-          so they raise NotImplementedError. Degenerate cones (the right, or
-          too few, rays but rank-deficient) make the fan invalid, so they
-          return False.
-        - Solid (full-dimensional) configurations only. Both the IPP witness
-          and the support-facet boundary test (MaxMP) assume the ambient space
-          equals the span of the vectors; a non-solid VC raises
-          NotImplementedError.
-        - Exact integer coordinates. Boundary detection uses exact equality
-          (`n . v == 0`) and the dual-cone computation feeds integer
-          constraints to ppl, so vectors are assumed to have exact integer
-          entries; floating-point coordinates are not supported.
+        This can only check full-dimensional, integral triangulations
+        (simplicial fans).
 
         Parameters
         ----------
@@ -636,13 +622,7 @@ class Fan:
 
     def _is_simplicial(self) -> bool:
         """
-        Return whether every cone is a genuine full-dimensional simplex.
-
-        A cone is simplicial iff it has exactly `self.dim` rays *and* those
-        rays are linearly independent (rank `self.dim`). The independence
-        check guards against degenerate cones that carry the right number of
-        rays but span too small a space; those are not simplices even though
-        they have the right cardinality.
+        Return whether every maximal cone is a full-dimensional simplex.
 
         Do not check validity.
 

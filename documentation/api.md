@@ -1077,6 +1077,31 @@ Returns
 dim : int
     The dimension of the cone
 
+<a id="util.is_full_rank"></a>
+
+---
+
+
+#### is\_full\_rank
+
+```python
+def is_full_rank(R: ArrayLike) -> bool
+```
+
+Return whether the rows of R are linearly independent (exact).
+
+Assumes integer entries (consistent with the rest of the library).
+
+Parameters
+----------
+R : ArrayLike
+    The rays as rows.
+
+Returns
+-------
+out : bool
+    True iff the rows of R are linearly independent.
+
 <a id="util.is_solid"></a>
 
 ---
@@ -1501,7 +1526,8 @@ out : ArrayLike
 #### cones
 
 ```python
-def cones(as_rays: bool = False,
+def cones(dim: int = None,
+          as_rays: bool = False,
           as_hyps: bool = False,
           as_inds: bool = False,
           ind_offset: int = 0) -> tuple[tuple[int]] | list[ArrayLike]
@@ -1514,8 +1540,15 @@ Returns the cones in the fan in a variety of formats. They are:
     - (as_inds=True) as a tuple of indices
 Optionally, allow an offset to the indices.
 
+By default the maximal cones are returned. If `dim` is set, then return
+the `dim`-dimensional cones (faces of maximal ones). Only implemented
+for simplicial fans currently
+
 Parameters
 ----------
+dim : int, optional
+    If set, return the `dim`-dimensional sub-cones Only implemented
+    for simplicial fans. Defaults to None.
 as_rays : bool, optional
     Whether to return the cones as their generators. Defaults to False.
 as_hyps : bool, optional
@@ -1570,6 +1603,9 @@ Follows cor. 4.5.13 of "Triangulations" by De Loera, Rambau, Santos.
 Implements the MaxMP, MaxAdjHP, and (single-point) IPP conditions; the
 MaxAdjLP condition is a no-op for triangulations and is unimplemented
 for subdivisions.
+
+This can only check full-dimensional, integral triangulations
+(simplicial fans).
 
 Parameters
 ----------
