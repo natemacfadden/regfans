@@ -139,7 +139,7 @@ class VectorConfiguration:
             labels = [i + 1 for i in range(len(self._vectors))]
 
         self._labels = tuple(label for label in labels)
-        if not all([isinstance(lbl,int) for lbl in self._labels]):
+        if not all([isinstance(lbl, (int, np.integer)) for lbl in self._labels]):
             raise ValueError("Labels must be integral")
 
         self._standard_labels = (self._labels == tuple(range(1, self.size + 1)))
@@ -1070,13 +1070,18 @@ class VectorConfiguration:
             raise ValueError(f"Unrecognized method = '{method}'")
 
         if as_list:
+            if N is None:
+                raise ValueError("N must be set when as_list=True")
+
             # get the generator
-            gen = self.random_triangulations_fast(  # high=high,
+            gen = self.random_triangulations_fast(
+                method=method,
                 h0=h0,
                 sigma=sigma,
                 N=None,
                 as_list=False,
                 backend=backend,
+                seed=seed,
                 verbosity=verbosity,
             )
 
