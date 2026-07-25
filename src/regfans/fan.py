@@ -902,7 +902,6 @@ class Fan:
             #
             #       say there is also point q = (0,2,1). Then the
             #       circuit for  cell+{p} is not flippable
-            #print('SKIPPING BAD EMBEDDINGS...')
             return None
 
         # save it
