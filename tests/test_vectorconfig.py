@@ -1,4 +1,3 @@
-import pytest
 from regfans.vectorconfig import VectorConfiguration
 
 # non-totally-cyclic VC tests

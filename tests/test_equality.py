@@ -3,9 +3,7 @@
 # type-mismatch branch (a non-VC comparand was reported as equal), and
 # Fan.__eq__ raising AttributeError on a non-Fan comparand.
 
-import pytest
 from regfans.vectorconfig import VectorConfiguration
-from regfans.fan import Fan
 
 # 7 vectors in 4D (a totally-cyclic reflexive configuration)
 _PTS = [

@@ -1,4 +1,3 @@
-import pytest
 from regfans.circuits import Circuits
 from regfans.vectorconfig import VectorConfiguration
 
