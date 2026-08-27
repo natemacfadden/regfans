@@ -1197,17 +1197,13 @@ class VectorConfiguration:
 
         # if no dependency is given, check that labels define a circuit
         if lmbda is None:
-            # check that this is actually a circuit
-            dim = np.linalg.matrix_rank(self.vectors(labels))
-            if dim != (len(labels) - 1):
+            A = self.vectors(labels).T.tolist()
+            X, nullity = flint.fmpz_mat(A).nullspace()
+            if nullity != 1:
                 if set_non_dependencies:
                     self._circuits.set_non_dependency(labels)
                 return None
 
-            # compute the dependence
-            A = self.vectors(labels).T.tolist()
-            X, nullity = flint.fmpz_mat(A).nullspace()
-            assert nullity == 1
             lmbda = np.array([int(X[i, 0]) for i in range(X.nrows())])
             lmbda = lmbda//np.gcd.reduce(lmbda)
         else:
