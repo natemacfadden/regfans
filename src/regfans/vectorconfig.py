@@ -1162,7 +1162,8 @@ class VectorConfiguration:
                 labels: Iterable[int],
                 lmbda: Iterable | None = None,
                 set_non_dependencies: bool = True,
-                save_circuits: bool = True) -> Circuit:
+                save_circuits: bool = True,
+                enforce_positive: int | None = None) -> Circuit:
         """
         Format/compute the circuit corresponding to the specified labels.
 
@@ -1177,6 +1178,11 @@ class VectorConfiguration:
         save_circuits : bool, optional
             Whether to save circuits... best to keep True for most
             circumstances. Defaults to True.
+        enforce_positive : int | None, optional
+            A label to enforce is in Zpos, overriding the default orientation
+            by support size. Returns None if that label has a vanishing
+            coefficient. What is cached stays in the default orientation, so
+            this may be varied between calls. Defaults to None.
 
         Returns
         -------
@@ -1193,7 +1199,8 @@ class VectorConfiguration:
         circ = self._circuits[labels]
         if circ not in (0, -1):
             # this is the circuit!
-            return circ
+            return circ if enforce_positive is None \
+                else _orient(circ, enforce_positive)
 
         # if no dependency is given, check that labels define a circuit
         if lmbda is None:
@@ -1255,7 +1262,8 @@ class VectorConfiguration:
         if save_circuits:
             self._circuits.set_circuit(circ)
 
-        return circ
+        return circ if enforce_positive is None \
+            else _orient(circ, enforce_positive)
 
     def circuits(self, verbosity: int = 0) -> list[Circuit]:
         """
@@ -1424,3 +1432,36 @@ class VectorConfiguration:
         return self.subdivide(
             heights=[1 for _ in self.labels],
             check_heights=False)
+
+
+def _orient(circ: Circuit, enforce_positive: int) -> Circuit | None:
+    """
+    Re-orient a circuit so that a given label has a positive coefficient.
+
+    Returns a new Circuit; the argument is left alone, so a cached circuit
+    keeps its default orientation.
+
+    Parameters
+    ----------
+    circ : Circuit
+        The circuit to re-orient.
+    enforce_positive : int
+        A label to enforce is in Zpos.
+
+    Returns
+    -------
+    out : Circuit | None
+        The re-oriented circuit, or None if the label has a vanishing
+        coefficient (i.e. is not in the support).
+    """
+    coeff = dict(zip(circ.Z, circ.lmbda)).get(enforce_positive, 0)
+    if coeff == 0:
+        return None
+    if coeff > 0:
+        return circ
+    return circuits.Circuit(circ.vc,
+                            Z=circ.Z,
+                            Zpos=circ.Zneg,
+                            Zneg=circ.Zpos,
+                            lmbda=tuple(-c for c in circ.lmbda),
+                            signature=circ.signature[::-1])
