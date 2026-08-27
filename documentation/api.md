@@ -727,7 +727,8 @@ out : Generator[Fan] | list[Fan]
 def circuit(labels: Iterable[int],
             lmbda: Iterable | None = None,
             set_non_dependencies: bool = True,
-            save_circuits: bool = True) -> Circuit
+            save_circuits: bool = True,
+            enforce_positive: int | None = None) -> Circuit
 ```
 
 Format/compute the circuit corresponding to the specified labels.
@@ -743,6 +744,11 @@ set_non_dependencies : bool, optional
 save_circuits : bool, optional
     Whether to save circuits... best to keep True for most
     circumstances. Defaults to True.
+enforce_positive : int | None, optional
+    A label to enforce is in Zpos, overriding the default orientation
+    by support size. Returns None if that label has a vanishing
+    coefficient. What is cached stays in the default orientation, so
+    this may be varied between calls. Defaults to None.
 
 Returns
 -------
