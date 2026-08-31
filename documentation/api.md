@@ -514,6 +514,69 @@ Returns
 out : ArrayLike
     The gale transform.
 
+<a id="vectorconfig.VectorConfiguration.spans"></a>
+
+---
+
+
+#### spans
+
+```python
+def spans(labels: Iterable[int]) -> bool
+```
+
+Whether the vectors with the given labels span the ambient space.
+
+Like `wall_normal`, this depends only on which labels are given, so it
+is cached on the configuration rather than recomputed by every fan
+that happens to contain the same cone.
+
+Parameters
+----------
+labels : Iterable[int]
+    The labels to check.
+
+Returns
+-------
+out : bool
+    Whether the corresponding vectors are of full rank.
+
+<a id="vectorconfig.VectorConfiguration.wall_normal"></a>
+
+---
+
+
+#### wall\_normal
+
+```python
+def wall_normal(labels: Iterable[int]) -> tuple[int] | None
+```
+
+The primitive integer dependency among the vectors with the given
+labels, oriented so that the coefficient of `labels[0]` is positive.
+
+`labels` must hold ambient_dim+1 labels, whose vectors therefore
+satisfy at least one linear dependency; this returns it when it is
+unique, i.e. when the vectors span. The dependency is the normal of
+the secondary-cone hyperplane that the corresponding wall imposes.
+
+The result depends only on which labels are given, not on the fan the
+wall came from, so it is cached on the configuration: the same wall
+recurs across most triangulations, several thousand times over on a
+configuration of any size.
+
+Parameters
+----------
+labels : Iterable[int]
+    The labels spanning the wall, the first of which fixes the sign.
+
+Returns
+-------
+out : tuple[int] | None
+    The dependency, with one coefficient per given label in the given
+    order, or None if the vectors do not span (the dependency is not
+    unique, so no single hyperplane is imposed).
+
 <a id="vectorconfig.VectorConfiguration.project"></a>
 
 ---
@@ -2503,6 +2566,120 @@ Returns
 -------
 out : bool
     Whether setA is a subset of setB.
+
+<a id="secondary"></a>
+
+---
+
+
+# secondary
+
+Bulk regularity testing for a whole enumeration at once.
+
+Testing each triangulation on its own means rebuilding, per fan, a list of
+hyperplanes and a fresh LP. Over an enumeration that is enormously
+redundant: at 13 rays, 13579 fans draw their walls from 229 distinct
+label sets and their secondary-cone hyperplanes from 191 distinct rows.
+This module works over that fixed universe instead.
+
+Three things make it fast:
+
+1. Walls come straight out of the enumerator's arrays, found by sorting
+   rather than by asking each fan for its facets.
+2. Each fan is then just a set of row indices into one shared matrix,
+   held as a bitset.
+3. Irregularity is inherited. If some rows of the shared matrix are
+   positively dependent then ANY fan containing all of them is
+   irregular, by Gordan's theorem -- the dependency is a certificate of
+   infeasibility, and padding it with zeros certifies the larger system
+   too. Every infeasible LP hands one back (its Farkas dual ray), so
+   after a while most irregular fans are settled by a bitmask test
+   rather than an LP. Regularity does NOT transfer this way, and cannot:
+   if one fan's rows are a subset of another's then its cone contains
+   the other's, and distinct triangulations have interior-disjoint
+   secondary cones, so the two fans coincide. Every regular fan is paid
+   for with its own LP.
+
+<a id="secondary.walls"></a>
+
+---
+
+
+#### walls
+
+```python
+def walls(simps: np.ndarray, fan_starts: np.ndarray, dim: int) -> tuple
+```
+
+The walls of every fan in an enumeration.
+
+A wall is an interior facet: one shared by exactly two of the fan's
+simplices. It is returned as the set of dim+1 labels spanning it, i.e.
+the shared facet plus the two opposite vertices, encoded as a bitmask
+over labels.
+
+Parameters
+----------
+simps : np.ndarray of shape (num_simps, dim)
+    The simplices of every fan, back to back, as returned by grow4d.
+    Entries are indices, so must be below 64.
+fan_starts : np.ndarray of shape (num_fans + 1,)
+    Offsets into the rows of `simps`; fan i is rows fan_starts[i] up
+    to fan_starts[i+1].
+dim : int
+    The ambient dimension.
+
+Returns
+-------
+wall_masks : np.ndarray
+    One bitmask per wall, over all fans, concatenated.
+apex_masks : np.ndarray
+    The two opposite vertices of each wall, as a bitmask. These fix the
+    orientation of the hyperplane the wall imposes and so cannot be
+    recovered from `wall_masks`: the same labels can span a wall in two
+    fans with the apexes on opposite sides of the dependency, which is
+    the same inequality reversed.
+wall_starts : np.ndarray of shape (num_fans + 1,)
+    Offsets into `wall_masks`, in the same convention as fan_starts.
+
+<a id="secondary.regular_mask"></a>
+
+---
+
+
+#### regular\_mask
+
+```python
+def regular_mask(vc,
+                 simps: np.ndarray,
+                 fan_starts: np.ndarray,
+                 verbosity: int = 0) -> np.ndarray
+```
+
+Which fans of an enumeration are regular.
+
+Equivalent to calling `Fan.is_regular` on each fan in turn, but done
+over the whole enumeration at once. See the module docstring.
+
+Only valid for FINE fans. A fan that omits a vector imposes further
+conditions, from inserting that vector into each of its cones, which
+are not walls and so are not seen here.
+
+Parameters
+----------
+vc : VectorConfiguration
+    The configuration the fans triangulate.
+simps : np.ndarray of shape (num_simps, dim)
+    The simplices of every fan, back to back, as returned by grow4d.
+fan_starts : np.ndarray of shape (num_fans + 1,)
+    Offsets into the rows of `simps`.
+verbosity : int, optional
+    The verbosity level. Higher is more verbose. Defaults to 0.
+
+Returns
+-------
+out : np.ndarray of bool, shape (num_fans,)
+    True where the corresponding fan is regular.
 
 <a id="__init__"></a>
 

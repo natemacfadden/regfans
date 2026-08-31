@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from .fan import Fan
 
 # local imports
-from . import circuits, fan, util
+from . import circuits, fan, secondary, util
 
 
 class VectorConfiguration:
@@ -1108,11 +1108,29 @@ class VectorConfiguration:
         # the kernel indexes rows of `vecs`; Fan wants labels
         labels = np.asarray(self.labels)
 
+        # Regularity one fan at a time rebuilds, per fan, a list of
+        # hyperplanes and a cold LP -- over an enumeration that is hugely
+        # redundant. `secondary.regular_mask` works over the shared set of
+        # hyperplanes instead. It only handles fine fans, since a fan that
+        # omits a vector imposes conditions that are not walls, so the
+        # general case still goes fan by fan.
+        keep = range(num_fans)
+        prescreened = False
+        if only_regular and only_fine and num_fans:
+            keep = np.flatnonzero(
+                secondary.regular_mask(self, simps, starts, verbosity)
+            )
+            prescreened = True
+
         out = []
-        for i in range(num_fans):
+        for i in keep:
             cones = labels[simps[starts[i]:starts[i + 1]]].tolist()
             f = fan.Fan(self, cones)
-            if only_regular and not f.is_regular():
+            if prescreened:
+                # already established, and worth recording so that asking
+                # the fan later does not solve the LP a second time
+                f._is_regular = True
+            elif only_regular and not f.is_regular():
                 continue
             out.append(f)
 
