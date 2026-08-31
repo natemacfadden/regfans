@@ -13,3 +13,7 @@ dist/
 
 # Jupyter
 .ipynb_checkpoints
+
+# Cython build products (grow4d.pyx is the source; the .c is generated)
+src/regfans/grow4d.c
+*.so

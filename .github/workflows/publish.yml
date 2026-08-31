@@ -23,17 +23,27 @@ jobs:
           name: ci-sdist
           path: dist/*.tar.gz
 
+  # regfans ships a C extension (the grow4d backend), so wheels are platform-
+  # and interpreter-tagged: one `build --wheel` on ubuntu would emit a bare
+  # linux_x86_64 wheel, which PyPI rejects, and would cover one Python only.
+  # cibuildwheel builds the manylinux/macOS matrix instead.
   make-wheel:
-    name: Make Wheel
-    runs-on: ubuntu-latest
+    name: Make Wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-14]   # linux x86_64, macOS x86_64, macOS arm64
     steps:
       - uses: actions/checkout@v6
-      - name: Build Wheel
-        run: pipx run build --wheel
+      - uses: pypa/cibuildwheel@v2.21.3
+        env:
+          # PyPy has no numpy/Cython story here, and musllinux is untested
+          CIBW_SKIP: "pp* *-musllinux_*"
       - uses: actions/upload-artifact@v6
         with:
-          name: ci-wheel
-          path: dist/*.whl
+          name: ci-wheel-${{ matrix.os }}   # artifact names must be unique
+          path: wheelhouse/*.whl
 
   deploy-pypi:
     name: Publish to PyPI

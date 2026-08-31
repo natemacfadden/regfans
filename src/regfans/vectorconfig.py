@@ -962,18 +962,97 @@ class VectorConfiguration:
     # aliases
     subdivide = triangulate
 
-    def all_triangulations(
+    def _grow4d_applies(self) -> str | None:
+        """
+        Whether the grow4d backend can be used on this VC.
+
+        Returns
+        -------
+        out : str | None
+            None if grow4d applies, else the reason it does not, phrased to
+            complete the sentence "falling back to flips because ...".
+        """
+        if not self.is_solid():
+            return "the configuration is not full-dimensional"
+        if not self.is_totally_cyclic():
+            # grow4d stops when no exterior face is left, i.e. it enumerates
+            # COMPLETE fans. Without total cyclicity none exist and it would
+            # quietly return nothing rather than the triangulations of the
+            # support that the flip backend gives
+            return "the configuration is not totally cyclic, so no fan is complete"
+        if self.size > 64:
+            return f"the kernel supports at most 64 vectors, not {self.size}"
+        if self.ambient_dim > 6:
+            return f"the kernel supports dimension at most 6, not {self.ambient_dim}"
+        return None
+
+    def _all_triangulations_grow4d(
         self,
         only_fine: bool = False,
         only_regular: bool = True,
         verbosity: int = 0
     ) -> list[Fan]:
         """
-        Generate all triangulations of this vector configuration via taking
-        flips from some regular triangulation.
+        Generate all triangulations by exhaustive growth, via the grow4d
+        C extension. See `all_triangulations`, which dispatches here.
 
-        NOTE: In theory, this might miss an irregular triangulation that is
-        disconnected from the regular triangulations.
+        Parameters
+        ----------
+        only_fine : bool, optional
+            Whether to restrict to fine triangulations. Defaults to False.
+        only_regular : bool, optional
+            Whether to restrict to regular triangulations. Defaults to True.
+        verbosity : int, optional
+            The verbosity level. Higher is more verbose. Defaults to 0.
+
+        Returns
+        -------
+        out : list[Fan]
+            A list of Fan objects, one for each triangulation of the VC.
+        """
+        from .grow4d import grow4d as _grow4d
+
+        vecs = np.ascontiguousarray(self.vectors(), dtype=np.int32)
+        simps, starts, num_fans, status, _ = _grow4d(vecs, only_fine=only_fine)
+
+        if status != 0:
+            raise RuntimeError(f"grow4d failed with status {status}")
+        if verbosity >= 1:
+            print(f"grow4d found {num_fans} triangulations")
+
+        # the kernel indexes rows of `vecs`; Fan wants labels
+        labels = np.asarray(self.labels)
+
+        out = []
+        for i in range(num_fans):
+            cones = labels[simps[starts[i]:starts[i + 1]]].tolist()
+            f = fan.Fan(self, cones)
+            if only_regular and not f.is_regular():
+                continue
+            out.append(f)
+
+        if verbosity >= 1 and only_regular:
+            print(f"...of which {len(out)} are regular")
+
+        return out
+
+    def all_triangulations(
+        self,
+        only_fine: bool = False,
+        only_regular: bool = True,
+        backend: str = "grow4d",
+        verbosity: int = 0
+    ) -> list[Fan]:
+        """
+        Generate all triangulations of this vector configuration.
+
+        Two backends are available. "grow4d" (the default) grows every
+        triangulation directly, simplex by simplex with backtracking, so it
+        sees all of them. "flips" instead walks the flip graph from some
+        regular triangulation.
+
+        NOTE: the "flips" backend might, in theory, miss an irregular
+        triangulation that is disconnected from the regular triangulations.
 
         Such irregular triangulations exist (see "A Point Set Whose Space of
         Triangulations is Disconnected" by Santos) but are likely exceedingly
@@ -995,6 +1074,13 @@ class VectorConfiguration:
             Whether to restrict to fine triangulations. Defaults to False.
         only_regular : bool, optional
             Whether to restrict to regular triangulations. Defaults to True.
+            The "grow4d" backend enumerates every triangulation and then
+            discards the irregular ones, so this does not save it any work.
+        backend : str, optional
+            Either "grow4d" (default) or "flips". "grow4d" falls back to
+            "flips", with a warning, on a configuration it cannot handle:
+            one that is not totally cyclic, or has more than 64 vectors, or
+            has ambient dimension above 6.
         verbosity : int, optional
             The verbosity level. Higher is more verbose. Defaults to 0.
 
@@ -1003,6 +1089,20 @@ class VectorConfiguration:
         out : list[Fan]
             A list of Fan objects, one for each triangulation of the VC.
         """
+        if backend not in ("grow4d", "flips"):
+            raise ValueError(f"Unknown backend {backend!r}; expected "
+                             "'grow4d' or 'flips'")
+
+        if backend == "grow4d":
+            why_not = self._grow4d_applies()
+            if why_not is None:
+                return self._all_triangulations_grow4d(
+                    only_fine=only_fine, only_regular=only_regular,
+                    verbosity=verbosity
+                )
+            warnings.warn(f"all_triangulations: falling back to the 'flips' "
+                          f"backend because {why_not}")
+
         G, triangs, labs = self.flip_graph(
             only_fine=only_fine, only_regular=only_regular, verbosity=verbosity
         )

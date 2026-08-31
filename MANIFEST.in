@@ -1,0 +1,1 @@
+recursive-include src/regfans *.pyx *.pxd *.h *.pyi
