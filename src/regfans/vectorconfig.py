@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from .fan import Fan
 
 # local imports
-from . import circuits, fan, util
+from . import circuits, fan, secondary, util
 
 
 class VectorConfiguration:
@@ -161,6 +161,12 @@ class VectorConfiguration:
         self._circuits = circuits.Circuits()
         self._computed_all_circuits = False
         self._refinements = {}
+
+        # caches keyed by frozensets of labels, both of quantities that
+        # depend only on which vectors are involved and not on the fan asking.
+        # See `wall_normal` and `spans`.
+        self._wall_normals = {}
+        self._spans = {}
 
         self._poly = {}
 
@@ -677,6 +683,85 @@ class VectorConfiguration:
             self._gale = B.T
             return self._gale
 
+    def spans(self, labels: Iterable[int]) -> bool:
+        """
+        Whether the vectors with the given labels span the ambient space.
+
+        Like `wall_normal`, this depends only on which labels are given, so it
+        is cached on the configuration rather than recomputed by every fan
+        that happens to contain the same cone.
+
+        Parameters
+        ----------
+        labels : Iterable[int]
+            The labels to check.
+
+        Returns
+        -------
+        out : bool
+            Whether the corresponding vectors are of full rank.
+        """
+        key = frozenset(labels)
+
+        cached = self._spans.get(key)
+        if cached is None:
+            cached = util.is_full_rank(self.vectors(tuple(key)))
+            self._spans[key] = cached
+
+        return cached
+
+    def wall_normal(self, labels: Iterable[int]) -> tuple[int] | None:
+        """
+        The primitive integer dependency among the vectors with the given
+        labels, oriented so that the coefficient of `labels[0]` is positive.
+
+        `labels` must hold ambient_dim+1 labels, whose vectors therefore
+        satisfy at least one linear dependency; this returns it when it is
+        unique, i.e. when the vectors span. The dependency is the normal of
+        the secondary-cone hyperplane that the corresponding wall imposes.
+
+        The result depends only on which labels are given, not on the fan the
+        wall came from, so it is cached on the configuration: the same wall
+        recurs across most triangulations, several thousand times over on a
+        configuration of any size.
+
+        Parameters
+        ----------
+        labels : Iterable[int]
+            The labels spanning the wall, the first of which fixes the sign.
+
+        Returns
+        -------
+        out : tuple[int] | None
+            The dependency, with one coefficient per given label in the given
+            order, or None if the vectors do not span (the dependency is not
+            unique, so no single hyperplane is imposed).
+        """
+        labels = tuple(labels)
+        key = frozenset(labels)
+
+        cached = self._wall_normals.get(key)
+        if cached is None:
+            # canonical order, so every ordering of the same wall hits the
+            # same cache entry
+            canon = tuple(sorted(key))
+            mat = flint.fmpz_mat(self.vectors(canon).T.tolist())
+            basis, nullity = mat.nullspace()
+
+            if nullity != 1:
+                self._wall_normals[key] = False
+                return None
+
+            normal = np.array([int(basis[i, 0]) for i in range(basis.nrows())])
+            normal = normal // np.gcd.reduce(normal)
+            cached = dict(zip(canon, normal.tolist()))
+            self._wall_normals[key] = cached
+        elif cached is False:
+            return None
+
+        out = [cached[lbl] for lbl in labels]
+        return tuple(-c for c in out) if out[0] < 0 else tuple(out)
+
     def project(self, vec: ArrayLike) -> ArrayLike:
         """
         Project down a vector from height-space to chamber-space.
@@ -1023,11 +1108,29 @@ class VectorConfiguration:
         # the kernel indexes rows of `vecs`; Fan wants labels
         labels = np.asarray(self.labels)
 
+        # Regularity one fan at a time rebuilds, per fan, a list of
+        # hyperplanes and a cold LP -- over an enumeration that is hugely
+        # redundant. `secondary.regular_mask` works over the shared set of
+        # hyperplanes instead. It only handles fine fans, since a fan that
+        # omits a vector imposes conditions that are not walls, so the
+        # general case still goes fan by fan.
+        keep = range(num_fans)
+        prescreened = False
+        if only_regular and only_fine and num_fans:
+            keep = np.flatnonzero(
+                secondary.regular_mask(self, simps, starts, verbosity)
+            )
+            prescreened = True
+
         out = []
-        for i in range(num_fans):
+        for i in keep:
             cones = labels[simps[starts[i]:starts[i + 1]]].tolist()
             f = fan.Fan(self, cones)
-            if only_regular and not f.is_regular():
+            if prescreened:
+                # already established, and worth recording so that asking
+                # the fan later does not solve the LP a second time
+                f._is_regular = True
+            elif only_regular and not f.is_regular():
                 continue
             out.append(f)
 

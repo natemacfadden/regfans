@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from regfans import util
 from regfans.vectorconfig import VectorConfiguration
 
 # non-totally-cyclic VC tests
@@ -356,3 +357,49 @@ def test_grow4d_count_only_matches():
     assert status == count_status == 0
     assert num_fans == counted
     assert checksum == count_checksum
+
+
+def test_wall_normal_is_a_dependency_and_signed():
+    """wall_normal returns the dependency, oriented by its first label."""
+    vc = VectorConfiguration(GROW4D_VECS)
+    labels = vc.labels[:4]                       # dim+1 = 4 labels in dim 3
+
+    normal = vc.wall_normal(labels)
+    assert normal is not None
+    assert normal[0] > 0
+
+    # it really is a linear dependency among those vectors
+    combo = sum(c * v for c, v in zip(normal, vc.vectors(labels)))
+    assert np.array_equal(combo, np.zeros(vc.ambient_dim))
+
+    # primitive
+    assert np.gcd.reduce(np.abs(normal)) == 1
+
+    # reordering permutes the coefficients with it, up to the sign convention
+    swapped = vc.wall_normal((labels[1], labels[0]) + tuple(labels[2:]))
+    expected = [normal[1], normal[0]] + list(normal[2:])
+    if expected[0] < 0:
+        expected = [-c for c in expected]
+    assert list(swapped) == expected
+
+
+def test_wall_normal_none_when_not_spanning():
+    """A degenerate set has no unique dependency, so no hyperplane."""
+    vc = VectorConfiguration([[1,0,0], [0,1,0], [0,0,1], [-1,-1,-1],
+                              [2,0,0], [0,2,0], [0,0,2], [-2,-2,-2]])
+    # four labels whose vectors span only a 2-plane, so the dependency among
+    # them is not unique
+    labels = vc.vectors_to_labels([[1,0,0], [2,0,0], [0,1,0], [0,2,0]])
+    assert vc.wall_normal(labels) is None
+
+
+def test_spans_matches_rank():
+    vc = VectorConfiguration(GROW4D_VECS)
+    for cone in vc.triangulate().cones():
+        assert vc.spans(cone) == util.is_full_rank(vc.vectors(cone))
+
+
+def test_secondary_cone_hyperplanes_has_no_duplicate_rows():
+    vc = VectorConfiguration(GROW4D_VECS)
+    H = vc.triangulate().secondary_cone_hyperplanes()
+    assert len(H) == len(set(map(tuple, H.tolist())))
