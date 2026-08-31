@@ -195,3 +195,21 @@ def test_cones_dim_requires_simplicial():
     # ...but requesting faces by dim is not implemented => raises
     with pytest.raises(ValueError):
         sub.cones(dim=2)
+
+
+def test_facets_getter_is_not_aliased():
+    """
+    facets() caches internally but must hand back the caller's own copy:
+    mutating what one call returns cannot affect the next.
+    """
+    vc = VectorConfiguration(_PTS)
+    fan = vc.triangulate()
+
+    first = fan.facets()
+    reference = {f: list(cs) for f, cs in first.items()}
+
+    a_facet = next(iter(first))
+    first[a_facet].append("scribble")
+    first["not a facet"] = []
+
+    assert fan.facets() == reference

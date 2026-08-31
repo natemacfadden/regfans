@@ -437,12 +437,27 @@ class Fan:
         out : dict[tuple[int], list[tuple[int]]]
             A dictionary from facet labels to a list of containing cones.
         """
+        # the caller owns what it gets back, as it always has, so hand out a
+        # copy rather than the cache itself
+        return {f: list(cs) for f, cs in self._facets_map().items()}
+
+    def _facets_map(self) -> dict[tuple[int], list[tuple[int]]]:
+        """
+        The facet map itself, cached.
+
+        The cones are fixed at construction, so this only has to be built
+        once. For internal callers that do not mutate the result; `facets`
+        is the public getter and copies.
+
+        Returns
+        -------
+        out : dict[tuple[int], list[tuple[int]]]
+            A dictionary from facet labels to a list of containing cones.
+        """
         if not self._is_simplicial():
             # the following assumes simplicial cones
             raise NotImplementedError("Not implemented for non-triangulations")
 
-        # the cones are fixed at construction, so this only has to be built
-        # once. The cached dict is returned directly; do not mutate it.
         if self._facets is None:
             # compute the facets as a map from facet labels to containing cones
             facets = {}
@@ -518,7 +533,7 @@ class Fan:
         _cones = {c: hyps for c, hyps in zip(self.cones(), self.cones(as_hyps=1))}
 
         # map from facet labels to containing cone labels
-        _cone_facets = self.facets()
+        _cone_facets = self._facets_map()
 
         # labels of vectors laying in each facet of A
         _A_facets = sorted([
@@ -970,7 +985,7 @@ class Fan:
         # setup
         to_insert = set(self.labels).difference(self.used_labels)
         if facets is None:
-            facets = self.facets()
+            facets = self._facets_map()
             complete_computation = True
         else:
             complete_computation = False
@@ -1702,7 +1717,7 @@ class Fan:
         else:
             if verbosity >= 1:
                 print("Computing facets...")
-            facets = self.facets()
+            facets = self._facets_map()
 
             if verbosity >= 1:
                 print("Computing hyperplanes...")
