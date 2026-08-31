@@ -1,3 +1,6 @@
+import numpy as np
+import pytest
+
 from regfans.vectorconfig import VectorConfiguration
 
 # non-totally-cyclic VC tests
@@ -243,3 +246,113 @@ def test_labels_to_inds_with_offset():
     vc = VectorConfiguration(_PTS)
     assert vc.labels_to_inds(1, offset=1) == 1
     assert vc.labels_to_inds([1, 2], offset=1) == (1, 2)
+
+
+# grow4d backend
+# --------------
+# the 8 vertices of a cube, as a vector configuration: 64 fine triangulations
+# and 166 in total, enough to truncate, and in dimension 3 rather than 4
+GROW4D_VECS = np.ascontiguousarray(
+    [[1,1,1], [1,1,-1], [1,-1,1], [1,-1,-1],
+     [-1,1,1], [-1,1,-1], [-1,-1,1], [-1,-1,-1]], dtype=np.int32)
+
+
+def test_all_triangulations_backends_agree():
+    """The grow4d and flips backends must return the same triangulations."""
+    vc = VectorConfiguration(GROW4D_VECS)
+
+    for only_fine in (True, False):
+        for only_regular in (True, False):
+            g = vc.all_triangulations(only_fine=only_fine,
+                                      only_regular=only_regular,
+                                      backend="grow4d")
+            f = vc.all_triangulations(only_fine=only_fine,
+                                      only_regular=only_regular,
+                                      backend="flips")
+            assert {frozenset(t.cones()) for t in g} == \
+                   {frozenset(t.cones()) for t in f}
+
+
+def test_all_triangulations_unknown_backend():
+    vc = VectorConfiguration([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],
+                              [-1,-1,-1,-1]])
+    with pytest.raises(ValueError):
+        vc.all_triangulations(backend="nonesuch")
+
+
+def test_all_triangulations_falls_back_to_flips():
+    """A non-totally-cyclic VC has no complete fan, so grow4d must not run."""
+    vc = VectorConfiguration([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+    assert vc._grow4d_applies() is not None
+
+    with pytest.warns(UserWarning, match="falling back"):
+        got = vc.all_triangulations(backend="grow4d")
+    assert {frozenset(t.cones()) for t in got} == \
+           {frozenset(t.cones()) for t in vc.all_triangulations(backend="flips")}
+
+
+def test_grow4d_is_seed_invariant():
+    """
+    The RNG only feeds the sampling stage, which is a shortcut for deciding
+    that two cones overlap, never the authority on it. Undecided pairs fall
+    through to an exact test, so the fans found must not depend on the seed.
+    """
+    from regfans.grow4d import grow4d
+
+    vecs = GROW4D_VECS
+
+    checksums = {grow4d(vecs, seed=sd)[4] for sd in (0, 1, 2, 12345)}
+    assert len(checksums) == 1
+
+
+def test_grow4d_respects_labels():
+    """The kernel indexes rows; the cones handed back must be in labels."""
+    vecs = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1],[-1,-1,-1,-1]]
+    labels = [10, 20, 30, 40, 50]
+    vc = VectorConfiguration(vecs, labels=labels)
+
+    triangs = vc.all_triangulations(backend="grow4d")
+    assert triangs
+    for t in triangs:
+        for cone in t.cones():
+            assert set(cone).issubset(labels)
+
+
+def test_grow4d_truncation():
+    """Hitting a cap gives status -5 and a still-sliceable partial result."""
+    from regfans.grow4d import grow4d
+
+    vecs = GROW4D_VECS
+
+    full, full_starts, num_full, status, _ = grow4d(vecs)
+    assert status == 0
+    assert num_full > 5
+
+    simps, starts, num_fans, status, _ = grow4d(
+        vecs, max_num_simps=10**6, max_num_fans=5)
+    assert status == -5
+    assert num_fans == 5
+
+    # the closing sentinel must still be written, or the last fan's slice
+    # would run off the end of the buffer
+    assert starts[-1] == len(simps)
+
+    # and every fan returned must be a genuine fan, not a partial complex
+    everything = {frozenset(map(tuple, full[full_starts[i]:full_starts[i+1]]))
+                  for i in range(num_full)}
+    for i in range(num_fans):
+        assert frozenset(map(tuple, simps[starts[i]:starts[i+1]])) in everything
+
+
+def test_grow4d_count_only_matches():
+    """Counting and materializing must agree, on both count and checksum."""
+    from regfans.grow4d import grow4d
+
+    vecs = GROW4D_VECS
+
+    simps, starts, num_fans, status, checksum = grow4d(vecs)
+    counted, count_status, count_checksum = grow4d(vecs, count_only=True)
+
+    assert status == count_status == 0
+    assert num_fans == counted
+    assert checksum == count_checksum

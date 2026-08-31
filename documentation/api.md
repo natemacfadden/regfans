@@ -622,14 +622,19 @@ out : Fan
 ```python
 def all_triangulations(only_fine: bool = False,
                        only_regular: bool = True,
+                       backend: str = "grow4d",
                        verbosity: int = 0) -> list[Fan]
 ```
 
-Generate all triangulations of this vector configuration via taking
-flips from some regular triangulation.
+Generate all triangulations of this vector configuration.
 
-NOTE: In theory, this might miss an irregular triangulation that is
-disconnected from the regular triangulations.
+Two backends are available. "grow4d" (the default) grows every
+triangulation directly, simplex by simplex with backtracking, so it
+sees all of them. "flips" instead walks the flip graph from some
+regular triangulation.
+
+NOTE: the "flips" backend might, in theory, miss an irregular
+triangulation that is disconnected from the regular triangulations.
 
 Such irregular triangulations exist (see "A Point Set Whose Space of
 Triangulations is Disconnected" by Santos) but are likely exceedingly
@@ -651,6 +656,13 @@ only_fine : bool, optional
     Whether to restrict to fine triangulations. Defaults to False.
 only_regular : bool, optional
     Whether to restrict to regular triangulations. Defaults to True.
+    The "grow4d" backend enumerates every triangulation and then
+    discards the irregular ones, so this does not save it any work.
+backend : str, optional
+    Either "grow4d" (default) or "flips". "grow4d" falls back to
+    "flips", with a warning, on a configuration it cannot handle:
+    one that is not totally cyclic, or has more than 64 vectors, or
+    has ambient dimension above 6.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.
 
