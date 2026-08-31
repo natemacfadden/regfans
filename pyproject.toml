@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=61", "cython", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,7 +20,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Cython",
+    "Programming Language :: C",
 ]
 dependencies = [
     "python-flint",
