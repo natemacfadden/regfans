@@ -39,6 +39,11 @@ Or via pip (see also [PyPI listing](https://pypi.org/project/regfans/)):
 pip install regfans
 ```
 
+**Note:** `regfans` now ships a C extension (the `grow4d` triangulation
+backend), so installing from source needs a C compiler. Wheels carry it
+prebuilt. Set `REGFANS_NATIVE=1` before `pip install -e .` to tune the build
+to the local CPU, which is faster but not portable to other machines.
+
 **Note:** Most methods require dual cone computation via [pplpy](https://pypi.org/project/pplpy/). On macOS and Linux x86_64, `pip install` pulls a prebuilt pplpy wheel automatically (no system libraries needed). On other platforms (Windows, or ARM/musl Linux on older Pythons) there is no wheel and pip falls back to a source build that needs the ppl/gmp C libraries; the conda environment supplies those reliably.
 
 ## Tests
@@ -107,6 +112,8 @@ regfans/
 │   ├── vectorconfig.py   # VectorConfiguration class: triangulations, flip graph, VC properties
 │   ├── fan.py            # Fan class: triangulation of a vector configuration
 │   ├── circuits.py       # Circuit and Circuits classes
+│   ├── grow4d.pyx        # Cython wrapper for the grow4d enumeration backend
+│   ├── grow4d.h          # header-only C kernel: all fans by growth + backtracking
 │   └── util.py           # shared utilities for vector configuration computations
 ├── tests/
 │   ├── test_vectorconfig.py   # tests for VectorConfiguration
@@ -119,6 +126,7 @@ regfans/
 ├── documentation/
 │   ├── api.md                 # full API reference
 │   └── clean_api.py           # script to generate api.md
+├── setup.py                   # builds the grow4d C extension
 └── pyproject.toml
 ```
 
