@@ -162,6 +162,12 @@ class VectorConfiguration:
         self._computed_all_circuits = False
         self._refinements = {}
 
+        # caches keyed by frozensets of labels, both of quantities that
+        # depend only on which vectors are involved and not on the fan asking.
+        # See `wall_normal` and `spans`.
+        self._wall_normals = {}
+        self._spans = {}
+
         self._poly = {}
 
         self._flip_graphs = {}
@@ -676,6 +682,85 @@ class VectorConfiguration:
         else:
             self._gale = B.T
             return self._gale
+
+    def spans(self, labels: Iterable[int]) -> bool:
+        """
+        Whether the vectors with the given labels span the ambient space.
+
+        Like `wall_normal`, this depends only on which labels are given, so it
+        is cached on the configuration rather than recomputed by every fan
+        that happens to contain the same cone.
+
+        Parameters
+        ----------
+        labels : Iterable[int]
+            The labels to check.
+
+        Returns
+        -------
+        out : bool
+            Whether the corresponding vectors are of full rank.
+        """
+        key = frozenset(labels)
+
+        cached = self._spans.get(key)
+        if cached is None:
+            cached = util.is_full_rank(self.vectors(tuple(key)))
+            self._spans[key] = cached
+
+        return cached
+
+    def wall_normal(self, labels: Iterable[int]) -> tuple[int] | None:
+        """
+        The primitive integer dependency among the vectors with the given
+        labels, oriented so that the coefficient of `labels[0]` is positive.
+
+        `labels` must hold ambient_dim+1 labels, whose vectors therefore
+        satisfy at least one linear dependency; this returns it when it is
+        unique, i.e. when the vectors span. The dependency is the normal of
+        the secondary-cone hyperplane that the corresponding wall imposes.
+
+        The result depends only on which labels are given, not on the fan the
+        wall came from, so it is cached on the configuration: the same wall
+        recurs across most triangulations, several thousand times over on a
+        configuration of any size.
+
+        Parameters
+        ----------
+        labels : Iterable[int]
+            The labels spanning the wall, the first of which fixes the sign.
+
+        Returns
+        -------
+        out : tuple[int] | None
+            The dependency, with one coefficient per given label in the given
+            order, or None if the vectors do not span (the dependency is not
+            unique, so no single hyperplane is imposed).
+        """
+        labels = tuple(labels)
+        key = frozenset(labels)
+
+        cached = self._wall_normals.get(key)
+        if cached is None:
+            # canonical order, so every ordering of the same wall hits the
+            # same cache entry
+            canon = tuple(sorted(key))
+            mat = flint.fmpz_mat(self.vectors(canon).T.tolist())
+            basis, nullity = mat.nullspace()
+
+            if nullity != 1:
+                self._wall_normals[key] = False
+                return None
+
+            normal = np.array([int(basis[i, 0]) for i in range(basis.nrows())])
+            normal = normal // np.gcd.reduce(normal)
+            cached = dict(zip(canon, normal.tolist()))
+            self._wall_normals[key] = cached
+        elif cached is False:
+            return None
+
+        out = [cached[lbl] for lbl in labels]
+        return tuple(-c for c in out) if out[0] < 0 else tuple(out)
 
     def project(self, vec: ArrayLike) -> ArrayLike:
         """

@@ -108,6 +108,8 @@ class Fan:
         # ---------------------------
         self._used_labels = None
         self._labels_to_cones = None
+        self._facets = None
+        self._simplicial = None
 
         self._is_regular = None
 
@@ -439,16 +441,20 @@ class Fan:
             # the following assumes simplicial cones
             raise NotImplementedError("Not implemented for non-triangulations")
 
-        # compute the facets as a map from facet labels to containing cones
-        facets = {}
-        for cone_labels in self.cones():
-            # any subset of #(dim-1) rays defines a facet
-            for cc in itertools.combinations(cone_labels, r=self.dim - 1):
-                # store each facet as a key in a dictionary
-                # store containing solid cones as the associated value(s)
-                facets[cc] = facets.get(cc, []) + [cone_labels]
+        # the cones are fixed at construction, so this only has to be built
+        # once. The cached dict is returned directly; do not mutate it.
+        if self._facets is None:
+            # compute the facets as a map from facet labels to containing cones
+            facets = {}
+            for cone_labels in self.cones():
+                # any subset of #(dim-1) rays defines a facet
+                for cc in itertools.combinations(cone_labels, r=self.dim - 1):
+                    # store each facet as a key in a dictionary
+                    # store containing solid cones as the associated value(s)
+                    facets[cc] = facets.get(cc, []) + [cone_labels]
+            self._facets = facets
 
-        return facets
+        return self._facets
 
     # basic properties
     # ================
@@ -631,12 +637,14 @@ class Fan:
         out : bool
             True if all cones are simplices. False otherwise.
         """
-        for c in self.cones():
-            if len(c) != self.dim:
-                return False
-            if not util.is_full_rank(self.vectors(which=c)):
-                return False
-        return True
+        if self._simplicial is None:
+            self._simplicial = True
+            for c in self.cones():
+                if len(c) != self.dim or not self.vc.spans(c):
+                    self._simplicial = False
+                    break
+
+        return self._simplicial
 
     def is_triangulation(self) -> bool:
         """
@@ -1720,16 +1728,21 @@ class Fan:
 
             # local folding
             # -------------
-            for f in facets:
+            # resolve these once rather than per wall: the generic getters
+            # cost more than the exact arithmetic they feed
+            label_to_ind = self.vc.labels_to_inds_dict
+            n_vecs = self.vc.size
+
+            for f, containing in facets.items():
                 if verbosity >= 2:
                     print(f"Computing hyperplanes associated to facet {f}...")
                 # "MaxMP" - non-bdry facet must be shared by two maximal cells
-                if len(facets[f]) != 2:
+                if len(containing) != 2:
                     # bdry facet
                     continue
 
                 # define objects s.t. non-shared vectors are separated
-                c1, c2 = facets[f]
+                c1, c2 = containing
 
                 only_c1 = [i for i in c1 if i not in f][0]
                 only_c2 = [i for i in c2 if i not in f][0]
@@ -1739,35 +1752,30 @@ class Fan:
                 if verbosity >= 2:
                     print(f"('circuit' = {circ})")
 
-                # compute the normal
-                A = self.vectors(circ).T.tolist()
-                X, nullity = flint.fmpz_mat(A).nullspace()
-                if nullity != 1:
+                # the normal depends only on which labels span the wall, so
+                # it is computed once per wall and cached on the VC, not
+                # recomputed for every fan containing that wall
+                normal = self.vc.wall_normal(circ)
+                if normal is None:
                     continue
-                normal = np.array([int(X[i, 0]) for i in range(X.nrows())])
-                normal = normal//np.gcd.reduce(normal)
-
-                # set the sign of the normal
-                if normal[0] < 0:
-                    normal *= -1
-
-                normal = tuple(normal.tolist())
 
                 if verbosity >= 2:
                     print(f"(n_small = {normal})")
 
                 # compute/save normal
-                n = [0] * self.vc.size
+                n = [0] * n_vecs
                 for ind, label in enumerate(circ):
-                    n[self.vc.label_to_ind(label)] = normal[ind]
+                    n[label_to_ind[label]] = normal[ind]
 
                 if verbosity >= 2:
                     print(f"(n_full = {n})")
 
                 H.append(n)
 
-        # return
-        return np.array(H).reshape(-1, self.vc.size)
+        # return. Walls of a fan can impose the same hyperplane twice, and
+        # duplicate rows only make downstream cone computations slower
+        H = np.array(H).reshape(-1, self.vc.size)
+        return np.unique(H, axis=0) if len(H) else H
 
 # misc utilities
 # --------------
