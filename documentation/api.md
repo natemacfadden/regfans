@@ -2576,29 +2576,9 @@ out : bool
 
 Bulk regularity testing for a whole enumeration at once.
 
-Testing each triangulation on its own means rebuilding, per fan, a list of
-hyperplanes and a fresh LP. Over an enumeration that is enormously
-redundant: at 13 rays, 13579 fans draw their walls from 229 distinct
-label sets and their secondary-cone hyperplanes from 191 distinct rows.
-This module works over that fixed universe instead.
-
-Three things make it fast:
-
-1. Walls come straight out of the enumerator's arrays, found by sorting
-   rather than by asking each fan for its facets.
-2. Each fan is then just a set of row indices into one shared matrix,
-   held as a bitset.
-3. Irregularity is inherited. If some rows of the shared matrix are
-   positively dependent then ANY fan containing all of them is
-   irregular, by Gordan's theorem -- the dependency is a certificate of
-   infeasibility, and padding it with zeros certifies the larger system
-   too. Every infeasible LP hands one back (its Farkas dual ray), so
-   after a while most irregular fans are settled by a bitmask test
-   rather than an LP. Regularity does NOT transfer this way, and cannot:
-   if one fan's rows are a subset of another's then its cone contains
-   the other's, and distinct triangulations have interior-disjoint
-   secondary cones, so the two fans coincide. Every regular fan is paid
-   for with its own LP.
+Fans in an enumeration share most of their walls: on the cube, 64 fans have
+1152 walls but only 24 distinct hyperplanes. `regular_mask` works over that
+shared set, with one warm-started LP, rather than a fresh one per fan.
 
 <a id="secondary.walls"></a>
 
