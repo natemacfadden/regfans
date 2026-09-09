@@ -38,15 +38,16 @@ def grow4d(int[:, ::1] pts,
            bint only_fine = True,
            bint count_only = False) -> tuple:
     """
-    Enumerate every complete simplicial fan on the vector configuration
+    Enumerate every simplicial fan supported on the vector configuration
     ``pts`` by growth with backtracking, exhaustively and without flips.
 
     Every such fan is found, including irregular ones and any lying in a
     component of the flip graph disconnected from the regular fans -- the
     case ``VectorConfiguration.all_triangulations`` cannot rule out.
 
-    The configuration must positively span the ambient space (be totally
-    cyclic); otherwise no fan is complete and the result is empty.
+    Totally cyclic gives the complete fans; acyclic (a homogenized point
+    configuration) gives that configuration's triangulations. The support
+    must be full-dimensional either way.
 
     Parameters
     ----------

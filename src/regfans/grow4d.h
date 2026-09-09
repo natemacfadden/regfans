@@ -4,27 +4,33 @@
 
 /*
 **Description:**
-Exhaustively enumerates every fine complete simplicial fan on a vector
+Exhaustively enumerates every simplicial fan supported on a vector
 configuration. The C counterpart of grow4d.py, and the exhaustive counterpart
 of grow2d.
 
-grow2d grows ONE triangulation: from a random unimodular triangle, repeatedly
-select an exterior edge (used by only 1 simplex), scan the points and take the
-FIRST whose triangle satisfies the intersection property. It fails (-4) if some
+Totally cyclic gives the complete fans; acyclic (a homogenized point
+configuration) gives that configuration's triangulations. Only the support's
+boundary is detected, so the cases between work too.
+
+grow2d grows one triangulation: from a random unimodular triangle, repeatedly
+select an exterior edge (used by only 1 simplex), scan the points and take
+the first whose triangle satisfies the intersection property. It fails (-4) if some
 exterior edge admits no point.
 
 grow4d runs that same loop as a branch-and-backtrack:
-    1) seed on every simplex containing a fixed point p. A complete fan covers
-       space and its simplices meet only along faces, so p lies interior to
-       EXACTLY ONE simplex of any fan -- hence this reaches every fan once,
-       with no loop over initial simplices,
-    2) select an exterior face, f, used by only 1 simplex (fewest live
-       candidates first),
-    3) iterate over the points, RECURSING on every point whose simplex {f, pt}
-       satisfies the intersection property,
+    1) seed on every simplex containing a fixed point p interior to the
+       support. A fan covers its support and its simplices meet only along
+       faces, so p lies interior to exactly one simplex of any fan: every
+       fan is reached once, with no loop over initial simplices,
+    2) select an exterior face, f, used by only 1 simplex and not on the
+       boundary of the support (fewest live candidates first),
+    3) iterate over the points, recursing on every point whose simplex
+       {f, pt} satisfies the intersection property,
     4) if some exterior face admits no point, backtrack (grow2d returns -4),
-    5) record when no exterior faces remain: a complete fan has no boundary, so
-       every face ends used exactly twice.
+    5) record when no exterior face is left: every interior face is then used
+       twice and every boundary face once, which is what covering the support
+       means. Totally cyclic configurations have no boundary face, so this is
+       the old "every face used exactly twice".
 Fineness is checked on the completed complex: every point used by some simplex.
 
 **Intersection property.** Cheap in 2D, the bottleneck in 4D, so precomputed
@@ -131,6 +137,9 @@ typedef struct {
     uint64_t *conflict;     // num_cands x words bitset: may not coexist
     int       words;        // bitset words per simplex
     uint8_t  *used;         // num_faces -> current use count (0, 1 or 2)
+    uint8_t  *is_bdry;      // num_faces -> face lies on the support boundary
+    uint64_t *pt_cands;     // num_pts x words bitset: candidates using a point
+    uint64_t  all_pts;      // every point, as a mask
     int      *stack;        // current complex, as simplex indices
     // output
     int       max_num_simps;  // capacity of simps_out, in rows
@@ -296,17 +305,8 @@ static int corner_feasible(const double *A, int dim,
    by no simplex -- grow2d's "doesn't cover any other points" in another
    guise. The checksum sums per-complex FNV hashes of the sorted simplex
    indices, so it does not depend on the order complexes are found in. */
-static void record(Ctx *ctx, int depth) {
-    if (ctx->only_fine) {
-        uint64_t seen = 0;
-        for (int i = 0; i < depth; i++) {
-            int s = ctx->stack[i];
-            for (int j = 0; j < ctx->dim; j++)
-                seen |= 1ULL << ctx->simps[s * ctx->dim + j];
-        }
-        for (int p = 0; p < ctx->num_pts; p++)
-            if (!((seen >> p) & 1ULL)) return;
-    }
+static void record(Ctx *ctx, int depth, uint64_t used_pts) {
+    if (ctx->only_fine && used_pts != ctx->all_pts) return;
 
     int *sorted = (int *)malloc(sizeof(int) * depth);
     memcpy(sorted, ctx->stack, sizeof(int) * depth);
@@ -351,16 +351,38 @@ static void record(Ctx *ctx, int depth) {
 
 // GROWTH
 // ------
-/* grow2d selects an exterior edge, scans the points and takes the FIRST whose
-   triangle fits. Here every point that fits is recursed on, and a face with no
+/* grow2d selects an exterior edge, scans the points and takes the first
+   whose triangle fits. Here every point that fits is recursed on, and a face with no
    candidate backtracks rather than returning -4. Faces are forward-checked, so
    a dead branch is cut at the first unsatisfiable face rather than later. */
-static void grow(Ctx *ctx, int depth, uint64_t *live) {
+static void grow(Ctx *ctx, int depth, uint64_t *live, uint64_t used_pts) {
     if (ctx->overflow) return;
+
+    /* Fineness forward check. A point no cell uses yet can only be picked up
+       by a candidate that is still live, so if some unused point has none, no
+       extension of this complex is fine and the whole branch is dead. Without
+       this the fineness test only happens at record(), i.e. after the branch
+       has been walked to the end: `only_fine` would cost the full enumeration
+       and merely report less of it. */
+    if (ctx->only_fine) {
+        uint64_t missing = ctx->all_pts & ~used_pts;
+        while (missing) {
+            int p = __builtin_ctzll(missing);
+            missing &= missing - 1;
+
+            const uint64_t *pc = ctx->pt_cands + (size_t)p * ctx->words;
+            int reachable = 0;
+            for (int w = 0; w < ctx->words; w++)
+                if (live[w] & pc[w]) { reachable = 1; break; }
+            if (!reachable) return;
+        }
+    }
+
     int best_face = -1, best_num = 1 << 30;
 
     for (int f = 0; f < ctx->num_faces; f++) {
         if (ctx->used[f] != 1) continue;        // not exterior
+        if (ctx->is_bdry[f]) continue;          // on the support boundary: done
 
         int n = 0;
         for (int t = 0; t < ctx->face_count[f]; t++)
@@ -370,7 +392,7 @@ static void grow(Ctx *ctx, int depth, uint64_t *live) {
         if (n < best_num) { best_num = n; best_face = f; }
     }
 
-    if (best_face < 0) { record(ctx, depth); return; }   // no exterior faces
+    if (best_face < 0) { record(ctx, depth, used_pts); return; }  // none left
 
     uint64_t *next_live = (uint64_t *)malloc(sizeof(uint64_t) * ctx->words);
     for (int t = 0; t < ctx->face_count[best_face]; t++) {
@@ -378,8 +400,11 @@ static void grow(Ctx *ctx, int depth, uint64_t *live) {
         if (!get_bit(live, k)) continue;
 
         int ok = 1;
-        for (int j = 0; j < ctx->dim; j++)
-            if (ctx->used[ctx->simp_faces[k * ctx->dim + j]] >= 2) { ok = 0; break; }
+        for (int j = 0; j < ctx->dim; j++) {
+            int fj = ctx->simp_faces[k * ctx->dim + j];
+            // an interior face is shared by two cells, a boundary face by one
+            if (ctx->used[fj] >= (ctx->is_bdry[fj] ? 1 : 2)) { ok = 0; break; }
+        }
         if (!ok) continue;
 
         for (int j = 0; j < ctx->dim; j++) ctx->used[ctx->simp_faces[k * ctx->dim + j]]++;
@@ -388,8 +413,12 @@ static void grow(Ctx *ctx, int depth, uint64_t *live) {
             next_live[w] = live[w] & ~ctx->conflict[(size_t)k * ctx->words + w];
         clear_bit(next_live, k);
 
+        uint64_t next_used = used_pts;
+        for (int j = 0; j < ctx->dim; j++)
+            next_used |= 1ULL << ctx->simps[k * ctx->dim + j];
+
         ctx->stack[depth] = k;
-        grow(ctx, depth + 1, next_live);
+        grow(ctx, depth + 1, next_live, next_used);
 
         for (int j = 0; j < ctx->dim; j++)
             ctx->used[ctx->simp_faces[k * ctx->dim + j]]--;
@@ -453,27 +482,39 @@ static double *build_normals(const Ctx *ctx, const int *pts) {
     return H;
 }
 
-/* The (dim-1)-subsets, and which simplices carry each. */
-static void build_faces(Ctx *ctx) {
-    int d = ctx->dim, n = ctx->num_pts;
+/* The (dim-1)-subsets, and which simplices carry each.
 
-    int *fid = (int *)malloc(sizeof(int) * (size_t)n * n * n);
-    for (size_t i = 0; i < (size_t)n * n * n; i++) fid[i] = -1;
+   A face is identified by the bitmask of its labels, which is exact for every
+   dim <= MAXD: num_pts <= 64, so the mask is one uint64. (Indexing a dense
+   array by the labels themselves only works when a face has exactly 3 of
+   them, i.e. dim 4, and would need num_pts^5 slots at dim 6.) The masks go in
+   an open-addressed table; a face always has at least one label, so a zero
+   mask means the slot is empty. */
+static void build_faces(Ctx *ctx) {
+    int d = ctx->dim;
+
+    size_t want = (size_t)ctx->num_cands * d * 2;         // load factor <= 1/2
+    size_t slots = 1;
+    while (slots < want) slots <<= 1;
+    uint64_t *hkey = (uint64_t *)calloc(slots, sizeof(uint64_t));
+    int      *hval = (int *)malloc(sizeof(int) * slots);
 
     ctx->num_faces = 0;
     ctx->simp_faces = (int *)malloc(sizeof(int) * (size_t)ctx->num_cands * d);
 
     for (int k = 0; k < ctx->num_cands; k++)
         for (int drop = 0; drop < d; drop++) {
-            int f[MAXD], m = 0;
+            uint64_t mask = 0;
             for (int i = 0; i < d; i++)
-                if (i != drop) f[m++] = ctx->simps[k * d + i];
+                if (i != drop) mask |= 1ULL << ctx->simps[k * d + i];
 
-            size_t key = ((size_t)f[0] * n + f[1]) * n + f[2];
-            if (fid[key] < 0) fid[key] = ctx->num_faces++;
-            ctx->simp_faces[k * d + drop] = fid[key];
+            size_t s = (size_t)((mask * 0x9E3779B97F4A7C15ULL) >> 40)
+                       & (slots - 1);
+            while (hkey[s] && hkey[s] != mask) s = (s + 1) & (slots - 1);
+            if (!hkey[s]) { hkey[s] = mask; hval[s] = ctx->num_faces++; }
+            ctx->simp_faces[k * d + drop] = hval[s];
         }
-    free(fid);
+    free(hkey); free(hval);
 
     ctx->face_count = (int *)calloc(ctx->num_faces, sizeof(int));
     for (int k = 0; k < ctx->num_cands; k++)
@@ -490,6 +531,52 @@ static void build_faces(Ctx *ctx) {
             ctx->face_simps[f][fill[f]++] = k;
         }
     free(fill);
+}
+
+/* For each point, the candidates that use it. The forward check in grow()
+   asks whether a point it still needs is reachable from what is left live. */
+static void build_pt_cands(Ctx *ctx) {
+    ctx->pt_cands = (uint64_t *)calloc((size_t)ctx->num_pts * ctx->words,
+                                       sizeof(uint64_t));
+    for (int k = 0; k < ctx->num_cands; k++)
+        for (int i = 0; i < ctx->dim; i++) {
+            int pt = ctx->simps[k * ctx->dim + i];
+            ctx->pt_cands[(size_t)pt * ctx->words + (k >> 6)] |= 1ULL << (k & 63);
+        }
+}
+
+/* Which faces lie on the boundary of the support.
+
+   The face opposite ray i of simplex k spans a hyperplane whose normal is row
+   i of that simplex's inverse, already computed and oriented so ray i is
+   positive. The face is on the boundary of the support exactly when that
+   hyperplane supports the whole configuration, i.e. no point sits strictly on
+   the far side. Such a face is used once by a triangulation, not twice.
+
+   A totally cyclic configuration has trivial dual cone, so no hyperplane
+   supports it and no face comes back as boundary, leaving the growth below
+   exactly the complete-fan enumeration it was. */
+static void build_boundary(Ctx *ctx, const int *pts, const double *H) {
+    int d = ctx->dim;
+    ctx->is_bdry = (uint8_t *)calloc((size_t)ctx->num_faces, sizeof(uint8_t));
+    uint8_t *done = (uint8_t *)calloc((size_t)ctx->num_faces, sizeof(uint8_t));
+
+    for (int k = 0; k < ctx->num_cands; k++)
+        for (int i = 0; i < d; i++) {
+            int f = ctx->simp_faces[k * d + i];
+            if (done[f]) continue;
+            done[f] = 1;
+
+            int bdry = 1;
+            for (int m = 0; m < ctx->num_pts && bdry; m++) {
+                double v = 0.0;
+                for (int j = 0; j < d; j++)
+                    v += H[((size_t)k * d + i) * d + j] * pts[m * d + j];
+                if (v < -TOL) bdry = 0;
+            }
+            ctx->is_bdry[f] = (uint8_t)bdry;
+        }
+    free(done);
 }
 
 /* The pairwise intersection property, in the three stages above. */
@@ -599,24 +686,44 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
     uint64_t rng_state[4], sm = seed;
     for (int i = 0; i < 4; i++) rng_state[i] = splitmix64(&sm);
 
+    /* Sample directions inside the support. A random positive combination of
+       the input vectors lies in the cone they generate, which is the
+       support: all of R^dim when the configuration is totally cyclic, a
+       pointed cone when it is not. A gaussian would do for the former but
+       lands outside the latter almost every time, leaving the seed loop
+       below with no simplex.
+       Normalised because only the direction matters, these being cones, and a
+       short vector would push the dot products below TOL. */
     double *samples = (double *)malloc(sizeof(double) * (size_t)num_samples * dim);
-    for (int t = 0; t < num_samples * dim; t++) {          // Box-Muller
-        double u1 = (next(rng_state) >> 11) * 0x1.0p-53;
-        double u2 = (next(rng_state) >> 11) * 0x1.0p-53;
-        if (u1 < 1e-300) u1 = 1e-300;
-        samples[t] = sqrt(-2.0 * log(u1)) * cos(6.283185307179586 * u2);
+    for (int t = 0; t < num_samples; t++) {
+        double *smp = samples + (size_t)t * dim;
+        for (int j = 0; j < dim; j++) smp[j] = 0.0;
+
+        for (int m = 0; m < num_pts; m++) {
+            double c = (next(rng_state) >> 11) * 0x1.0p-53;
+            for (int j = 0; j < dim; j++) smp[j] += c * pts[m * dim + j];
+        }
+
+        double nrm = 0.0;
+        for (int j = 0; j < dim; j++) nrm += smp[j] * smp[j];
+        nrm = sqrt(nrm);
+        if (nrm > 0.0) for (int j = 0; j < dim; j++) smp[j] /= nrm;
     }
 
     build_conflicts(&ctx, pts, H, samples, num_samples);
     build_faces(&ctx);
+    build_boundary(&ctx, pts, H);
+    build_pt_cands(&ctx);
+
+    ctx.all_pts = (num_pts == 64) ? ~0ULL : ((1ULL << num_pts) - 1);
 
     ctx.used  = (uint8_t *)calloc(ctx.num_faces, sizeof(uint8_t));
     ctx.stack = (int *)malloc(sizeof(int) * ctx.num_cands);
 
-    /* Seed on the simplices containing the first sample point. A complete fan
-       covers space and its simplices meet only along faces, so that point is
-       interior to exactly one simplex of any fan: every fan is reached once,
-       with no loop over initial simplices. */
+    /* Seed on the simplices containing the first sample point. That point is
+       interior to the support, which every fan covers with simplices meeting
+       only along faces, so it is interior to exactly one simplex of any fan:
+       every fan is reached once, with no loop over initial simplices. */
     uint64_t *live = (uint64_t *)malloc(sizeof(uint64_t) * ctx.words);
     int num_seeds = 0;
 
@@ -635,9 +742,12 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
             live[w] = ~ctx.conflict[(size_t)k * ctx.words + w];
         clear_bit(live, k);
 
+        uint64_t used_pts = 0;
+        for (int j = 0; j < dim; j++) used_pts |= 1ULL << ctx.simps[k * dim + j];
+
         for (int j = 0; j < dim; j++) ctx.used[ctx.simp_faces[k * dim + j]]++;
         ctx.stack[0] = k;
-        grow(&ctx, 1, live);
+        grow(&ctx, 1, live, used_pts);
         for (int j = 0; j < dim; j++) ctx.used[ctx.simp_faces[k * dim + j]]--;
     }
 
@@ -655,6 +765,7 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
     free(ctx.simps); free(ctx.simp_faces); free(ctx.face_count);
     for (int f = 0; f < ctx.num_faces; f++) free(ctx.face_simps[f]);
     free(ctx.face_simps); free(ctx.conflict); free(ctx.used); free(ctx.stack);
+    free(ctx.is_bdry); free(ctx.pt_cands);
 
     if (ctx.overflow) return -5;
     return num_seeds ? 0 : -3;

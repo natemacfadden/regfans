@@ -724,7 +724,7 @@ only_regular : bool, optional
 backend : str, optional
     Either "grow4d" (default) or "flips". "grow4d" falls back to
     "flips", with a warning, on a configuration it cannot handle:
-    one that is not totally cyclic, or has more than 64 vectors, or
+    one that is not full-dimensional, or has more than 64 vectors, or
     has ambient dimension above 6.
 verbosity : int, optional
     The verbosity level. Higher is more verbose. Defaults to 0.

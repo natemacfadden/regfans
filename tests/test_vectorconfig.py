@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pytest
 
@@ -282,14 +284,68 @@ def test_all_triangulations_unknown_backend():
 
 
 def test_all_triangulations_falls_back_to_flips():
-    """A non-totally-cyclic VC has no complete fan, so grow4d must not run."""
-    vc = VectorConfiguration([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+    """A VC past the kernel's dimension cap must fall back, not fail."""
+    vc = VectorConfiguration(np.eye(7, dtype=int))
     assert vc._grow4d_applies() is not None
 
     with pytest.warns(UserWarning, match="falling back"):
         got = vc.all_triangulations(backend="grow4d")
     assert {frozenset(t.cones()) for t in got} == \
            {frozenset(t.cones()) for t in vc.all_triangulations(backend="flips")}
+
+
+# point configurations
+# --------------------
+# An acyclic VC is a homogenized point configuration, so its triangulations are
+# that point configuration's. grow4d handles these too: it stops at a complex
+# whose only unmatched faces lie on the boundary of the support, which for a
+# totally cyclic VC is no face at all and gives the complete fans as before.
+POINT_CONFIGS = {
+    # (points, #triangulations, #fine). Both counts are in De Loera, Rambau
+    # and Santos, "Triangulations"
+    "unit square":  ([(0,0),(1,0),(0,1),(1,1)], 2, 2),
+    "3x3 grid":     ([(i,j) for i in range(3) for j in range(3)], 387, 64),
+    "unit 3-cube":  (list(itertools.product([0,1], repeat=3)), 74, 74),
+}
+
+
+@pytest.mark.parametrize("name", sorted(POINT_CONFIGS))
+def test_point_configuration_counts(name):
+    """grow4d must reproduce the known triangulation counts."""
+    pts, n_all, n_fine = POINT_CONFIGS[name]
+    vc = VectorConfiguration([list(p) + [1] for p in pts])
+    assert vc._grow4d_applies() is None          # handled, not fallen back
+
+    assert len(vc.all_triangulations(only_regular=False)) == n_all
+    assert len(vc.all_triangulations(only_regular=False,
+                                     only_fine=True)) == n_fine
+
+
+@pytest.mark.parametrize("name", sorted(POINT_CONFIGS))
+def test_point_configuration_backends_agree(name):
+    """On a point configuration the two backends must still agree."""
+    pts = POINT_CONFIGS[name][0]
+    vc = VectorConfiguration([list(p) + [1] for p in pts])
+
+    for only_fine in (True, False):
+        for only_regular in (True, False):
+            g = vc.all_triangulations(only_fine=only_fine,
+                                      only_regular=only_regular,
+                                      backend="grow4d")
+            f = vc.all_triangulations(only_fine=only_fine,
+                                      only_regular=only_regular,
+                                      backend="flips")
+            assert {frozenset(t.cones()) for t in g} == \
+                   {frozenset(t.cones()) for t in f}
+
+
+def test_point_configuration_is_a_triangulation():
+    """Every fan grow4d reports on a point configuration must be valid."""
+    pts, _, __ = POINT_CONFIGS["unit 3-cube"]
+    vc = VectorConfiguration([list(p) + [1] for p in pts])
+
+    for f in vc.all_triangulations(only_regular=False, only_fine=True):
+        assert f.is_valid()
 
 
 def test_grow4d_is_seed_invariant():
@@ -300,10 +356,26 @@ def test_grow4d_is_seed_invariant():
     """
     from regfans.grow4d import grow4d
 
-    vecs = GROW4D_VECS
-
-    checksums = {grow4d(vecs, seed=sd)[4] for sd in (0, 1, 2, 12345)}
+    checksums = {grow4d(GROW4D_VECS, seed=sd)[4] for sd in (0, 1, 2, 12345)}
     assert len(checksums) == 1
+
+
+@pytest.mark.parametrize("name", sorted(POINT_CONFIGS))
+def test_grow4d_is_seed_invariant_on_point_configs(name):
+    """
+    Seeding must not depend on the draw either. The seed point is a random
+    positive combination of the vectors, so it lands inside the support rather
+    than anywhere in space. On a pointed support a gaussian would almost
+    always miss, leaving nothing to grow from.
+    """
+    from regfans.grow4d import grow4d
+
+    pts = POINT_CONFIGS[name][0]
+    vecs = np.ascontiguousarray([list(p) + [1] for p in pts], dtype=np.int32)
+
+    out = {grow4d(vecs, seed=sd)[2:5] for sd in (0, 1, 2, 7, 12345, 999983)}
+    assert len(out) == 1                     # same count, status and checksum
+    assert out.pop()[1] == 0                 # and that status is success
 
 
 def test_grow4d_respects_labels():

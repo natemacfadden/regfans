@@ -1067,10 +1067,6 @@ class VectorConfiguration:
         """
         if not self.is_solid():
             return "the configuration is not full-dimensional"
-        if not self.is_totally_cyclic():
-            # grow4d only terminates a branch when no exterior face is left,
-            # so it only ever finds complete fans
-            return "the configuration is not totally cyclic, so no fan is complete"
         if self.size > 64:
             return f"the kernel supports at most 64 vectors, not {self.size}"
         if self.ambient_dim > 6:
@@ -1185,7 +1181,7 @@ class VectorConfiguration:
         backend : str, optional
             Either "grow4d" (default) or "flips". "grow4d" falls back to
             "flips", with a warning, on a configuration it cannot handle:
-            one that is not totally cyclic, or has more than 64 vectors, or
+            one that is not full-dimensional, or has more than 64 vectors, or
             has ambient dimension above 6.
         verbosity : int, optional
             The verbosity level. Higher is more verbose. Defaults to 0.
