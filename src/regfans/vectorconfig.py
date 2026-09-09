@@ -103,6 +103,10 @@ class VectorConfiguration:
         if np.issubdtype(self._vectors.dtype, np.integer):
             # vectors are of an integral type... automatically OK
             pass
+        elif (self._vectors.dtype == object and self._vectors.size and
+              all(isinstance(x, int) for x in self._vectors.flat)):
+            # python ints... numpy falls back to object dtype past int64
+            pass
         else:
             # vectors are not obviously integral... check them
             rounded_vecs = np.rint(self._vectors)
@@ -112,8 +116,15 @@ class VectorConfiguration:
                 self._vectors = rounded_vecs.astype(int)
 
         # delete origin if it's included
-        norms = np.linalg.norm(self._vectors, ord=1, axis=1)
-        small_norm = np.where(norms < 0.5)[0]
+        if self._vectors.dtype == object:
+            # np.linalg.norm cannot take object arrays; sum |entries| exactly
+            norms = np.array([sum(abs(int(x)) for x in row)
+                              for row in self._vectors], dtype=object)
+            small_norm = np.array([i for i, v in enumerate(norms) if v == 0],
+                                  dtype=int)
+        else:
+            norms = np.linalg.norm(self._vectors, ord=1, axis=1)
+            small_norm = np.where(norms < 0.5)[0]
 
         if len(small_norm):
             warnings.warn(
@@ -162,9 +173,7 @@ class VectorConfiguration:
         self._computed_all_circuits = False
         self._refinements = {}
 
-        # caches keyed by frozensets of labels, both of quantities that
-        # depend only on which vectors are involved and not on the fan asking.
-        # See `wall_normal` and `spans`.
+        # caches keyed by frozensets of labels... see `spans`, `wall_normal`
         self._wall_normals = {}
         self._spans = {}
 
@@ -643,9 +652,8 @@ class VectorConfiguration:
         A = self.vectors().T.tolist()
         B, nullity = flint.fmpz_mat(A).nullspace()
 
-        # map to a numpy array; the fast int64 path covers the common case,
-        # falling back to exact python ints only when the d x d minors
-        # exceed int64 (large coordinates), which would otherwise overflow
+        # entries of B are d x d minors, unreduced (the gcd division is
+        # below), so they can exceed int64 even when the coordinates do not
         rows = B.tolist()
         try:
             B = np.array(rows, dtype=np.int64)
@@ -1060,10 +1068,8 @@ class VectorConfiguration:
         if not self.is_solid():
             return "the configuration is not full-dimensional"
         if not self.is_totally_cyclic():
-            # grow4d stops when no exterior face is left, i.e. it enumerates
-            # COMPLETE fans. Without total cyclicity none exist and it would
-            # quietly return nothing rather than the triangulations of the
-            # support that the flip backend gives
+            # grow4d only terminates a branch when no exterior face is left,
+            # so it only ever finds complete fans
             return "the configuration is not totally cyclic, so no fan is complete"
         if self.size > 64:
             return f"the kernel supports at most 64 vectors, not {self.size}"
@@ -1108,12 +1114,10 @@ class VectorConfiguration:
         # the kernel indexes rows of `vecs`; Fan wants labels
         labels = np.asarray(self.labels)
 
-        # Regularity one fan at a time rebuilds, per fan, a list of
-        # hyperplanes and a cold LP -- over an enumeration that is hugely
-        # redundant. `secondary.regular_mask` works over the shared set of
-        # hyperplanes instead. It only handles fine fans, since a fan that
-        # omits a vector imposes conditions that are not walls, so the
-        # general case still goes fan by fan.
+        # bulk regularity over the whole enumeration at once. Fine only: an
+        # unused vector imposes an insertion/deletion hyperplane, which is not
+        # an interior facet, so `secondary.walls` never yields it and the LP
+        # would pass some irregular fans
         keep = range(num_fans)
         prescreened = False
         if only_regular and only_fine and num_fans:
@@ -1127,8 +1131,7 @@ class VectorConfiguration:
             cones = labels[simps[starts[i]:starts[i + 1]]].tolist()
             f = fan.Fan(self, cones)
             if prescreened:
-                # already established, and worth recording so that asking
-                # the fan later does not solve the LP a second time
+                # regular_mask already ran the LP; prime the cache
                 f._is_regular = True
             elif only_regular and not f.is_regular():
                 continue
@@ -1346,8 +1349,6 @@ class VectorConfiguration:
                 try:
                     t = self.triangulate(heights=h, backend=backend)
                 except sp.spatial.QhullError:
-                    # degenerate random height (no valid triangulation); skip it --
-                    # informational only, expected during random sampling
                     if verbosity >= 1:
                         print(f"QHull error for heights = {h}... :( skipping!")
                     continue

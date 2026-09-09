@@ -206,10 +206,7 @@ def first_hit(
     if first_hit_ind == -1:
         return None, None
 
-    # first-hit parameter solving H[first_hit_ind] @ lerp(p0, p1, t) == 0,
-    # i.e. t = -Hp0/(Hp1 - Hp0)... H is exact (integer), so for rational p0/p1
-    # this ratio is exact, but here p0/p1 are floating-point heights, so this
-    # division is the one inexact step in an otherwise exact pipeline
+    # t = -Hp0/(Hp1-Hp0), i.e. H[first_hit_ind] @ lerp(p0,p1,t) = 0
     first_hit_dist = -Hp0[first_hit_ind]/(Hp1[first_hit_ind]-Hp0[first_hit_ind])
 
     return first_hit_ind, first_hit_dist
@@ -309,7 +306,14 @@ def cone_dim(*, R: ArrayLike = None, H: ArrayLike = None) -> int:
     else:
         R = np.array(R)
 
-    # return
+    # exact rank if integral... matrix_rank thresholds singular values at
+    # max(shape)*eps*sigma_max, so it drops one on a homogenised config with
+    # coordinates near 10**14 (sigma_max ~ 10**14, threshold ~ 0.1)
+    if R.size and (np.issubdtype(R.dtype, np.integer) or
+                   (R.dtype == object and
+                    all(isinstance(x, int) for x in R.flat))):
+        return int(flint.fmpz_mat(np.asarray(R).T.tolist()).rank())
+
     return np.linalg.matrix_rank(R.T)
 
 def is_full_rank(R: ArrayLike) -> bool:

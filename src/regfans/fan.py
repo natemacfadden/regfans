@@ -437,8 +437,7 @@ class Fan:
         out : dict[tuple[int], list[tuple[int]]]
             A dictionary from facet labels to a list of containing cones.
         """
-        # the caller owns what it gets back, as it always has, so hand out a
-        # copy rather than the cache itself
+        # copy... _facets_map hands back the live `self._facets` cache
         return {f: list(cs) for f, cs in self._facets_map().items()}
 
     def _facets_map(self) -> dict[tuple[int], list[tuple[int]]]:
@@ -497,29 +496,22 @@ class Fan:
         """
         # preconditions (see the assumptions in the docstring)
         # ----------------------------------------------------
-        # solid (full-dimensional) configuration: required by the IPP witness
-        # and the support-facet boundary test below.
+        # solid: else IPP has no interior point to pick, and support() gives
+        # just the orthogonal complement, so every facet looks exterior
         if not self.vc.is_solid():
             raise NotImplementedError(
                 "is_valid is only implemented for solid (full-dimensional) "
                 "vector configurations."
             )
 
-        # triangulations only: cones with more than dim rays are subdivisions,
-        # for which MaxAdjLP is unimplemented.
         if any(len(c) > self.dim for c in self.cones()):
             raise NotImplementedError(
                 "is_valid is only implemented for triangulations; a cone has "
                 "more than dim rays (a subdivision)."
             )
 
-        # every maximal cell must be a genuine full-dimensional simplex, i.e.
-        # exactly `self.dim` linearly independent rays. A cone that is
-        # rank-deficient (or has too few rays) is degenerate, so the collection
-        # cannot be a valid fan.
-        # (config is solid, so each `dim`-ray simplex is a square matrix and
-        # the independence test below is an exact `det != 0` invertibility
-        # check rather than a rank computation)
+        # every maximal cell must be `dim` independent rays. Solid, so this is
+        # square and `is_full_rank` is a det, not a rank
         for c in self.cones():
             if len(c) != self.dim or \
                     not util.is_full_rank(self.vectors(which=c)):
@@ -562,11 +554,8 @@ class Fan:
                 return False
 
         # MaxAdjHP
-        # Only facet-adjacent maximal cells need checking (cor. 4.5.13). Each
-        # interior facet is shared by exactly two cones and gives one such pair,
-        # so iterate the facets rather than all O(#cones^2) cone pairs (a vector
-        # in many cones, e.g. the origin, otherwise makes almost every pair
-        # vertex-adjacent).
+        # only facet-adjacent cells need checking (cor. 4.5.13), so iterate
+        # facets, not all O(#cones^2) pairs
         if verbosity >= 1:
             print("Checking MaxAdjHP...")
         for f, containing in _cone_facets.items():
@@ -591,10 +580,7 @@ class Fan:
                 return False
 
         # MaxAdjLP
-        # No-op: MaxAdjLP is trivially satisfied for triangulations (the
-        # intersection of independent simplices is always a common face). The
-        # preconditions above already guaranteed every cone is a genuine
-        # simplex and rejected subdivisions, so there is nothing to check.
+        # no-op for triangulations (see the docstring)
         if verbosity >= 1:
             print("Checking MaxAdjLP...")
 
@@ -1518,8 +1504,7 @@ class Fan:
                     assert util.contains(p=h_next, H=sc_curr)
                     h_curr = h_next
             except Exception as e:
-                # build a diagnostic with a runnable reproduction recipe; guard
-                # its construction so a missing local can't mask the real error
+                # h_next/next_hit_normal may be unbound, so guard the diagnostic
                 try:
                     dists = sc_curr@h_next
                     i = np.argmin(dists)
@@ -1743,8 +1728,7 @@ class Fan:
 
             # local folding
             # -------------
-            # resolve these once rather than per wall: the generic getters
-            # cost more than the exact arithmetic they feed
+            # hoist out of the wall loop below
             label_to_ind = self.vc.labels_to_inds_dict
             n_vecs = self.vc.size
 
@@ -1767,9 +1751,6 @@ class Fan:
                 if verbosity >= 2:
                     print(f"('circuit' = {circ})")
 
-                # the normal depends only on which labels span the wall, so
-                # it is computed once per wall and cached on the VC, not
-                # recomputed for every fan containing that wall
                 normal = self.vc.wall_normal(circ)
                 if normal is None:
                     continue
@@ -1787,8 +1768,7 @@ class Fan:
 
                 H.append(n)
 
-        # return. Walls of a fan can impose the same hyperplane twice, and
-        # duplicate rows only make downstream cone computations slower
+        # return... two walls can impose the same hyperplane
         H = np.array(H).reshape(-1, self.vc.size)
         return np.unique(H, axis=0) if len(H) else H
 

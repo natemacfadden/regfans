@@ -2,29 +2,9 @@
 """
 Bulk regularity testing for a whole enumeration at once.
 
-Testing each triangulation on its own means rebuilding, per fan, a list of
-hyperplanes and a fresh LP. Over an enumeration that is enormously
-redundant: at 13 rays, 13579 fans draw their walls from 229 distinct
-label sets and their secondary-cone hyperplanes from 191 distinct rows.
-This module works over that fixed universe instead.
-
-Three things make it fast:
-
-1. Walls come straight out of the enumerator's arrays, found by sorting
-   rather than by asking each fan for its facets.
-2. Each fan is then just a set of row indices into one shared matrix,
-   held as a bitset.
-3. Irregularity is inherited. If some rows of the shared matrix are
-   positively dependent then ANY fan containing all of them is
-   irregular, by Gordan's theorem -- the dependency is a certificate of
-   infeasibility, and padding it with zeros certifies the larger system
-   too. Every infeasible LP hands one back (its Farkas dual ray), so
-   after a while most irregular fans are settled by a bitmask test
-   rather than an LP. Regularity does NOT transfer this way, and cannot:
-   if one fan's rows are a subset of another's then its cone contains
-   the other's, and distinct triangulations have interior-disjoint
-   secondary cones, so the two fans coincide. Every regular fan is paid
-   for with its own LP.
+Fans in an enumeration share most of their walls: on the cube, 64 fans have
+1152 walls but only 24 distinct hyperplanes. `regular_mask` works over that
+shared set, with one warm-started LP, rather than a fresh one per fan.
 """
 from __future__ import annotations
 
@@ -75,9 +55,7 @@ def walls(simps: np.ndarray, fan_starts: np.ndarray, dim: int) -> tuple:
     # which fan each simplex belongs to
     fan_of = np.repeat(np.arange(num_fans), np.diff(fan_starts))
 
-    # every facet of every simplex, as (simplex mask minus one vertex).
-    # Working in bitmasks keeps a facet a single integer, so the grouping
-    # below is a sort rather than a dictionary.
+    # every facet of every simplex, as (simplex mask minus one vertex)
     simp_mask = np.bitwise_or.reduce(np.int64(1) << simps, axis=1)
     facet = simp_mask[:, None] ^ (np.int64(1) << simps)      # (num_simps, dim)
     opp = simps                                              # opposite vertex
@@ -86,15 +64,14 @@ def walls(simps: np.ndarray, fan_starts: np.ndarray, dim: int) -> tuple:
     opp = (np.int64(1) << opp).ravel()
     owner = np.repeat(fan_of, dim)
 
-    # sort so that the two occurrences of a shared facet land side by side.
-    # One combined key beats lexsort's two passes, and both parts are small:
-    # the facet mask spans the labels, of which there are at most 64
+    # sort so the two occurrences of a shared facet land side by side.
+    # `stable` is load-bearing: the input is fan-major, so a fan's occurrences
+    # stay contiguous even where the owner term overflows int64 (>=63 labels)
     order = np.argsort(owner * (np.int64(1) << np.int64(simps.max() + 1))
                        + facet, kind="stable")
     facet, opp, owner = facet[order], opp[order], owner[order]
 
-    # a facet used twice within one fan is a wall; used once, it is on the
-    # boundary. A complete fan has no boundary, but this does not assume so
+    # a facet used twice within one fan is a wall; used once, it is boundary
     shared = (facet[:-1] == facet[1:]) & (owner[:-1] == owner[1:])
     idx = np.flatnonzero(shared)
 
@@ -153,9 +130,8 @@ def _hyperplanes(vc, wall_masks: np.ndarray, apex_masks: np.ndarray) -> tuple:
         mask, apex = int(key) >> n_lbl, int(key) & ((1 << n_lbl) - 1)
         spanning = [labels[i] for i in range(len(labels)) if (mask >> i) & 1]
 
-        # orient by an apex: the two apexes always sit on the same side of
-        # the dependency, so either fixes the same sign, and the lower one
-        # makes the choice deterministic
+        # orient by an apex: both apexes have the same sign in the dependency,
+        # so either fixes the orientation; the lower one is deterministic
         first = next(labels[i] for i in range(len(labels)) if (apex >> i) & 1)
         spanning.remove(first)
         spanning = (first,) + tuple(spanning)
@@ -219,9 +195,7 @@ def regular_mask(vc,
     if verbosity >= 1:
         print(f"{num_fans} fans over {num_rows} distinct hyperplanes")
 
-    # every wall's row, without a dictionary lookup per wall: the walls
-    # collapse to a few hundred distinct (mask, apex) pairs, so look those up
-    # and let the inverse index carry the answer back to every occurrence
+    # map each wall to its row via the distinct (mask, apex) pairs
     n_lbl = len(vc.labels)
     keys = _wall_keys(wall_masks, apex_masks, n_lbl)
     uniq, inv = np.unique(keys, return_inverse=True)
@@ -244,14 +218,12 @@ def regular_mask(vc,
 
     fan_rows = [np.flatnonzero(r) for r in incidence]
 
-    # one LP, reused: rows are switched in and out by their bounds, so the
-    # basis carries over from the previous fan rather than starting cold
+    # one LP, reused across fans, so the basis stays warm
     inf = highspy.kHighsInf
     lp = highspy.Highs()
     if verbosity < 2:
         lp.silent()
-    # the problems are tiny and solved thousands of times over; presolving
-    # each one costs more than it saves, and it discards the warm basis
+    # presolve would discard the warm basis
     lp.setOptionValue("presolve", "off")
     lp.addVars(dim, np.full(dim, -inf), np.full(dim, inf))
     starts = (np.arange(num_rows) * dim).astype(np.int32)
@@ -266,8 +238,8 @@ def regular_mask(vc,
     n_skipped = 0
 
     for i in range(num_fans):
-        # inherited irregularity: any cached dependency sitting inside this
-        # fan's rows already proves it infeasible
+        # positively dependent rows make any fan containing them infeasible
+        # (Gordan), so a cached certificate settles this one without an LP
         if len(certs) and np.any(np.all((certs & fan_bits[i]) == certs, axis=1)):
             n_skipped += 1
             continue
@@ -288,8 +260,7 @@ def regular_mask(vc,
             out[i] = True
             continue
 
-        # infeasible: keep the Farkas ray's support, which certifies every
-        # fan that contains those rows
+        # infeasible: the ray's support certifies any fan containing those rows
         _, exists, ray = lp.getDualRay()
         if exists:
             y = np.abs(np.asarray(ray, dtype=float))
