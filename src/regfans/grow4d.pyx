@@ -28,6 +28,20 @@ cdef extern from "grow4d.h":
         uint64_t * hash_out
     )
 
+    int _grow4d_alloc_c "grow4d_alloc" (
+        int * pts,
+        int num_pts,
+        int dim,
+        int num_samples,
+        uint64_t seed,
+        int only_fine,
+        uint32_t ** simps,
+        int ** fan_starts,
+        int * num_simps,
+        uint64_t * num_fans,
+        uint64_t * hash_out
+    )
+
 # Python-exposed wrapper
 # ----------------------
 def grow4d(int[:, ::1] pts,
@@ -56,9 +70,9 @@ def grow4d(int[:, ::1] pts,
         in dimension at most 6.
     max_num_simps : int, optional
         Size of the output buffer, in simplices summed over all fans.
-        Defaults to -1, which runs a counting pass first and then allocates
-        exactly. That costs a second enumeration, so pass a bound when one
-        is known. Exceeding it returns status -5.
+        Defaults to -1, which lets the kernel allocate and grow its own
+        buffer, so the enumeration runs once. Give a bound only to cap the
+        memory; exceeding it then returns status -5.
     max_num_fans : int, optional
         Maximum number of fans to materialize. Defaults to -1, as above.
         Exceeding it returns status -5.
@@ -121,22 +135,24 @@ def grow4d(int[:, ::1] pts,
                            &num_simps, &num_fans, &checksum)
         return int(num_fans), status, int(checksum)
 
-    # size the buffers exactly, at the cost of enumerating twice
+    cdef uint32_t *g_simps = NULL
+    cdef int *g_starts = NULL
+
+    # no size given: let the kernel grow its own buffers, so the enumeration
+    # runs once rather than once to count and again to fill
     if max_num_simps < 0 or max_num_fans < 0:
-        status = _grow4d_c(pts_ptr, num_pts, dim, num_samples, seed,
-                           1 if only_fine else 0, 0, NULL, 0, NULL,
-                           &num_simps, &num_fans, &checksum)
-        if status != 0:
-            return (np.empty((0, dim), dtype=np.uint32),
-                    np.zeros(1, dtype=np.int32), 0, status, int(checksum))
-        # the counting pass tallies both, so the buffers are sized exactly
-        if max_num_fans < 0:
-            max_num_fans = int(num_fans)
-        if max_num_simps < 0:
-            max_num_simps = int(num_simps)
-        num_fans = 0
-        checksum = 0
-        num_simps = 0
+        status = _grow4d_alloc_c(pts_ptr, num_pts, dim, num_samples, seed,
+                                 1 if only_fine else 0, &g_simps, &g_starts,
+                                 &num_simps, &num_fans, &checksum)
+        try:
+            if status != 0:
+                return (np.empty((0, dim), dtype=np.uint32),
+                        np.zeros(1, dtype=np.int32), 0, status, int(checksum))
+            return _copy_out(g_simps, g_starts, num_simps, num_fans, dim,
+                             status, checksum)
+        finally:
+            free(g_simps)
+            free(g_starts)
 
     if max_num_fans <= 0 or max_num_simps <= 0:
         raise ValueError("max_num_simps and max_num_fans must be positive")
@@ -160,7 +176,16 @@ def grow4d(int[:, ::1] pts,
                        max_num_fans, c_starts, &num_simps, &num_fans,
                        &checksum)
 
-    # copy out of the C buffers, then hand back numpy's own memory
+    out = _copy_out(c_simps, c_starts, num_simps, num_fans, dim,
+                    status, checksum)
+    free(c_simps)
+    free(c_starts)
+    return out
+
+
+cdef _copy_out(uint32_t *c_simps, int *c_starts, int num_simps,
+               uint64_t num_fans, int dim, int status, uint64_t checksum):
+    """Copy the kernel's buffers into numpy's own memory, trimmed to size."""
     simps = np.empty((num_simps, dim), dtype=np.uint32)
     starts = np.empty(num_fans + 1, dtype=np.int32)
 
@@ -177,8 +202,5 @@ def grow4d(int[:, ::1] pts,
     starts_view = starts
     for i in range(<int>num_fans + 1):
         starts_view[i] = c_starts[i]
-
-    free(c_simps)
-    free(c_starts)
 
     return simps, starts, int(num_fans), status, int(checksum)

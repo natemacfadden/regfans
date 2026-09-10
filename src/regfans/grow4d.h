@@ -80,6 +80,13 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
            int max_num_fans, int *fan_starts, int *num_simps,
            uint64_t *num_fans, uint64_t *hash_out);
 
+/* As above, but the kernel allocates `simps` and `fan_starts` and grows them
+   as it goes, so the enumeration runs once instead of twice. The caller frees
+   both. */
+int grow4d_alloc(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
+                 int only_fine, uint32_t **simps, int **fan_starts,
+                 int *num_simps, uint64_t *num_fans, uint64_t *hash_out);
+
 #ifdef GROW4D_IMPLEMENTATION
 
 #include <math.h>
@@ -142,6 +149,7 @@ typedef struct {
     uint64_t  all_pts;      // every point, as a mask
     int      *stack;        // current complex, as simplex indices
     // output
+    int       auto_grow;      // grow the buffers rather than overflow
     int       max_num_simps;  // capacity of simps_out, in rows
     int       max_num_fans;   // capacity of fan_starts, minus the sentinel
     uint32_t *simps_out;      // OUTPUT: fans back to back; NULL to only count
@@ -193,6 +201,48 @@ static double det_mat(const double *A, int n) {
         }
     }
     return det;
+}
+
+/* Solve A x = (1, ..., 1) by Gaussian elimination with partial pivoting.
+   Returns 0 if A is singular, leaving x untouched. */
+static int solve_ones(const double *A, int n, double *x) {
+    double M[MAXD * (MAXD + 1)];
+    int w = n + 1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) M[i * w + j] = A[i * n + j];
+        M[i * w + n] = 1.0;
+    }
+
+    for (int c = 0; c < n; c++) {
+        int piv = -1;
+        double best = 0.0;
+        for (int r = c; r < n; r++) {
+            double v = fabs(M[r * w + c]);
+            if (v > best) { best = v; piv = r; }
+        }
+        if (piv < 0 || best < 1e-12) return 0;
+
+        if (piv != c)
+            for (int j = c; j < w; j++) {
+                double t = M[c * w + j];
+                M[c * w + j] = M[piv * w + j];
+                M[piv * w + j] = t;
+            }
+
+        for (int r = c + 1; r < n; r++) {
+            double f = M[r * w + c] / M[c * w + c];
+            if (f != 0.0)
+                for (int j = c; j < w; j++) M[r * w + j] -= f * M[c * w + j];
+        }
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        double v = M[i * w + n];
+        for (int j = i + 1; j < n; j++) v -= M[i * w + j] * x[j];
+        x[i] = v / M[i * w + i];
+    }
+    return 1;
 }
 
 static int inv_mat(const double *A, int n, double *out) {
@@ -271,21 +321,21 @@ static int shares_sample(const uint64_t *member, int sample_words,
    dim of the 2*dim inequalities exact. Checking all C(2*dim, dim) choices
    therefore decides it, with no solver. */
 static int corner_feasible(const double *A, int dim,
-                           const int (*corners)[MAXD], int num_corners) {
-    for (int c = 0; c < num_corners; c++) {
-        double S[MAXD * MAXD], Sinv[MAXD * MAXD], x[MAXD];
+                           const int (*corners)[MAXD], int num_corners,
+                           int *hint) {
+    /* Consecutive pairs are usually feasible at the same corner, so start from
+       the one that worked last. On a hit that turns a scan of a few hundred
+       corners into one solve; on a miss it costs a single extra attempt. */
+    for (int t = 0; t < num_corners; t++) {
+        int c = (t == 0) ? *hint : (t <= *hint ? t - 1 : t);
+        double S[MAXD * MAXD], x[MAXD];
 
         for (int i = 0; i < dim; i++)
             for (int j = 0; j < dim; j++)
                 S[i * dim + j] = A[corners[c][i] * dim + j];
 
-        if (fabs(det_mat(S, dim)) <= 1e-12)  continue;
-        if (!inv_mat(S, dim, Sinv))          continue;
-
-        for (int i = 0; i < dim; i++) {
-            x[i] = 0.0;
-            for (int j = 0; j < dim; j++) x[i] += Sinv[i * dim + j];
-        }
+        /* the corner is the x with S x = 1; singularity falls out of a pivot */
+        if (!solve_ones(S, dim, x)) continue;
 
         int good = 1;
         for (int r = 0; r < 2 * dim && good; r++) {
@@ -293,7 +343,7 @@ static int corner_feasible(const double *A, int dim,
             for (int j = 0; j < dim; j++) v += A[r * dim + j] * x[j];
             if (v < 1.0 - FTOL) good = 0;
         }
-        if (good) return 1;
+        if (good) { *hint = c; return 1; }
     }
     return 0;
 }
@@ -325,10 +375,32 @@ static void record(Ctx *ctx, int depth, uint64_t used_pts) {
     /* Write the fan out, sorted, as `depth` rows of dim point indices. The
        row where it starts is fan_starts[num_fans]; the matching end is
        written by the next fan, or by the sentinel once enumeration stops.
-       Either capacity running out sets `overflow`, which unwinds grow(). */
-    if (ctx->simps_out || ctx->fan_starts) {
-        if (ctx->num_fans >= (uint64_t)ctx->max_num_fans ||
-            ctx->num_simps + depth > ctx->max_num_simps) {
+       A fixed buffer running short sets `overflow`, which unwinds grow(); a
+       grown one is enlarged here instead. */
+    if (ctx->auto_grow || ctx->simps_out || ctx->fan_starts) {
+        if (ctx->auto_grow) {
+            /* how many fans there are is not known until they are found, so
+               grow rather than make the caller enumerate twice to size this.
+               Doubling, so the copying amortises. */
+            if (ctx->num_fans >= (uint64_t)ctx->max_num_fans) {
+                int want = ctx->max_num_fans ? ctx->max_num_fans * 2 : 4096;
+                int *nf = (int *)realloc(ctx->fan_starts,
+                                         ((size_t)want + 1) * sizeof(int));
+                if (!nf) { ctx->overflow = 1; free(sorted); return; }
+                ctx->fan_starts = nf;
+                ctx->max_num_fans = want;
+            }
+            if (ctx->num_simps + depth > ctx->max_num_simps) {
+                int want = ctx->max_num_simps ? ctx->max_num_simps * 2 : 65536;
+                while (want < ctx->num_simps + depth) want *= 2;
+                uint32_t *nsp = (uint32_t *)realloc(
+                    ctx->simps_out, (size_t)want * ctx->dim * sizeof(uint32_t));
+                if (!nsp) { ctx->overflow = 1; free(sorted); return; }
+                ctx->simps_out = nsp;
+                ctx->max_num_simps = want;
+            }
+        } else if (ctx->num_fans >= (uint64_t)ctx->max_num_fans ||
+                   ctx->num_simps + depth > ctx->max_num_simps) {
             ctx->overflow = 1;
             free(sorted);
             return;
@@ -466,7 +538,13 @@ static int build_simplices(Ctx *ctx, const int *pts) {
     return 1;
 }
 
-/* Row i of the inverse of a simplex's ray matrix is its i-th facet normal. */
+/* Row i of the inverse of a simplex's ray matrix is its i-th facet normal.
+
+   The rows are normalised: unscaled they go as 1/det, so with large
+   coordinates the fixed TOL below is far too loose for one simplex and too
+   tight for another, and pairs get misjudged. Every use is a sign test and
+   the corner check is scale-invariant, so this only makes TOL mean one
+   thing. */
 static double *build_normals(const Ctx *ctx, const int *pts) {
     int d = ctx->dim;
     double *H = (double *)malloc(sizeof(double) * (size_t)ctx->num_cands * d * d);
@@ -477,7 +555,16 @@ static double *build_normals(const Ctx *ctx, const int *pts) {
         for (int i = 0; i < d; i++)
             for (int j = 0; j < d; j++)
                 M[j * d + i] = pts[ctx->simps[k * d + i] * d + j];   // rays are columns
-        inv_mat(M, d, H + (size_t)k * d * d);
+        double *Hk = H + (size_t)k * d * d;
+        inv_mat(M, d, Hk);
+
+        for (int i = 0; i < d; i++) {
+            double nrm = 0.0;
+            for (int j = 0; j < d; j++) nrm += Hk[i * d + j] * Hk[i * d + j];
+            nrm = sqrt(nrm);
+            if (nrm > 0.0)
+                for (int j = 0; j < d; j++) Hk[i * d + j] /= nrm;
+        }
     }
     return H;
 }
@@ -632,6 +719,7 @@ static void build_conflicts(Ctx *ctx, const int *pts, const double *H,
         }
     }
 
+    int corner_hint = 0;
     ctx->conflict = (uint64_t *)calloc((size_t)ns * ctx->words, sizeof(uint64_t));
     for (int a = 0; a < ns; a++)
         for (int b = a + 1; b < ns; b++) {
@@ -646,7 +734,7 @@ static void build_conflicts(Ctx *ctx, const int *pts, const double *H,
                         A[(d + i) * d + j] = H[((size_t)b * d + i) * d + j];
                     }
                 hit = corner_feasible(A, d, (const int (*)[MAXD])corners,
-                                      num_corners);
+                                      num_corners, &corner_hint);
             }
 
             if (hit) {
@@ -661,10 +749,13 @@ static void build_conflicts(Ctx *ctx, const int *pts, const double *H,
 
 // ENTRY POINT
 // -----------
-int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
-           int only_fine, int max_num_simps, uint32_t *simps_out,
-           int max_num_fans, int *fan_starts, int *num_simps,
-           uint64_t *num_fans, uint64_t *hash_out) {
+static int grow4d_impl(int *pts, int num_pts, int dim, int num_samples,
+                       uint64_t seed, int only_fine, int auto_grow,
+                       int max_num_simps, uint32_t **simps_ref,
+                       int max_num_fans, int **starts_ref, int *num_simps,
+                       uint64_t *num_fans, uint64_t *hash_out) {
+    uint32_t *simps_out  = simps_ref  ? *simps_ref  : NULL;
+    int      *fan_starts = starts_ref ? *starts_ref : NULL;
     if (num_pts <= 0)  return -1;
     if (num_pts > 64)  return -2;      // the fineness mask is 64-bit
     if (dim > MAXD)    return -2;
@@ -677,6 +768,7 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
     ctx.max_num_fans = max_num_fans;
     ctx.simps_out = simps_out;
     ctx.fan_starts = fan_starts;
+    ctx.auto_grow = auto_grow;
 
     if (!build_simplices(&ctx, pts)) return -2;
 
@@ -761,6 +853,10 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
     *hash_out = ctx.hash;
     if (num_simps) *num_simps = ctx.num_simps;
 
+    /* realloc may have moved them */
+    if (simps_ref)  *simps_ref  = ctx.simps_out;
+    if (starts_ref) *starts_ref = ctx.fan_starts;
+
     free(live); free(H); free(samples);
     free(ctx.simps); free(ctx.simp_faces); free(ctx.face_count);
     for (int f = 0; f < ctx.num_faces; f++) free(ctx.face_simps[f]);
@@ -771,6 +867,42 @@ int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
     return num_seeds ? 0 : -3;
 }
 
+
+
+/* The documented entry point: fixed buffers, status -5 if they run short. */
+int grow4d(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
+           int only_fine, int max_num_simps, uint32_t *simps,
+           int max_num_fans, int *fan_starts, int *num_simps,
+           uint64_t *num_fans, uint64_t *hash_out) {
+    uint32_t *s = simps;
+    int      *f = fan_starts;
+    return grow4d_impl(pts, num_pts, dim, num_samples, seed, only_fine, 0,
+                       max_num_simps, simps ? &s : NULL,
+                       max_num_fans, fan_starts ? &f : NULL,
+                       num_simps, num_fans, hash_out);
+}
+
+/* The allocating entry point. The buffers start small and are grown as fans
+   are found, so the enumeration runs once rather than once to count and again
+   to fill; the caller trims and frees. On any non-zero status the buffers are
+   still returned and must be freed. */
+int grow4d_alloc(int *pts, int num_pts, int dim, int num_samples, uint64_t seed,
+                 int only_fine, uint32_t **simps, int **fan_starts,
+                 int *num_simps, uint64_t *num_fans, uint64_t *hash_out) {
+    *simps = NULL;
+    *fan_starts = NULL;
+    int st = grow4d_impl(pts, num_pts, dim, num_samples, seed, only_fine, 1,
+                         0, simps, 0, fan_starts, num_simps, num_fans,
+                         hash_out);
+
+    /* no fan was recorded, so nothing was ever grown: the closing sentinel
+       still needs a place to live */
+    if (!*fan_starts) {
+        *fan_starts = (int *)calloc(1, sizeof(int));
+        if (!*fan_starts) return -2;
+    }
+    return st;
+}
 
 #endif  /* GROW4D_IMPLEMENTATION */
 #endif  /* GROW4D_H */
